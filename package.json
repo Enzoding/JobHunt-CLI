@@ -2,6 +2,14 @@
   "name": "jobhunt-cli",
   "version": "0.1.0",
   "description": "Search, export, and analyze public company recruitment jobs.",
+  "homepage": "https://github.com/Enzoding/JobHunt-CLI#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Enzoding/JobHunt-CLI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Enzoding/JobHunt-CLI/issues"
+  },
   "type": "module",
   "main": "./index.js",
   "bin": {
