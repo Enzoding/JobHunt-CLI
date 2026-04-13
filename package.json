@@ -1,12 +1,12 @@
 {
-  "name": "hire-cli",
+  "name": "jobhunt-cli",
   "version": "0.1.0",
   "description": "Search, export, and analyze public company recruitment jobs.",
   "type": "module",
   "main": "./index.js",
   "bin": {
-    "hire": "./bin/hire.js",
-    "hire-cli": "./bin/hire.js"
+    "jobs": "./bin/jobs.js",
+    "jobhunt-cli": "./bin/jobs.js"
   },
   "exports": {
     ".": "./index.js",
@@ -38,11 +38,11 @@
     }
   },
   "scripts": {
-    "hire": "node bin/hire.js",
+    "jobs": "node bin/jobs.js",
     "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
     "smoke:didi": "node scripts/smoke-didi-api.js",
     "smoke": "npm run smoke:kuaishou && npm run smoke:didi",
-    "smoke:cli": "node bin/hire.js didi search AI --category 产品 --limit 1 --format json"
+    "smoke:cli": "node bin/jobs.js didi search AI --category 产品 --limit 1 --format json"
   },
   "keywords": [
     "cli",

@@ -31,13 +31,13 @@ export const kuaishouAdapter = {
     const pageSize = coerceLimit(args.limit);
     const result = await fetchJobs(args, pageNum, pageSize);
     const rows = result.list.map(normalizeJob);
-    assertNonEmpty(rows, 'kuaishou search', 'Try a different keyword or inspect filters with `hire kuaishou filters`.');
+    assertNonEmpty(rows, 'kuaishou search', 'Try a different keyword or inspect filters with `jobs kuaishou filters`.');
     return rows;
   },
   async detail(id) {
     const normalizedId = String(id || '').trim();
     if (!/^\d+$/.test(normalizedId)) {
-      throw new ArgumentError('Job id must be numeric', 'Use an id returned by `hire kuaishou search`.');
+      throw new ArgumentError('Job id must be numeric', 'Use an id returned by `jobs kuaishou search`.');
     }
     return normalizeJob(await fetchJobDetail(normalizedId));
   },
@@ -65,7 +65,7 @@ export const kuaishouAdapter = {
       pageNum += 1;
     }
 
-    assertNonEmpty(rows, 'kuaishou all', 'Try fewer filters or inspect filters with `hire kuaishou filters`.');
+    assertNonEmpty(rows, 'kuaishou all', 'Try fewer filters or inspect filters with `jobs kuaishou filters`.');
     return rows;
   },
 };

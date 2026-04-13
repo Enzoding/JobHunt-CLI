@@ -1,6 +1,6 @@
 {
-  "name": "hire-jobs",
+  "name": "jobhunt-opencli",
   "version": "0.1.0",
   "opencli": ">=1.0.0",
-  "description": "Optional OpenCLI entrypoint for hire-cli recruitment adapters."
+  "description": "Optional OpenCLI entrypoint for JobHunt-CLI recruitment adapters."
 }

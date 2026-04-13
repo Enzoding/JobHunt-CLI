@@ -32,13 +32,13 @@ export const didiAdapter = {
     const size = coerceLimit(args.limit);
     const result = await fetchJobs(args, page, size);
     const rows = (await enrichJobsWithDetails(result.list.slice(0, size))).map(normalizeJob);
-    assertNonEmpty(rows, 'didi search', 'Try a different keyword or inspect filters with `hire didi filters`.');
+    assertNonEmpty(rows, 'didi search', 'Try a different keyword or inspect filters with `jobs didi filters`.');
     return rows;
   },
   async detail(id) {
     const normalizedId = String(id || '').trim();
     if (!/^\d+$/.test(normalizedId)) {
-      throw new ArgumentError('Job id must be numeric', 'Use an id returned by `hire didi search`.');
+      throw new ArgumentError('Job id must be numeric', 'Use an id returned by `jobs didi search`.');
     }
     return normalizeJob(await fetchJobDetail(normalizedId));
   },
@@ -70,7 +70,7 @@ export const didiAdapter = {
       page += 1;
     }
 
-    assertNonEmpty(rows, 'didi all', 'Try fewer filters or inspect filters with `hire didi filters`.');
+    assertNonEmpty(rows, 'didi all', 'Try fewer filters or inspect filters with `jobs didi filters`.');
     return rows;
   },
 };

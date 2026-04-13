@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { analyzeAiProduct, aiProductCsv } from './core/analysis.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
-import { HireCliError } from './core/errors.js';
+import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
 
 const VALID_FORMATS = ['table', 'json', 'csv', 'md', 'markdown'];
@@ -20,7 +20,7 @@ function normalizeFormat(format) {
 function ensureFormat(format) {
   const normalized = normalizeFormat(format);
   if (!VALID_FORMATS.includes(normalized)) {
-    throw new HireCliError('FORMAT_ERROR', `Unsupported format: ${format}`, `Use one of: ${VALID_FORMATS.join(', ')}`, 64);
+    throw new JobHuntCliError('FORMAT_ERROR', `Unsupported format: ${format}`, `Use one of: ${VALID_FORMATS.join(', ')}`, 64);
   }
   return normalized;
 }
@@ -55,8 +55,8 @@ function handleError(error) {
 export async function run(argv = process.argv) {
   const program = new Command();
   program
-    .name('hire')
-    .description('Search, export, and analyze public company recruitment jobs')
+    .name('jobs')
+    .description('JobHunt-CLI: search, export, and analyze public company recruitment jobs')
     .version('0.1.0');
 
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
@@ -115,7 +115,7 @@ export async function run(argv = process.argv) {
       'md',
     ).action(async (topic, options) => {
       if (topic !== 'ai-product') {
-        throw new HireCliError('TOPIC_ERROR', `Unsupported analysis topic: ${topic}`, 'Currently supported: ai-product', 64);
+        throw new JobHuntCliError('TOPIC_ERROR', `Unsupported analysis topic: ${topic}`, 'Currently supported: ai-product', 64);
       }
       const result = await analyzeAiProduct(site.id, options);
       const format = ensureFormat(options.format);

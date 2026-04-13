@@ -22,7 +22,7 @@ export function listSites() {
 export function getSite(siteId) {
   const site = adapters.get(String(siteId || '').trim());
   if (!site) {
-    throw new ArgumentError(`Unknown site: ${siteId}`, `Run \`hire sites\` to list supported recruitment sites.`);
+    throw new ArgumentError(`Unknown site: ${siteId}`, `Run \`jobs sites\` to list supported recruitment sites.`);
   }
   return site;
 }

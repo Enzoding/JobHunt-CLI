@@ -1,19 +1,19 @@
-# hire-cli
+# JobHunt-CLI
 
-把互联网公司的公开招聘官网转成稳定、可脚本化、适合 AI agent 使用的命令行数据源。
+把互联网公司的公开招聘官网转成稳定、可脚本化、适合求职者和 AI agent 使用的岗位数据源。
 
 ```bash
-npx hire-cli sites
-npx hire-cli didi search AI --category 产品 --format json
-npx hire-cli kuaishou search 算法 --location 北京 --limit 10
-npx hire-cli didi analyze ai-product --output reports/didi-ai-product-report.md
+npx jobhunt-cli sites
+npx jobhunt-cli didi search AI --category 产品 --format json
+jobs kuaishou search 算法 --location 北京 --limit 10
+jobs didi analyze ai-product --output reports/didi-ai-product-report.md
 ```
 
-`hire-cli` 的主入口是独立命令 `hire`。OpenCLI 不是必需依赖，只作为已有 OpenCLI 用户的可选兼容层保留。
+`JobHunt-CLI` 的主命令是 `jobs`。它站在求职者视角：检索岗位、查看详情、批量导出、分析公司岗位画像。OpenCLI 不是必需依赖，只作为已有 OpenCLI 用户的可选兼容层保留。
 
 ## 适合谁
 
-- 想快速检索互联网公司岗位的人。
+- 想快速检索互联网公司岗位的求职者。
 - 想把招聘官网变成结构化数据源的 AI agent。
 - 想批量导出岗位、做岗位画像、做公司招聘情报分析的研究者。
 - 想为更多招聘网站贡献 adapter 的开发者。
@@ -22,30 +22,30 @@ npx hire-cli didi analyze ai-product --output reports/didi-ai-product-report.md
 
 | 公司 | 命令 | 覆盖范围 | 说明 |
 | --- | --- | --- | --- |
-| 滴滴 | `hire didi ...` | 社会招聘 | 公开接口，列表会补齐详情字段。 |
-| 快手 | `hire kuaishou ...` | 社会招聘 | 公开接口，已内置请求签名。 |
+| 滴滴 | `jobs didi ...` | 社会招聘 | 公开接口，列表会补齐详情字段。 |
+| 快手 | `jobs kuaishou ...` | 社会招聘 | 公开接口，已内置请求签名。 |
 
 ## 安装与运行
 
 不安装，直接运行：
 
 ```bash
-npx hire-cli sites
-npx hire-cli didi search AI --category 产品 --format json
+npx jobhunt-cli sites
+npx jobhunt-cli didi search AI --category 产品 --format json
 ```
 
 全局安装：
 
 ```bash
-npm install -g hire-cli
-hire sites
+npm install -g jobhunt-cli
+jobs sites
 ```
 
 在当前仓库中本地运行：
 
 ```bash
 npm install
-npm run hire -- didi search AI --category 产品 --limit 5 --format json
+npm run jobs -- didi search AI --category 产品 --limit 5 --format json
 ```
 
 ## 核心命令
@@ -53,22 +53,22 @@ npm run hire -- didi search AI --category 产品 --limit 5 --format json
 所有招聘网站都遵循同一套命令形态：
 
 ```bash
-hire sites
-hire <site> filters --format json
-hire <site> search [query] --location <城市/编码> --category <类别/编码> --limit <数量> --format json
-hire <site> detail <岗位ID> --format json
-hire <site> all [query] --category <类别/编码> --max <数量> --format csv --output jobs.csv
-hire <site> analyze ai-product --output report.md
+jobs sites
+jobs <site> filters --format json
+jobs <site> search [query] --location <城市/编码> --category <类别/编码> --limit <数量> --format json
+jobs <site> detail <岗位ID> --format json
+jobs <site> all [query] --category <类别/编码> --max <数量> --format csv --output jobs.csv
+jobs <site> analyze ai-product --output report.md
 ```
 
 常用示例：
 
 ```bash
-hire didi search AI --category 产品 --limit 5
-hire didi detail 60517 --format json
-hire didi all AI --category 产品 --max 20 --format csv --output didi-ai.csv
-hire kuaishou search 算法 --location 北京 --limit 10 --format json
-hire kuaishou all --category 产品 --max 0 --format json --output kuaishou-products.json
+jobs didi search AI --category 产品 --limit 5
+jobs didi detail 60517 --format json
+jobs didi all AI --category 产品 --max 20 --format csv --output didi-ai.csv
+jobs kuaishou search 算法 --location 北京 --limit 10 --format json
+jobs kuaishou all --category 产品 --max 0 --format json --output kuaishou-products.json
 ```
 
 ## 输出格式
@@ -83,8 +83,8 @@ hire kuaishou all --category 产品 --max 0 --format json --output kuaishou-prod
 使用 `--output` 或 `-o` 写入文件：
 
 ```bash
-hire didi all AI --category 产品 --format csv --output didi-ai-jobs.csv
-hire didi analyze ai-product --format md --output didi-ai-product-report.md
+jobs didi all AI --category 产品 --format csv --output didi-ai-jobs.csv
+jobs didi analyze ai-product --format md --output didi-ai-product-report.md
 ```
 
 ## 标准岗位字段
@@ -119,17 +119,17 @@ raw
 仓库内置了一个 skill：
 
 ```text
-skills/hire-cli/SKILL.md
+skills/jobhunt-cli/SKILL.md
 ```
 
 推荐 agent 工作流：
 
-1. 运行 `hire sites`，确认支持哪些公司。
-2. 运行 `hire <site> filters --format json`，查看城市、岗位类别、招聘类型等筛选项。
-3. 用 `hire <site> search <关键词> --format json` 做快速检索。
-4. 用 `hire <site> detail <id> --format json` 获取单个岗位详情。
-5. 用 `hire <site> all --max 0 --format json` 拉取全量匹配岗位。
-6. 用 `hire <site> analyze ai-product --format md` 生成 AI 产品岗位画像报告。
+1. 运行 `jobs sites`，确认支持哪些公司。
+2. 运行 `jobs <site> filters --format json`，查看城市、岗位类别、招聘类型等筛选项。
+3. 用 `jobs <site> search <关键词> --format json` 做快速检索。
+4. 用 `jobs <site> detail <id> --format json` 获取单个岗位详情。
+5. 用 `jobs <site> all --max 0 --format json` 拉取全量匹配岗位。
+6. 用 `jobs <site> analyze ai-product --format md` 生成 AI 产品岗位画像报告。
 
 对 agent 来说，`json` 是默认推荐格式；需要交付给用户时再导出 `csv` 或 `md`。
 
@@ -163,11 +163,11 @@ export default {
 注册到 `src/core/registry.js` 后，CLI 会自动获得：
 
 ```bash
-hire example filters
-hire example search
-hire example detail
-hire example all
-hire example analyze ai-product
+jobs example filters
+jobs example search
+jobs example detail
+jobs example all
+jobs example analyze ai-product
 ```
 
 更详细的接入清单见 `docs/ADDING_SITE.md`。
@@ -176,12 +176,12 @@ hire example analyze ai-product
 
 ```text
 .
-├── bin/hire.js                 # 独立 CLI 入口
+├── bin/jobs.js                 # 独立 CLI 入口
 ├── src/core/                   # 注册、输出、错误、分析逻辑
 ├── src/sites/                  # 公司招聘网站 adapter
 │   ├── didi/
 │   └── kuaishou/
-├── skills/hire-cli/            # 给 AI agent 使用的 skill
+├── skills/jobhunt-cli/         # 给 AI agent 使用的 skill
 ├── integrations/opencli/       # 可选 OpenCLI 兼容层
 ├── scripts/                    # smoke 检查脚本
 ├── docs/                       # 开发文档
@@ -200,8 +200,8 @@ npm run smoke:cli
 本地直接运行 CLI：
 
 ```bash
-node bin/hire.js sites
-node bin/hire.js didi search AI --category 产品 --limit 1 --format json
+node bin/jobs.js sites
+node bin/jobs.js didi search AI --category 产品 --limit 1 --format json
 ```
 
 发布前预检 npm 包内容：
@@ -224,5 +224,5 @@ opencli.js
 产品对外推荐的主接口仍然是：
 
 ```bash
-hire <site> ...
+jobs <site> ...
 ```

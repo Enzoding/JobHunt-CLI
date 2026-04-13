@@ -103,7 +103,7 @@ export function renderAiProductMarkdown(siteId, summary, rows, core, adjacent) {
   const departments = summary.departments.slice(0, 10).map(([name, count]) => `${name} ${count}`).join('，');
   return `# ${siteId} AI 产品岗位与能力画像报告
 
-数据来源：\`hire ${siteId} all --category 产品 --max 0 --format json\`
+数据来源：\`jobs ${siteId} all --category 产品 --max 0 --format json\`
 
 ## 结论摘要
 
