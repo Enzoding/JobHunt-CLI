@@ -13,8 +13,8 @@
   "type": "module",
   "main": "./index.js",
   "bin": {
-    "jobs": "./bin/jobs.js",
-    "jobhunt-cli": "./bin/jobs.js"
+    "jobs": "bin/jobs.js",
+    "jobhunt-cli": "bin/jobs.js"
   },
   "exports": {
     ".": "./index.js",
