@@ -1,0 +1,55 @@
+{
+  "name": "hire-cli",
+  "version": "0.1.0",
+  "description": "Search, export, and analyze public company recruitment jobs.",
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "hire": "./bin/hire.js",
+    "hire-cli": "./bin/hire.js"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./opencli": "./integrations/opencli/index.js"
+  },
+  "files": [
+    "bin/",
+    "docs/",
+    "integrations/",
+    "skills/",
+    "src/",
+    "index.js",
+    "opencli.js",
+    "opencli-plugin.json",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=21.0.0"
+  },
+  "dependencies": {
+    "commander": "^14.0.3"
+  },
+  "peerDependencies": {
+    "@jackwener/opencli": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@jackwener/opencli": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "hire": "node bin/hire.js",
+    "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
+    "smoke:didi": "node scripts/smoke-didi-api.js",
+    "smoke": "npm run smoke:kuaishou && npm run smoke:didi",
+    "smoke:cli": "node bin/hire.js didi search AI --category 产品 --limit 1 --format json"
+  },
+  "keywords": [
+    "cli",
+    "kuaishou",
+    "didi",
+    "jobs",
+    "recruitment"
+  ],
+  "license": "MIT"
+}
