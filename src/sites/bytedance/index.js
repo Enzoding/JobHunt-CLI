@@ -21,6 +21,8 @@ export const bytedanceAdapter = {
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
+  detailIdField: 'code',
+  detailIdHint: 'Job code from search results, e.g. A57861',
   async filters() {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'bytedance filters', 'The ByteDance filter endpoint returned no data.');

@@ -60,7 +60,11 @@ export async function run(argv = process.argv) {
     .version('0.1.0');
 
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
-    .action(async options => output(listSites(), options, ['id', 'name', 'description']));
+    .action(async options => {
+      const format = ensureFormat(options.format);
+      const columns = format === 'json' ? [] : ['id', 'name', 'description'];
+      return output(listSites(), options, columns);
+    });
 
   for (const siteInfo of listSites()) {
     const site = getSite(siteInfo.id);

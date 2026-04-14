@@ -17,8 +17,10 @@ export function listSites() {
     id: site.id,
     name: site.name,
     command: site.id,
-    opencli_site: site.opencliSite,
     description: site.description,
+    max_page_size: site.maxPageSize,
+    detail_id_field: site.detailIdField || 'id',
+    detail_id_hint: site.detailIdHint || '',
   }));
 }
 

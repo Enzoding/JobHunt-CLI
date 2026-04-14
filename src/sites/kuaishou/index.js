@@ -21,6 +21,8 @@ export const kuaishouAdapter = {
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
+  detailIdField: 'id',
+  detailIdHint: 'Numeric id from search results, e.g. 30199',
   async filters() {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'kuaishou filters', 'The Kuaishou filter endpoint returned no data.');
