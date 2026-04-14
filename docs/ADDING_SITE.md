@@ -2,7 +2,7 @@
 
 This project treats each company recruitment site as a standalone adapter under `src/sites/<site>/`.
 
-The standalone `jobs` CLI is the primary runtime. OpenCLI wrappers are optional compatibility code and should not be required by the core adapter.
+The standalone `job` CLI is the primary runtime. OpenCLI wrappers are optional compatibility code and should not be required by the core adapter.
 
 ## Adapter Shape
 
@@ -73,10 +73,10 @@ Keep `raw` compact. It should help debug source changes without making table out
 Before calling an adapter done, verify:
 
 ```bash
-jobs <site> filters --format json
-jobs <site> search AI --limit 5 --format json
-jobs <site> detail <known-id> --format json
-jobs <site> all --max 20 --format json
+job <site> filters --format json
+job <site> search AI --limit 5 --format json
+job <site> detail <known-id> --format json
+job <site> all --max 20 --format json
 ```
 
 Search and all should return agent-ready details whenever the source list endpoint omits `description` or `requirement`.
