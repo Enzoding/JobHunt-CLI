@@ -1,8 +1,12 @@
 import { Command } from 'commander';
+import { createRequire } from 'module';
 import { analyzeJobs, analyzeCsv } from './core/analysis.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
 import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json');
 
 const VALID_FORMATS = ['table', 'json', 'csv', 'md', 'markdown'];
 
@@ -57,7 +61,7 @@ export async function run(argv = process.argv) {
   program
     .name('job')
     .description('JobHunt-CLI: search, export, and analyze public company recruitment jobs')
-    .version('0.1.0');
+    .version(version);
 
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
     .action(async options => {
