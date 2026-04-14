@@ -55,7 +55,7 @@ function handleError(error) {
 export async function run(argv = process.argv) {
   const program = new Command();
   program
-    .name('jobs')
+    .name('job')
     .description('JobHunt-CLI: search, export, and analyze public company recruitment jobs')
     .version('0.1.0');
 

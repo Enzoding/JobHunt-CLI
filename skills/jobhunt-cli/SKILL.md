@@ -2,21 +2,21 @@
 name: jobhunt-cli
 description: >
   Search, export, compare, and analyze public company recruitment jobs using the
-  standalone `jobs` CLI. Use when users ask about job openings, role requirements,
+  standalone `job` CLI. Use when users ask about job openings, role requirements,
   recruitment trends, skill landscapes, career planning, company hiring insights,
   CSV/JSON exports, or any task involving structured recruitment data.
 ---
 
 # JobHunt-CLI — AI Agent 使用指南
 
-`jobs` 是一个将互联网公司公开招聘官网转为结构化数据源的 CLI。所有公司共享统一的命令和字段结构。站点会持续新增，Agent 应通过 CLI 自身动态发现能力，而非依赖硬编码假设。
+`job` 是一个将互联网公司公开招聘官网转为结构化数据源的 CLI。所有公司共享统一的命令和字段结构。站点会持续新增，Agent 应通过 CLI 自身动态发现能力，而非依赖硬编码假设。
 
 ## 1. 发现可用站点
 
 **每次任务开始，先运行此命令获取最新的站点列表和元信息：**
 
 ```bash
-jobs sites --format json
+job sites --format json
 ```
 
 返回每个站点的关键元信息：
@@ -37,7 +37,7 @@ jobs sites --format json
 对任意站点，运行 `filters` 获取该站点支持的筛选值：
 
 ```bash
-jobs <site> filters --format json
+job <site> filters --format json
 ```
 
 返回 `location`（城市）、`category`（职位类别）、`nature`（招聘类型）三组筛选码。**在使用 `--category` 或 `--location` 前，先查 filters 获取有效值。** 支持中文名称或编码，CLI 会自动解析。
@@ -49,7 +49,7 @@ jobs <site> filters --format json
 ### 3.1 搜索岗位
 
 ```bash
-jobs <site> search [关键词] [--category <类别>] [--location <城市>] [--nature <类型>] [--limit <数量>] [--format json]
+job <site> search [关键词] [--category <类别>] [--location <城市>] [--nature <类型>] [--limit <数量>] [--format json]
 ```
 
 - 关键词可选，留空返回全部。
@@ -58,15 +58,15 @@ jobs <site> search [关键词] [--category <类别>] [--location <城市>] [--na
 ### 3.2 岗位详情
 
 ```bash
-jobs <site> detail <id> --format json
+job <site> detail <id> --format json
 ```
 
-**`<id>` 的取值方式：从 `jobs sites --format json` 的 `detail_id_field` 获取应使用搜索结果的哪个字段。** 例如某站点的 `detail_id_field` 是 `code`，则应传入搜索结果中 `code` 字段的值。
+**`<id>` 的取值方式：从 `job sites --format json` 的 `detail_id_field` 获取应使用搜索结果的哪个字段。** 例如某站点的 `detail_id_field` 是 `code`，则应传入搜索结果中 `code` 字段的值。
 
 ### 3.3 批量导出
 
 ```bash
-jobs <site> all [关键词] [--category <类别>] [--location <城市>] [--max <数量>] [--format json]
+job <site> all [关键词] [--category <类别>] [--location <城市>] [--max <数量>] [--format json]
 ```
 
 - `--max 0`（默认）表示导出全部匹配岗位，无上限。
@@ -75,7 +75,7 @@ jobs <site> all [关键词] [--category <类别>] [--location <城市>] [--max <
 ### 3.4 分析报告
 
 ```bash
-jobs <site> analyze [关键词] [--category <类别>] [--location <城市>] [--max <数量>] [--format md]
+job <site> analyze [关键词] [--category <类别>] [--location <城市>] [--max <数量>] [--format md]
 ```
 
 - 关键词和筛选项均可选，可自由组合。
@@ -116,18 +116,18 @@ jobs <site> analyze [关键词] [--category <类别>] [--location <城市>] [--m
 ### 场景 A：用户想了解某公司某方向的岗位
 
 ```bash
-jobs sites --format json                  # 1. 发现站点和元信息
-jobs <site> filters --format json         # 2. 获取可用筛选项
-jobs <site> search <关键词> --format json   # 3. 搜索
-jobs <site> detail <id> --format json     # 4. 查看详情（id 取自 detail_id_field）
+job sites --format json                  # 1. 发现站点和元信息
+job <site> filters --format json         # 2. 获取可用筛选项
+job <site> search <关键词> --format json   # 3. 搜索
+job <site> detail <id> --format json     # 4. 查看详情（id 取自 detail_id_field）
 ```
 
 ### 场景 B：跨公司对比同一类岗位
 
 ```bash
 # 分别拉取各公司数据
-jobs <site1> all <关键词> --category <类别> --format json --output site1.json
-jobs <site2> all <关键词> --category <类别> --format json --output site2.json
+job <site1> all <关键词> --category <类别> --format json --output site1.json
+job <site2> all <关键词> --category <类别> --format json --output site2.json
 # Agent 读取多个 JSON 做对比分析
 ```
 
@@ -136,14 +136,14 @@ jobs <site2> all <关键词> --category <类别> --format json --output site2.js
 ### 场景 C：批量导出交付给用户
 
 ```bash
-jobs <site> all --category <类别> --format csv --output output.csv
-jobs <site> analyze --category <类别> --format md --output report.md
+job <site> all --category <类别> --format csv --output output.csv
+job <site> analyze --category <类别> --format md --output report.md
 ```
 
 ### 场景 D：分析技能要求和趋势
 
 ```bash
-jobs <site> analyze <关键词> --format json
+job <site> analyze <关键词> --format json
 ```
 
 Agent 从返回的 `summary.skillTerms` 和 `summary.requirementTerms` 构建能力画像。从 `summary.timeBuckets` 观察招聘趋势。
@@ -151,7 +151,7 @@ Agent 从返回的 `summary.skillTerms` 和 `summary.requirementTerms` 构建能
 ### 场景 E：用户问"XX 公司在招什么"
 
 ```bash
-jobs <site> analyze --max 100 --format json
+job <site> analyze --max 100 --format json
 ```
 
 从 `summary.categories` 看岗位类别分布，从 `summary.locations` 看地域分布。
@@ -159,7 +159,7 @@ jobs <site> analyze --max 100 --format json
 ### 场景 F：用户提供了目标岗位，想了解要求
 
 ```bash
-jobs <site> search "目标岗位" --limit 20 --format json
+job <site> search "目标岗位" --limit 20 --format json
 ```
 
 从 `requirement` 字段提取任职要求，汇总共性能力项，给出求职建议。
@@ -167,10 +167,10 @@ jobs <site> search "目标岗位" --limit 20 --format json
 ## 7. 注意事项
 
 1. **始终用 `--format json` 获取数据做推理**，需要交付给用户时再转 csv/md。
-2. **先 `jobs sites --format json` 再操作**，获取站点元信息，尤其是 `detail_id_field`。
+2. **先 `job sites --format json` 再操作**，获取站点元信息，尤其是 `detail_id_field`。
 3. **先 `filters` 再用筛选参数**，避免用错编码导致空结果。
 4. **`--max 0` 会拉取全量数据**，岗位多时耗时较长，非必要先用 `--max 50` 或 `--limit` 控制。
 5. **跨公司对比用字段名对齐**，不要用编码对齐（编码体系不同）。
 6. **`analyze` 的关键词和 `--category` 可自由组合**：关键词在全文匹配，`--category` 按类别过滤，两者是 AND 关系。
 7. **空结果时**检查：关键词是否过窄、category/location 是否拼写正确，可用 `filters` 确认有效值。
-8. **不要硬编码站点列表或 ID 格式**，始终通过 `jobs sites --format json` 动态发现。
+8. **不要硬编码站点列表或 ID 格式**，始终通过 `job sites --format json` 动态发现。

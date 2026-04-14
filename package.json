@@ -1,6 +1,6 @@
 {
   "name": "jobhunt-cli",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "Search, export, and analyze public company recruitment jobs.",
   "homepage": "https://github.com/Enzoding/JobHunt-CLI#readme",
   "repository": {
@@ -13,8 +13,8 @@
   "type": "module",
   "main": "./index.js",
   "bin": {
-    "jobs": "bin/jobs.js",
-    "jobhunt-cli": "bin/jobs.js"
+    "job": "bin/job.js",
+    "jobhunt-cli": "bin/job.js"
   },
   "exports": {
     ".": "./index.js",
@@ -46,12 +46,12 @@
     }
   },
   "scripts": {
-    "jobs": "node bin/jobs.js",
+    "job": "node bin/job.js",
     "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
     "smoke:didi": "node scripts/smoke-didi-api.js",
     "smoke:bytedance": "node scripts/smoke-bytedance-api.js",
     "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance",
-    "smoke:cli": "node bin/jobs.js didi search AI --category 产品 --limit 1 --format json"
+    "smoke:cli": "node bin/job.js didi search AI --category 产品 --limit 1 --format json"
   },
   "keywords": [
     "cli",
@@ -60,5 +60,8 @@
     "jobs",
     "recruitment"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
 }
