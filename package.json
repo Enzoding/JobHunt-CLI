@@ -49,7 +49,8 @@
     "jobs": "node bin/jobs.js",
     "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
     "smoke:didi": "node scripts/smoke-didi-api.js",
-    "smoke": "npm run smoke:kuaishou && npm run smoke:didi",
+    "smoke:bytedance": "node scripts/smoke-bytedance-api.js",
+    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance",
     "smoke:cli": "node bin/jobs.js didi search AI --category 产品 --limit 1 --format json"
   },
   "keywords": [

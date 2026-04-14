@@ -7,52 +7,53 @@ import {
   coerceLimit,
   coercePage,
   fetchFilters,
-  fetchJobDetail,
+  fetchJobById,
   fetchJobs,
   normalizeJob,
 } from './utils.js';
 import { ArgumentError } from '../../core/errors.js';
 
-export const kuaishouAdapter = {
-  id: 'kuaishou',
+export const bytedanceAdapter = {
+  id: 'bytedance',
   opencliSite: SITE,
-  name: 'Kuaishou',
-  description: 'Kuaishou social recruitment',
+  name: 'ByteDance',
+  description: 'ByteDance social recruitment',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
-  detailIdField: 'id',
-  detailIdHint: 'Numeric id from search results, e.g. 30199',
+  detailIdField: 'code',
+  detailIdHint: 'Job code from search results, e.g. A57861',
   async filters() {
     const rows = await fetchFilters();
-    assertNonEmpty(rows, 'kuaishou filters', 'The Kuaishou filter endpoint returned no data.');
+    assertNonEmpty(rows, 'bytedance filters', 'The ByteDance filter endpoint returned no data.');
     return rows;
   },
   async search(args = {}) {
-    const pageNum = coercePage(args.page);
-    const pageSize = coerceLimit(args.limit);
-    const result = await fetchJobs(args, pageNum, pageSize);
+    const page = coercePage(args.page);
+    const limit = coerceLimit(args.limit);
+    const offset = (page - 1) * limit;
+    const result = await fetchJobs(args, offset, limit);
     const rows = result.list.map(normalizeJob);
-    assertNonEmpty(rows, 'kuaishou search', 'Try a different keyword or inspect filters with `jobs kuaishou filters`.');
+    assertNonEmpty(rows, 'bytedance search', 'Try a different keyword or inspect filters with `jobs bytedance filters`.');
     return rows;
   },
   async detail(id) {
     const normalizedId = String(id || '').trim();
-    if (!/^\d+$/.test(normalizedId)) {
-      throw new ArgumentError('Job id must be numeric', 'Use an id returned by `jobs kuaishou search`.');
+    if (!normalizedId) {
+      throw new ArgumentError('Job id is required', 'Use an id returned by `jobs bytedance search`.');
     }
-    return normalizeJob(await fetchJobDetail(normalizedId));
+    return normalizeJob(await fetchJobById(normalizedId));
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE);
     const max = Math.max(0, Number(args.max || 0));
     const rows = [];
     const seen = new Set();
-    let pageNum = 1;
+    let offset = 0;
     let total = Infinity;
 
     while (rows.length < total && (!max || rows.length < max)) {
-      const result = await fetchJobs(args, pageNum, pageSize);
+      const result = await fetchJobs(args, offset, pageSize);
       total = result.total || rows.length;
       if (!result.list.length) break;
 
@@ -63,13 +64,13 @@ export const kuaishouAdapter = {
         if (max && rows.length >= max) break;
       }
 
-      if (result.pageNum >= result.pages || result.list.length < pageSize) break;
-      pageNum += 1;
+      if (result.list.length < pageSize) break;
+      offset += pageSize;
     }
 
-    assertNonEmpty(rows, 'kuaishou all', 'Try fewer filters or inspect filters with `jobs kuaishou filters`.');
+    assertNonEmpty(rows, 'bytedance all', 'Try fewer filters or inspect filters with `jobs bytedance filters`.');
     return rows;
   },
 };
 
-export default kuaishouAdapter;
+export default bytedanceAdapter;

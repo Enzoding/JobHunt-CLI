@@ -22,6 +22,8 @@ export const didiAdapter = {
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
+  detailIdField: 'id',
+  detailIdHint: 'Numeric id from search results, e.g. 60517',
   async filters() {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'didi filters', 'The Didi filter endpoint returned no data.');

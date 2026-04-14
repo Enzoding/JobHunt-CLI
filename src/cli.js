@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { analyzeAiProduct, aiProductCsv } from './core/analysis.js';
+import { analyzeJobs, analyzeCsv } from './core/analysis.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
 import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
@@ -60,7 +60,11 @@ export async function run(argv = process.argv) {
     .version('0.1.0');
 
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
-    .action(async options => output(listSites(), options, ['id', 'name', 'description']));
+    .action(async options => {
+      const format = ensureFormat(options.format);
+      const columns = format === 'json' ? [] : ['id', 'name', 'description'];
+      return output(listSites(), options, columns);
+    });
 
   for (const siteInfo of listSites()) {
     const site = getSite(siteInfo.id);
@@ -109,22 +113,21 @@ export async function run(argv = process.argv) {
       siteCommand
         .command('analyze')
         .description(`Analyze ${site.name} jobs`)
-        .argument('<topic>', 'Analysis topic, currently: ai-product')
-        .option('--category <category>', 'Category to analyze', '产品')
+        .argument('[keyword]', 'Search keyword to analyze, e.g. AI, 算法, 后端')
+        .option('--category <category>', 'Category filter')
+        .option('--location <location>', 'Location filter')
+        .option('--nature <nature>', 'Recruitment type filter')
         .option('--max <n>', 'Maximum jobs to inspect; 0 means all matching jobs', value => Number(value), 0),
       'md',
-    ).action(async (topic, options) => {
-      if (topic !== 'ai-product') {
-        throw new JobHuntCliError('TOPIC_ERROR', `Unsupported analysis topic: ${topic}`, 'Currently supported: ai-product', 64);
-      }
-      const result = await analyzeAiProduct(site.id, options);
+    ).action(async (keyword, options) => {
+      const result = await analyzeJobs(site.id, keyword || '', options);
       const format = ensureFormat(options.format);
       if (format === 'json') return output({ summary: result.summary, jobs: result.rows }, options, []);
       if (format === 'csv') {
-        writeOutput(aiProductCsv(result.rows), options.output);
+        writeOutput(analyzeCsv(result.rows), options.output);
         return;
       }
-      if (format === 'table') return output(result.rows, options, ['id', 'name', 'tier', 'scenario', 'department_name', 'location_names', 'updated_at']);
+      if (format === 'table') return output(result.rows, options, ['id', 'name', 'category_name', 'location_names', 'department_name', 'updated_at']);
       writeOutput(result.markdown, options.output);
     });
   }

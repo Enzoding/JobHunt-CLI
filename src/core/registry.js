@@ -1,5 +1,6 @@
 import didiAdapter from '../sites/didi/index.js';
 import kuaishouAdapter from '../sites/kuaishou/index.js';
+import bytedanceAdapter from '../sites/bytedance/index.js';
 import { ArgumentError } from './errors.js';
 
 const adapters = new Map([
@@ -7,6 +8,8 @@ const adapters = new Map([
   [didiAdapter.opencliSite, didiAdapter],
   [kuaishouAdapter.id, kuaishouAdapter],
   [kuaishouAdapter.opencliSite, kuaishouAdapter],
+  [bytedanceAdapter.id, bytedanceAdapter],
+  [bytedanceAdapter.opencliSite, bytedanceAdapter],
 ]);
 
 export function listSites() {
@@ -14,8 +17,10 @@ export function listSites() {
     id: site.id,
     name: site.name,
     command: site.id,
-    opencli_site: site.opencliSite,
     description: site.description,
+    max_page_size: site.maxPageSize,
+    detail_id_field: site.detailIdField || 'id',
+    detail_id_hint: site.detailIdHint || '',
   }));
 }
 
