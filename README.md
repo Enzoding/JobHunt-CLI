@@ -24,6 +24,7 @@ jobs didi analyze ai-product --output reports/didi-ai-product-report.md
 | --- | --- | --- | --- |
 | 滴滴 | `jobs didi ...` | 社会招聘 | 公开接口，列表会补齐详情字段。 |
 | 快手 | `jobs kuaishou ...` | 社会招聘 | 公开接口，已内置请求签名。 |
+| 字节跳动 | `jobs bytedance ...` | 社会招聘 | 公开接口，搜索即返回完整详情。 |
 
 ## 安装与运行
 
@@ -179,6 +180,7 @@ jobs example analyze ai-product
 ├── bin/jobs.js                 # 独立 CLI 入口
 ├── src/core/                   # 注册、输出、错误、分析逻辑
 ├── src/sites/                  # 公司招聘网站 adapter
+│   ├── bytedance/
 │   ├── didi/
 │   └── kuaishou/
 ├── skills/jobhunt-cli/         # 给 AI agent 使用的 skill

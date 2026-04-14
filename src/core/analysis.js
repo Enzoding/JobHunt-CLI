@@ -1,60 +1,74 @@
 import { exportJobs } from './registry.js';
 import { normalizeText, formatCsv } from './formatters.js';
 
-const STRONG_AI_TERMS = [
-  'AI',
-  'AIGC',
-  '大模型',
-  'LLM',
-  'Agent',
-  'RAG',
-  'NLP',
-  'Chatbot',
-  'ChatBI',
-  'AI Coding',
-  '语音交互',
-  '语义理解',
-  '多模态',
-  'Claude',
-  'Codex',
-  'Cursor',
-  'Copilot',
-];
+const STOP_WORDS = new Set([
+  '的', '了', '和', '是', '在', '与', '及', '等', '或', '对', '为', '能',
+  '有', '不', '将', '到', '以', '上', '中', '可', '从', '向', '被', '让',
+  '把', '给', '并', '也', '就', '都', '而', '但', '如', '要', '会', '做',
+  '这', '那', '些', '个', '各', '每', '其', '它', '他', '她', '我', '你',
+  '们', '所', '该', '此', '之', '已', '过', '还', '更', '最', '很', '非',
+  '着', '地', '得', '下', '出', '来', '去', '进', '行', '包括', '通过',
+  '使用', '负责', '参与', '具备', '相关', '以上', '工作', '经验', '优先',
+  '具有', '良好', '能力', '熟悉', '了解', '掌握', '以及', '进行', '支持',
+  '提供', '完成', '实现', '满足', '需要', '要求', '至少', '年以上', '本科',
+  '硕士', '博士', '学历', '专业', '方向', '领域', '基于', '年',
+  '推动', '提升', '优化', '协同', '构建', '持续', '结合', '确保', '设计',
+  '定义', '探索', '建设', '搭建', '制定', '开展', '深入', '识别', '跟进',
+  '推进', '落地', '输出', '沉淀', '拆解', '迭代', '聚焦', '赋能', '驱动',
+  '独立', '高效', '核心', '整体', '系统', '深刻', '扎实', '丰富', '突出',
+  '团队', '项目', '产品', '系统', '平台', '业务', '公司', '部门', '组织',
+  '用户', '客户', '市场', '行业',
+  'the', 'and', 'for', 'with', 'that', 'this', 'from', 'are', 'was',
+  'have', 'has', 'had', 'will', 'can', 'not', 'but', 'all', 'any',
+  'been', 'they', 'their', 'which', 'would', 'about', 'into', 'more',
+  'other', 'than', 'its', 'also', 'our', 'you', 'your', 'who', 'how',
+  'what', 'when', 'where', 'there', 'should', 'could', 'may', 'such',
+  'both', 'each', 'etc', 'well', 'very', 'being', 'those',
+]);
 
-const WEAK_AI_TERMS = ['智能', '机器学习'];
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function extractTerms(text) {
+  if (!text) return [];
+  const enTerms = text.match(/[A-Za-z][A-Za-z0-9.+#/-]{1,30}/g) || [];
+  const zhSegments = text.match(/[\u4e00-\u9fa5]{2,20}/g) || [];
+  const zhTerms = [];
+  for (const seg of zhSegments) {
+    for (let len = 4; len >= 2; len--) {
+      for (let i = 0; i <= seg.length - len; i++) {
+        zhTerms.push(seg.slice(i, i + len));
+      }
+    }
+  }
+  return [...enTerms, ...zhTerms]
+    .map(t => t.trim())
+    .filter(t => t.length >= 2 && !STOP_WORDS.has(t.toLowerCase()) && !STOP_WORDS.has(t));
 }
 
-function matches(text, terms) {
-  return terms.filter(term => new RegExp(escapeRegExp(term), 'i').test(text));
+function dedupeTerms(entries) {
+  const result = [];
+  const sorted = [...entries].sort((a, b) => b[1] - a[1]);
+  for (const [term, count] of sorted) {
+    const dominated = result.some(([longer, lc]) => lc >= count && longer.includes(term));
+    if (!dominated) result.push([term, count]);
+  }
+  return result;
 }
 
-function classify(job) {
-  const text = [job.name, job.department_name, job.description, job.requirement].filter(Boolean).join('\n');
-  const strong = matches(text, STRONG_AI_TERMS);
-  const weak = matches(text, WEAK_AI_TERMS);
-  if (strong.length) return { tier: '核心AI产品岗', terms: [...new Set([...strong, ...weak])] };
-  return { tier: 'AI相关/智能化产品岗', terms: weak };
-}
-
-function inferScenario(job) {
-  const text = [job.name, job.department_name, job.description, job.requirement].join(' ');
-  const rules = [
-    ['货运/物流/配送', /货运|物流|配送|同城配送|Delivery/],
-    ['客服与服务体系', /客服|Chatbot|坐席|Copilot|服务 Agent|客服工作台|CSAT|FCR/],
-    ['自动驾驶/AIoT/车联网', /自动驾驶|Robotaxi|Voyager|AIoT|车联网|泊车|CV&语音/],
-    ['风控/安全/治理', /风控|安全|治理|内容安全|反作弊|人脸|声纹|准入|Risk|Credit Risk|Fintech/],
-    ['能源/售电', /售电|电力|虚拟电厂|绿电/],
-    ['HR数字化', /HR|人才|人力/],
-    ['研发效能/企业平台', /效能|DevOps|企业|差旅|信息化|管控|AI Coding|研发管理|工程效能/],
-    ['增长与广告投放', /增长|广告|投放|素材|ROI|CAC|Marketing|用增/],
-    ['数据分析/BI', /数据|BI|ChatBI|Data Agent|管报|报表|可视化/],
-    ['司机/出行Agent', /司机|车主|出行 Agent|网约车产品|平台治理|平台乘客/],
-    ['搜索推荐/交易策略', /搜推|推荐|交易|组合出行|策略|价格|商品/],
-  ];
-  return rules.find(([, rule]) => rule.test(text))?.[0] || '通用产品/平台化';
+function countTermFrequency(jobs, fields) {
+  const freq = new Map();
+  for (const job of jobs) {
+    const text = fields.map(f => normalizeText(job[f])).join(' ');
+    const seen = new Set();
+    for (const term of extractTerms(text)) {
+      const key = term.length <= 6 && /^[A-Za-z]/.test(term) ? term : term.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      freq.set(key, (freq.get(key) || 0) + 1);
+    }
+  }
+  const raw = [...freq.entries()]
+    .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1]);
+  return dedupeTerms(raw).slice(0, 50);
 }
 
 function countBy(rows, key) {
@@ -66,91 +80,100 @@ function countBy(rows, key) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'));
 }
 
-function markdownTable(rows) {
-  return rows.map(job => `| ${job.id} | ${normalizeText(job.name).replaceAll('|', '\\|')} | ${job.tier} | ${job.scenario} | ${normalizeText(job.department_name)} | ${normalizeText(job.location_names)} | ${normalizeText(job.updated_at)} | ${job.matched_terms.join(', ')} | [link](${job.url}) |`).join('\n');
+function timeBuckets(rows) {
+  const buckets = new Map();
+  for (const row of rows) {
+    const date = normalizeText(row.updated_at);
+    const month = date ? date.slice(0, 7) : '未知';
+    buckets.set(month, (buckets.get(month) || 0) + 1);
+  }
+  return [...buckets.entries()].sort((a, b) => b[0].localeCompare(a[0]));
 }
 
-export async function analyzeAiProduct(siteId, args = {}) {
-  const jobs = await exportJobs(siteId, { ...args, category: args.category || '产品', max: args.max ?? 0 });
-  const rows = jobs
-    .map(job => ({ ...job, ...classify(job) }))
-    .filter(job => job.terms.length)
-    .map(job => ({
-      ...job,
-      tier: job.tier,
-      scenario: inferScenario(job),
-      matched_terms: job.terms,
-    }))
-    .sort((a, b) => normalizeText(b.updated_at).localeCompare(normalizeText(a.updated_at)) || normalizeText(a.name).localeCompare(normalizeText(b.name), 'zh-CN'));
-  const core = rows.filter(job => job.tier === '核心AI产品岗');
-  const adjacent = rows.filter(job => job.tier !== '核心AI产品岗');
-  const summary = {
-    site: siteId,
-    total_product_jobs: jobs.length,
-    ai_product_jobs: rows.length,
-    core_ai_product_jobs: core.length,
-    adjacent_ai_product_jobs: adjacent.length,
-    locations: countBy(rows, 'location_names'),
-    scenarios: countBy(rows, 'scenario'),
-    departments: countBy(rows, 'department_name'),
-  };
-  return { summary, rows, markdown: renderAiProductMarkdown(siteId, summary, rows, core, adjacent) };
+function distributionLine(entries, maxItems = 10) {
+  return entries.slice(0, maxItems).map(([name, count]) => `${name} ${count}`).join('，');
 }
 
-export function renderAiProductMarkdown(siteId, summary, rows, core, adjacent) {
-  const locations = summary.locations.map(([name, count]) => `${name} ${count}`).join('，');
-  const scenarios = summary.scenarios.map(([name, count]) => `${name} ${count}`).join('，');
-  const departments = summary.departments.slice(0, 10).map(([name, count]) => `${name} ${count}`).join('，');
-  return `# ${siteId} AI 产品岗位与能力画像报告
+function markdownJobTable(rows) {
+  const header = '| ID | 岗位名称 | 类别 | 地点 | 部门 | 更新时间 | 链接 |';
+  const sep = '| --- | --- | --- | --- | --- | --- | --- |';
+  const body = rows.map(job => {
+    const esc = v => normalizeText(v).replaceAll('|', '\\|');
+    return `| ${esc(job.id)} | ${esc(job.name)} | ${esc(job.category_name)} | ${esc(job.location_names)} | ${esc(job.department_name)} | ${esc(job.updated_at)} | [link](${job.url}) |`;
+  }).join('\n');
+  return `${header}\n${sep}\n${body}`;
+}
 
-数据来源：\`jobs ${siteId} all --category 产品 --max 0 --format json\`
+function renderMarkdown(siteId, keyword, args, rows, summary) {
+  const filterDesc = [
+    args.category ? `类别=${args.category}` : '',
+    args.location ? `地点=${args.location}` : '',
+  ].filter(Boolean).join('，');
+  const filterHint = filterDesc ? `（筛选条件：${filterDesc}）` : '';
 
-## 结论摘要
+  const skillTerms = summary.skillTerms.slice(0, 20);
+  const reqTerms = summary.requirementTerms.slice(0, 20);
 
-本次从产品类岗位中拉取 ${summary.total_product_jobs} 条岗位详情，经岗位名称、职责和任职要求中的 AI 相关信号过滤，识别出 ${summary.ai_product_jobs} 条 AI 产品相关岗位。其中 ${summary.core_ai_product_jobs} 条属于核心 AI 产品岗，${summary.adjacent_ai_product_jobs} 条属于 AI 相关或智能化产品岗。
+  let md = `# ${siteId} 「${keyword}」岗位分析报告
 
-岗位地域分布：${locations}。
-主要业务场景：${scenarios}。
-高频部门/团队：${departments}。
+数据来源：\`jobs ${siteId} all ${keyword || ''}${args.category ? ' --category ' + args.category : ''}${args.max ? ' --max ' + args.max : ''} --format json\`${filterHint}
 
-## 全部 AI 产品相关岗位
+## 概览
 
-| ID | 岗位 | 分层 | 场景 | 部门 | 地点 | 更新时间 | AI信号 | 链接 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-${markdownTable(rows)}
+- 匹配岗位总数：**${rows.length}**
+- 地域分布：${distributionLine(summary.locations)}
+- 类别分布：${distributionLine(summary.categories)}
+- 部门分布：${distributionLine(summary.departments)}
+- 更新时间分布：${distributionLine(summary.timeBuckets, 6)}
 
-## 能力画像
+## 高频技能/关键词（岗位描述）
 
-### 1. 大模型与 Agent 产品化能力
+${skillTerms.length ? skillTerms.map(([term, count]) => `- **${term}**（${count} 次）`).join('\n') : '无足够数据'}
 
-核心岗位通常要求把 LLM、Agent、RAG、NLP、语音、多模态、Chatbot、Copilot 等能力转成可用产品，而不只是理解概念。
+## 高频要求关键词（任职要求）
 
-### 2. 场景抽象和业务落地能力
+${reqTerms.length ? reqTerms.map(([term, count]) => `- **${term}**（${count} 次）`).join('\n') : '无足够数据'}
 
-AI 产品经理需要深入具体业务场景，识别高价值问题，把非标流程抽象成产品能力，并推动算法、工程、运营和数据团队落地。
+## 岗位明细（前 ${Math.min(rows.length, 50)} 条）
 
-### 3. 数据驱动和评估体系能力
-
-高频要求包括指标体系、A/B 实验、badcase 归因、准确率、转化率、满意度、人工压降、ROI、响应时长等效果评估。
-
-### 4. AI Native 工具使用能力
-
-部分岗位已经强调 Claude Code、Codex、Cursor、Copilot、AI Coding、Prompt、Skill 等实操能力。产品经理的技术操作能力正在变得更重要。
-
-### 5. 平台化与中后台产品能力
-
-大量岗位落在客服、风控、数据、研发效能、投放后台等平台场景。候选人需要具备业务建模、流程设计、配置化、灰度和复用能力。
-
-## 候选人画像
-
-- 有 AI 产品或智能化项目落地经验。
-- 理解 LLM / Agent / RAG / NLP / 多模态 / 语音等能力边界。
-- 能设计指标体系并证明 AI 的业务效果。
-- 有强业务抽象、跨团队推动和数据分析能力。
-- 加分项包括 AI Coding、Prompt Engineering、知识库、智能客服、ChatBI、Copilot、国际化和垂直行业经验。
+${markdownJobTable(rows.slice(0, 50))}
 `;
+  return md;
 }
 
-export function aiProductCsv(rows) {
-  return formatCsv(rows, ['id', 'job_no', 'name', 'tier', 'scenario', 'department_name', 'location_names', 'updated_at', 'matched_terms', 'url', 'description', 'requirement']);
+export async function analyzeJobs(siteId, keyword, args = {}) {
+  const fetchArgs = {
+    query: keyword || '',
+    category: args.category || '',
+    location: args.location || '',
+    nature: args.nature || '',
+    max: args.max ?? 0,
+  };
+  const jobs = await exportJobs(siteId, fetchArgs);
+
+  const rows = [...jobs].sort((a, b) =>
+    normalizeText(b.updated_at).localeCompare(normalizeText(a.updated_at))
+    || normalizeText(a.name).localeCompare(normalizeText(b.name), 'zh-CN'),
+  );
+
+  const summary = {
+    total: rows.length,
+    locations: countBy(rows, 'location_names'),
+    categories: countBy(rows, 'category_name'),
+    departments: countBy(rows, 'department_name'),
+    timeBuckets: timeBuckets(rows),
+    skillTerms: countTermFrequency(rows, ['description']),
+    requirementTerms: countTermFrequency(rows, ['requirement']),
+  };
+
+  const markdown = renderMarkdown(siteId, keyword, fetchArgs, rows, summary);
+  return { summary, rows, markdown };
+}
+
+export function analyzeCsv(rows) {
+  return formatCsv(rows, [
+    'id', 'code', 'job_no', 'name', 'category_name', 'nature_name',
+    'location_names', 'department_name', 'updated_at', 'url',
+    'description', 'requirement',
+  ].filter(key => rows.some(r => r[key] !== undefined && r[key] !== '')));
 }
