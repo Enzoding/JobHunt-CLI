@@ -1,6 +1,6 @@
 {
   "name": "jobhunt-cli",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "description": "Search, export, and analyze public company recruitment jobs.",
   "homepage": "https://github.com/Enzoding/JobHunt-CLI#readme",
   "repository": {
@@ -53,7 +53,11 @@
     "smoke:bytedance": "node scripts/smoke-bytedance-api.js",
     "smoke:meituan": "node scripts/smoke-meituan-api.js",
     "smoke:xiaomi": "node scripts/smoke-xiaomi-api.js",
-    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan && npm run smoke:xiaomi",
+    "smoke:tencent": "node scripts/smoke-tencent-api.js",
+    "smoke:baidu": "node scripts/smoke-baidu-api.js",
+    "smoke:jd": "node scripts/smoke-jd-api.js",
+    "smoke:xiaohongshu": "node scripts/smoke-xiaohongshu-api.js",
+    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan && npm run smoke:xiaomi && npm run smoke:tencent && npm run smoke:baidu && npm run smoke:jd && npm run smoke:xiaohongshu",
     "smoke:cli": "node bin/job.js xiaomi search AI --limit 1 --format json"
   },
   "keywords": [
@@ -63,6 +67,10 @@
     "bytedance",
     "meituan",
     "xiaomi",
+    "tencent",
+    "baidu",
+    "jd",
+    "xiaohongshu",
     "jobs",
     "recruitment",
     "job-search"
