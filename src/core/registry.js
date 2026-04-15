@@ -1,6 +1,12 @@
 import didiAdapter from '../sites/didi/index.js';
 import kuaishouAdapter from '../sites/kuaishou/index.js';
 import bytedanceAdapter from '../sites/bytedance/index.js';
+import meituanAdapter from '../sites/meituan/index.js';
+import xiaomiAdapter from '../sites/xiaomi/index.js';
+import tencentAdapter from '../sites/tencent/index.js';
+import baiduAdapter from '../sites/baidu/index.js';
+import jdAdapter from '../sites/jd/index.js';
+import xiaohongshuAdapter from '../sites/xiaohongshu/index.js';
 import { ArgumentError } from './errors.js';
 
 const adapters = new Map([
@@ -10,6 +16,18 @@ const adapters = new Map([
   [kuaishouAdapter.opencliSite, kuaishouAdapter],
   [bytedanceAdapter.id, bytedanceAdapter],
   [bytedanceAdapter.opencliSite, bytedanceAdapter],
+  [meituanAdapter.id, meituanAdapter],
+  [meituanAdapter.opencliSite, meituanAdapter],
+  [xiaomiAdapter.id, xiaomiAdapter],
+  [xiaomiAdapter.opencliSite, xiaomiAdapter],
+  [tencentAdapter.id, tencentAdapter],
+  [tencentAdapter.opencliSite, tencentAdapter],
+  [baiduAdapter.id, baiduAdapter],
+  [baiduAdapter.opencliSite, baiduAdapter],
+  [jdAdapter.id, jdAdapter],
+  [jdAdapter.opencliSite, jdAdapter],
+  [xiaohongshuAdapter.id, xiaohongshuAdapter],
+  [xiaohongshuAdapter.opencliSite, xiaohongshuAdapter],
 ]);
 
 export function listSites() {
