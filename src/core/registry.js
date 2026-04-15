@@ -1,6 +1,7 @@
 import didiAdapter from '../sites/didi/index.js';
 import kuaishouAdapter from '../sites/kuaishou/index.js';
 import bytedanceAdapter from '../sites/bytedance/index.js';
+import meituanAdapter from '../sites/meituan/index.js';
 import { ArgumentError } from './errors.js';
 
 const adapters = new Map([
@@ -10,6 +11,8 @@ const adapters = new Map([
   [kuaishouAdapter.opencliSite, kuaishouAdapter],
   [bytedanceAdapter.id, bytedanceAdapter],
   [bytedanceAdapter.opencliSite, bytedanceAdapter],
+  [meituanAdapter.id, meituanAdapter],
+  [meituanAdapter.opencliSite, meituanAdapter],
 ]);
 
 export function listSites() {

@@ -4,7 +4,7 @@
 
 ```bash
 npx jobhunt-cli sites
-npx jobhunt-cli didi search AI --category 产品 --format json
+job meituan search AI --category 技术类 --limit 10
 job kuaishou search 算法 --location 北京 --limit 10
 job didi analyze ai-product --output reports/didi-ai-product-report.md
 ```
@@ -20,11 +20,12 @@ job didi analyze ai-product --output reports/didi-ai-product-report.md
 
 ## 当前支持
 
-| 公司 | 命令 | 覆盖范围 | 说明 |
+| 公司 | 命令 | 官网 | 说明 |
 | --- | --- | --- | --- |
-| 滴滴 | `job didi ...` | 社会招聘 | 公开接口，列表会补齐详情字段。 |
-| 快手 | `job kuaishou ...` | 社会招聘 | 公开接口，已内置请求签名。 |
-| 字节跳动 | `job bytedance ...` | 社会招聘 | 公开接口，搜索即返回完整详情。 |
+| 滴滴 | `job didi ...` | talent.didiglobal.com | 公开接口，列表补齐详情字段。 |
+| 快手 | `job kuaishou ...` | zhaopin.kuaishou.cn | 公开接口，已内置请求签名。 |
+| 字节跳动 | `job bytedance ...` | jobs.bytedance.com | 公开接口，搜索即返回完整详情。 |
+| 美团 | `job meituan ...` | zhaopin.meituan.com | 公开接口，POST JSON，无需签名。 |
 
 ## 安装与运行
 
@@ -32,7 +33,7 @@ job didi analyze ai-product --output reports/didi-ai-product-report.md
 
 ```bash
 npx jobhunt-cli sites
-npx jobhunt-cli didi search AI --category 产品 --format json
+npx jobhunt-cli meituan search AI --category 技术类
 ```
 
 全局安装：
@@ -46,7 +47,7 @@ job sites
 
 ```bash
 npm install
-npm run job -- didi search AI --category 产品 --limit 5 --format json
+npm run job -- meituan search AI --category 技术类 --limit 5
 ```
 
 ## 核心命令
@@ -56,20 +57,21 @@ npm run job -- didi search AI --category 产品 --limit 5 --format json
 ```bash
 job sites
 job <site> filters --format json
-job <site> search [query] --location <城市/编码> --category <类别/编码> --limit <数量> --format json
+job <site> search [query] --location <城市> --category <类别> --limit <数量> --format json
 job <site> detail <岗位ID> --format json
-job <site> all [query] --category <类别/编码> --max <数量> --format csv --output jobs.csv
-job <site> analyze ai-product --output report.md
+job <site> all [query] --category <类别> --max <数量> --format csv --output jobs.csv
+job <site> analyze [query] --category <类别> --output report.md
 ```
 
 常用示例：
 
 ```bash
-job didi search AI --category 产品 --limit 5
-job didi detail 60517 --format json
+job meituan search AI --category 技术类 --limit 10
+job meituan detail 4305933827 --format json
+job meituan all --category 职能类 --max 50 --format csv --output meituan-hr.csv
+job kuaishou search 算法 --location 北京 --limit 10
 job didi all AI --category 产品 --max 20 --format csv --output didi-ai.csv
-job kuaishou search 算法 --location 北京 --limit 10 --format json
-job kuaishou all --category 产品 --max 0 --format json --output kuaishou-products.json
+job bytedance search 后端 --category 后端 --limit 5 --format json
 ```
 
 ## 输出格式
@@ -84,7 +86,7 @@ job kuaishou all --category 产品 --max 0 --format json --output kuaishou-produ
 使用 `--output` 或 `-o` 写入文件：
 
 ```bash
-job didi all AI --category 产品 --format csv --output didi-ai-jobs.csv
+job meituan all --category 技术类 --format csv --output meituan-tech.csv
 job didi analyze ai-product --format md --output didi-ai-product-report.md
 ```
 
@@ -144,34 +146,7 @@ src/sites/<site>/
 └── utils.js
 ```
 
-adapter 需要提供统一方法：
-
-```js
-export default {
-  id: 'example',
-  name: 'Example',
-  description: 'Example social recruitment',
-  columns: [],
-  detailColumns: [],
-  maxPageSize: 20,
-  async filters() {},
-  async search(args) {},
-  async detail(id) {},
-  async all(args) {},
-};
-```
-
-注册到 `src/core/registry.js` 后，CLI 会自动获得：
-
-```bash
-job example filters
-job example search
-job example detail
-job example all
-job example analyze ai-product
-```
-
-更详细的接入清单见 `docs/ADDING_SITE.md`。
+注册到 `src/core/registry.js` 后，CLI 会自动获得全套命令。详细接入流程（API 调研方法、字段归一化、兼容处理等）见 `docs/ADDING_SITE.md`。
 
 ## 项目结构
 
@@ -182,7 +157,8 @@ job example analyze ai-product
 ├── src/sites/                  # 公司招聘网站 adapter
 │   ├── bytedance/
 │   ├── didi/
-│   └── kuaishou/
+│   ├── kuaishou/
+│   └── meituan/
 ├── skills/jobhunt-cli/         # 给 AI agent 使用的 skill
 ├── integrations/opencli/       # 可选 OpenCLI 兼容层
 ├── scripts/                    # smoke 检查脚本
@@ -199,11 +175,20 @@ npm run smoke
 npm run smoke:cli
 ```
 
+单站点 smoke：
+
+```bash
+npm run smoke:meituan
+npm run smoke:kuaishou
+npm run smoke:didi
+npm run smoke:bytedance
+```
+
 本地直接运行 CLI：
 
 ```bash
 node bin/job.js sites
-node bin/job.js didi search AI --category 产品 --limit 1 --format json
+node bin/job.js meituan search AI --category 技术类 --limit 3
 ```
 
 发布前预检 npm 包内容：

@@ -35,7 +35,8 @@
     "node": ">=21.0.0"
   },
   "dependencies": {
-    "commander": "^14.0.3"
+    "commander": "^14.0.3",
+    "undici": "^8.1.0"
   },
   "peerDependencies": {
     "@jackwener/opencli": ">=1.0.0"
@@ -50,15 +51,19 @@
     "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
     "smoke:didi": "node scripts/smoke-didi-api.js",
     "smoke:bytedance": "node scripts/smoke-bytedance-api.js",
-    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance",
-    "smoke:cli": "node bin/job.js didi search AI --category 产品 --limit 1 --format json"
+    "smoke:meituan": "node scripts/smoke-meituan-api.js",
+    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan",
+    "smoke:cli": "node bin/job.js meituan search AI --category 技术类 --limit 1 --format json"
   },
   "keywords": [
     "cli",
     "kuaishou",
     "didi",
+    "bytedance",
+    "meituan",
     "jobs",
-    "recruitment"
+    "recruitment",
+    "job-search"
   ],
   "license": "MIT",
   "publishConfig": {

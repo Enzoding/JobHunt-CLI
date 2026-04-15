@@ -4,6 +4,7 @@ import { analyzeJobs, analyzeCsv } from './core/analysis.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
 import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
+import { initNetwork, setDebugMode, getNetworkInfo, formatNetworkError } from './core/network.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
@@ -48,10 +49,15 @@ async function output(value, options, columns) {
   writeOutput(text, options.output);
 }
 
-function handleError(error) {
+function handleError(error, lastUrl) {
   const code = error.code || 'ERROR';
   const exitCode = error.exitCode || 1;
-  process.stderr.write(`error: ${code}: ${error.message}\n`);
+  const networkMsg = formatNetworkError(error, lastUrl);
+  if (networkMsg) {
+    process.stderr.write(`error: ${code}: ${networkMsg}\n`);
+  } else {
+    process.stderr.write(`error: ${code}: ${error.message}\n`);
+  }
   if (error.help) process.stderr.write(`help: ${error.help}\n`);
   process.exitCode = exitCode;
 }
@@ -61,7 +67,8 @@ export async function run(argv = process.argv) {
   program
     .name('job')
     .description('JobHunt-CLI: search, export, and analyze public company recruitment jobs')
-    .version(version);
+    .version(version)
+    .option('--debug', 'Enable debug output (proxy status, request info)');
 
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
     .action(async options => {
@@ -137,6 +144,18 @@ export async function run(argv = process.argv) {
   }
 
   try {
+    program.parseOptions(argv);
+    const opts = program.opts();
+    if (opts.debug) setDebugMode(true);
+    initNetwork();
+    if (opts.debug) {
+      const info = getNetworkInfo();
+      process.stderr.write(`[debug] proxy: ${info.proxyEnabled ? 'enabled' : 'disabled'}\n`);
+      if (info.proxyEnabled) {
+        process.stderr.write(`[debug] ${info.proxyVar}=${info.proxyUrl}\n`);
+        process.stderr.write(`[debug] NO_PROXY=${info.noProxy ?? '(none)'}\n`);
+      }
+    }
     await program.parseAsync(argv);
   } catch (error) {
     handleError(error);
