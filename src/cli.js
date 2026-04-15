@@ -4,7 +4,7 @@ import { analyzeJobs, analyzeCsv } from './core/analysis.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
 import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
-import { initNetwork, setDebugMode, getNetworkInfo, formatNetworkError } from './core/network.js';
+import { initNetwork, setDebugMode, getNetworkInfo, formatNetworkError, detectProxyEnv } from './core/network.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
@@ -147,13 +147,16 @@ export async function run(argv = process.argv) {
     program.parseOptions(argv);
     const opts = program.opts();
     if (opts.debug) setDebugMode(true);
-    initNetwork();
+    await initNetwork();
     if (opts.debug) {
       const info = getNetworkInfo();
+      const detected = detectProxyEnv();
       process.stderr.write(`[debug] proxy: ${info.proxyEnabled ? 'enabled' : 'disabled'}\n`);
       if (info.proxyEnabled) {
         process.stderr.write(`[debug] ${info.proxyVar}=${info.proxyUrl}\n`);
-        process.stderr.write(`[debug] NO_PROXY=${info.noProxy ?? '(none)'}\n`);
+        if (info.noProxy) process.stderr.write(`[debug] NO_PROXY=${info.noProxy}\n`);
+      } else if (detected && !info.proxySupported) {
+        process.stderr.write(`[debug] proxy env detected (${detected.key}) but undici unavailable\n`);
       }
     }
     await program.parseAsync(argv);

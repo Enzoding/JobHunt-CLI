@@ -1,6 +1,6 @@
 {
   "name": "jobhunt-cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Search, export, and analyze public company recruitment jobs.",
   "homepage": "https://github.com/Enzoding/JobHunt-CLI#readme",
   "repository": {
@@ -52,8 +52,9 @@
     "smoke:didi": "node scripts/smoke-didi-api.js",
     "smoke:bytedance": "node scripts/smoke-bytedance-api.js",
     "smoke:meituan": "node scripts/smoke-meituan-api.js",
-    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan",
-    "smoke:cli": "node bin/job.js meituan search AI --category 技术类 --limit 1 --format json"
+    "smoke:xiaomi": "node scripts/smoke-xiaomi-api.js",
+    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan && npm run smoke:xiaomi",
+    "smoke:cli": "node bin/job.js xiaomi search AI --limit 1 --format json"
   },
   "keywords": [
     "cli",
@@ -61,6 +62,7 @@
     "didi",
     "bytedance",
     "meituan",
+    "xiaomi",
     "jobs",
     "recruitment",
     "job-search"

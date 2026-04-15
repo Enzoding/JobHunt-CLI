@@ -26,8 +26,11 @@ job didi analyze ai-product --output reports/didi-ai-product-report.md
 | 快手 | `job kuaishou ...` | zhaopin.kuaishou.cn | 公开接口，已内置请求签名。 |
 | 字节跳动 | `job bytedance ...` | jobs.bytedance.com | 公开接口，搜索即返回完整详情。 |
 | 美团 | `job meituan ...` | zhaopin.meituan.com | 公开接口，POST JSON，无需签名。 |
+| 小米 | `job xiaomi ...` | hr.xiaomi.com | 公开接口，列表POST+详情GET，portal_type=6。 |
 
-## 安装与运行
+## 快速开始
+
+### 👤 人类用户
 
 不安装，直接运行：
 
@@ -36,7 +39,7 @@ npx jobhunt-cli sites
 npx jobhunt-cli meituan search AI --category 技术类
 ```
 
-全局安装：
+全局安装（推荐）：
 
 ```bash
 npm install -g jobhunt-cli
@@ -49,6 +52,28 @@ job sites
 npm install
 npm run job -- meituan search AI --category 技术类 --limit 5
 ```
+
+### 🤖 AI Agent
+
+**第一步：安装 CLI**
+
+```bash
+npm install -g jobhunt-cli
+```
+
+需要 Node.js >= 21。安装后验证：
+
+```bash
+job sites
+```
+
+**第二步：安装 Skill（让 Agent 知道如何使用 CLI）**
+
+```bash
+npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli
+```
+
+安装完成后，Agent 就能理解 `job` 命令的完整用法，并在用户咨询招聘信息时自动调用。
 
 ## 核心命令
 
@@ -69,6 +94,7 @@ job <site> analyze [query] --category <类别> --output report.md
 job meituan search AI --category 技术类 --limit 10
 job meituan detail 4305933827 --format json
 job meituan all --category 职能类 --max 50 --format csv --output meituan-hr.csv
+job xiaomi search 嵌入式 --category 技术类 --limit 10
 job kuaishou search 算法 --location 北京 --limit 10
 job didi all AI --category 产品 --max 20 --format csv --output didi-ai.csv
 job bytedance search 后端 --category 后端 --limit 5 --format json
@@ -119,12 +145,6 @@ raw
 
 ## 给 AI Agent 的用法
 
-### 安装 Skill
-
-```bash
-npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli
-```
-
 推荐 agent 工作流：
 
 1. 运行 `job sites`，确认支持哪些公司。
@@ -158,7 +178,8 @@ src/sites/<site>/
 │   ├── bytedance/
 │   ├── didi/
 │   ├── kuaishou/
-│   └── meituan/
+│   ├── meituan/
+│   └── xiaomi/
 ├── skills/jobhunt-cli/         # 给 AI agent 使用的 skill
 ├── integrations/opencli/       # 可选 OpenCLI 兼容层
 ├── scripts/                    # smoke 检查脚本
@@ -179,6 +200,7 @@ npm run smoke:cli
 
 ```bash
 npm run smoke:meituan
+npm run smoke:xiaomi
 npm run smoke:kuaishou
 npm run smoke:didi
 npm run smoke:bytedance
