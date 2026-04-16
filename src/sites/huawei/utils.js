@@ -6,7 +6,7 @@ export const API_DOMAIN = 'apigw-dgg-b0.huawei.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const API_URL = `https://${API_DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/cn/social-recruitment-job-list`;
-export const HW_ID = 'app_000000035886';
+export const HW_ID = process.env.HUAWEI_HW_ID || 'app_000000035886';
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 100;
