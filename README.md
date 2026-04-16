@@ -91,6 +91,34 @@ npm install
 npm run job -- meituan search AI --category 技术类 --limit 5
 ```
 
+## 网络代理
+
+CLI 会读取 `HTTPS_PROXY`、`HTTP_PROXY`、`https_proxy`、`http_proxy`。默认代理策略为 `JOBHUNT_PROXY=auto`：
+
+- 检测到代理变量时，先探测代理主机端口是否可连接。
+- 代理可连接时走代理，适合必须通过代理访问外网的服务器。
+- 代理不可连接时自动改用直连，避免本地残留的 `127.0.0.1` 代理变量导致命令失败。
+- 代理端口可连接但实际请求失败时，会再用直连重试一次。
+
+可按环境显式调整：
+
+```bash
+# 服务器必须走代理时使用
+JOBHUNT_PROXY=always job bytedance filters --format json
+
+# 本地确认可直连，忽略所有代理变量
+JOBHUNT_PROXY=direct job bytedance filters --format json
+
+# 某个域名直连，其他请求仍按代理变量处理
+NO_PROXY=jobs.bytedance.com job bytedance filters --format json
+```
+
+排查网络问题时可加 `--debug` 查看代理是否启用、绕过或不可达：
+
+```bash
+job --debug bytedance filters --format json
+```
+
 ## 更新 CLI
 
 查看线上最新版本：
