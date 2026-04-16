@@ -60,6 +60,11 @@ OpenCLI 不是必需依赖，只作为已有 OpenCLI 用户的可选兼容层保
 | 百度 | `job baidu ...` | talent.baidu.com | 公开接口，列表接口 + SSR 详情页解析。 |
 | 京东 | `job jd ...` | zhaopin.jd.com | 公开接口，社招类型 3，列表已带详情字段。 |
 | 小红书 | `job xiaohongshu ...` | job.xiaohongshu.com | 公开接口，社招 pageQueryPosition。 |
+| 哔哩哔哩 | `job bilibili ...` | jobs.bilibili.com | 公开接口，社招 srs 列表 + 详情接口。 |
+| 网易 | `job netease ...` | hr.163.com | 公开接口，queryPage 列表 + query 详情。 |
+| 携程 | `job ctrip ...` | careers.ctrip.com | 公开接口，getJobAd 列表已带详情字段。 |
+| 华为 | `job huawei ...` | career.huawei.com | 公开接口，社招 getJobPage，关键词本地过滤。 |
+| 大疆 | `job dji ...` | we.dji.com | 公开接口，职位卡片列表已带详情字段。 |
 
 ## 快速开始
 
@@ -188,6 +193,11 @@ job tencent search AI --location 北京 --limit 5
 job baidu detail <postId> --format json
 job jd search AI --category 研发 --limit 5
 job xiaohongshu search AI --category 技术 --limit 5
+job bilibili search AI --category 技术类 --limit 5
+job netease search AI --category 人工智能 --limit 5
+job ctrip detail MJ021758 --format json
+job huawei search 审计 --limit 5
+job dji search 算法 --location 深圳 --limit 5
 ```
 
 ## 输出格式

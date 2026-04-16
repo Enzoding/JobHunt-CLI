@@ -7,6 +7,11 @@ import tencentAdapter from '../sites/tencent/index.js';
 import baiduAdapter from '../sites/baidu/index.js';
 import jdAdapter from '../sites/jd/index.js';
 import xiaohongshuAdapter from '../sites/xiaohongshu/index.js';
+import bilibiliAdapter from '../sites/bilibili/index.js';
+import neteaseAdapter from '../sites/netease/index.js';
+import ctripAdapter from '../sites/ctrip/index.js';
+import huaweiAdapter from '../sites/huawei/index.js';
+import djiAdapter from '../sites/dji/index.js';
 import { ArgumentError } from './errors.js';
 
 const adapters = new Map([
@@ -28,6 +33,16 @@ const adapters = new Map([
   [jdAdapter.opencliSite, jdAdapter],
   [xiaohongshuAdapter.id, xiaohongshuAdapter],
   [xiaohongshuAdapter.opencliSite, xiaohongshuAdapter],
+  [bilibiliAdapter.id, bilibiliAdapter],
+  [bilibiliAdapter.opencliSite, bilibiliAdapter],
+  [neteaseAdapter.id, neteaseAdapter],
+  [neteaseAdapter.opencliSite, neteaseAdapter],
+  [ctripAdapter.id, ctripAdapter],
+  [ctripAdapter.opencliSite, ctripAdapter],
+  [huaweiAdapter.id, huaweiAdapter],
+  [huaweiAdapter.opencliSite, huaweiAdapter],
+  [djiAdapter.id, djiAdapter],
+  [djiAdapter.opencliSite, djiAdapter],
 ]);
 
 export function listSites() {

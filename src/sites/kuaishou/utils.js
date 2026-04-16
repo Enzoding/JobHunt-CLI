@@ -5,7 +5,7 @@ export const SITE = 'kuaishou-jobs';
 export const DOMAIN = 'zhaopin.kuaishou.cn';
 export const BASE_URL = `https://${DOMAIN}`;
 export const API_PREFIX = '/recruit/e';
-export const SIGN_SECRET = '652f962a-0575-4575-98d2-f04e2291bee2';
+export const SIGN_SECRET = process.env.KUAISHOU_SIGN_SECRET || '652f962a-0575-4575-98d2-f04e2291bee2';
 export const SOCIAL_URL = `${BASE_URL}/#/official/social/`;
 
 export const DEFAULT_PAGE_SIZE = 20;
