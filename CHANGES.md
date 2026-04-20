@@ -6,6 +6,21 @@
 
 ## 2026-04-20
 
+### 发布 0.1.11
+
+**修改文件**：`package.json`
+
+**修改内容**：
+1. 将 npm 包版本从 `0.1.9` 提升到 `0.1.11`。
+
+**原因**：
+npm registry 上 `jobhunt-cli` 最新版本已是 `0.1.10`，当前代码需要使用更高版本号发布，避免重复发布已存在版本。
+
+**影响范围**：
+- 仅影响 npm 发布版本号，不改变运行时代码逻辑。
+
+---
+
 ### 新增 15 个阿里巴巴集团 CPO 招聘站点 adapter
 
 **修改文件**：`src/core/registry.js`、`src/sites/alibaba-cpo/`、`scripts/smoke-alibaba-cpo-api.js`、`package.json`、`README.md`
