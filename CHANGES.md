@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-04-19
+
+### 新增 6 个社会招聘站点 adapter
+
+**修改文件**：`src/core/registry.js`、`src/sites/shared.js`、`src/sites/ant/`、`src/sites/dewu/`、`src/sites/feishu-saas/`、`src/sites/mihoyo/`、`src/sites/minimax/`、`src/sites/moonshot/`、`src/sites/zhipu/`、`scripts/smoke-*-api.js`、`package.json`
+
+**修改内容**：
+1. 新增蚂蚁集团、得物、米哈游、MiniMax、月之暗面、智谱 6 个社会招聘 adapter，并注册为 CLI 站点：`ant`、`dewu`、`mihoyo`、`minimax`、`moonshot`、`zhipu`。
+2. 新增 `src/sites/shared.js`，复用字段文本化、HTML 清洗、别名匹配、分页参数规整等通用逻辑。
+3. 新增 `src/sites/feishu-saas/utils.js`，封装飞书招聘 SaaS 站点的公开签名加载、`web_id` 初始化、筛选项、搜索、详情回查和分页导出逻辑，供得物、MiniMax、智谱复用。
+4. 新增 Moka（月之暗面）会话初始化、加密响应解密和客户端筛选逻辑，支持从公开招聘页拉取并标准化职位数据。
+5. 新增 6 个 smoke 脚本，并把它们接入 `npm run smoke`。
+
+**原因**：
+继续扩展 JobHunt-CLI 的公开招聘数据源覆盖范围，支持更多互联网、AI 和消费平台公司的社会招聘数据查询，满足后续脚本化导出和 AI agent 分析需求。
+
+**影响范围**：
+- `job sites` 新增 6 个站点，总站点数从 14 个增加到 20 个。
+- 新站点支持 `filters`、`search`、`detail`、`all` 和 `analyze` 等现有 CLI 子命令。
+- 飞书招聘 SaaS 站点依赖其公开前端 bundle 中的 `_signature` 逻辑；若飞书前端模块 ID 或签名算法变更，`dewu`、`minimax`、`zhipu` 可能需要同步调整共享签名加载逻辑。
+- Moka 站点依赖公开页面中的 `init-data.aesIv` 和 API 返回的 `necromancer` 字段解密；若 Moonshot 招聘页迁移或加密字段变化，需要更新 `src/sites/moonshot/utils.js`。
+
+---
+
 ## 2026-04-16
 
 ### P1: 优化代理自动检测和网络错误诊断
