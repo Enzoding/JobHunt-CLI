@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-04-20
+
+### 新增 15 个阿里巴巴集团 CPO 招聘站点 adapter
+
+**修改文件**：`src/core/registry.js`、`src/sites/alibaba-cpo/`、`scripts/smoke-alibaba-cpo-api.js`、`package.json`、`README.md`
+
+**修改内容**：
+1. 新增 `src/sites/alibaba-cpo/` 共享 adapter 工厂，统一封装阿里 CPO 招聘站点的动态 `_csrf` 初始化、Cookie 会话、社招频道识别、筛选项、列表搜索、详情拉取和分页导出逻辑。
+2. 注册 15 个阿里巴巴集团站点：`taotian`、`taobao-shangou`、`fliggy`、`alibaba-intl`、`aliyun`、`tongyi`、`dingtalk`、`quark`、`thead`、`amap`、`cainiao`、`hujing`、`freshippo`、`alihealth`、`lingxi`。
+3. 新增 `npm run smoke:alibaba-cpo`，批量验证 15 个阿里 CPO 站点的 filters/search/all，并在站点当前有岗位时额外验证 detail。
+4. 更新 README 当前支持站点列表和 package scripts/keywords。
+5. 修正阿里 CPO 站点列表请求 channel：Chrome DevTools 抓包确认前端真实使用 `group_official_site`，而不是 HTML `channelCodeMap.offCampus` 中的子频道值；使用子频道会导致接口成功但岗位列表为空。
+6. 修正阿里 CPO 站点父级岗位分类解析：接口不接受单独父级 code，例如钉钉 `产品类` 必须展开为 `平台型/商业型/用户型/综合管理` 等子类 code；同时支持用户输入 `产品` 匹配官网筛选项 `产品类`。
+
+**原因**：
+继续扩展 JobHunt-CLI 的招聘数据源覆盖范围。上述站点均为阿里巴巴集团相关招聘官网，前端页面和公开 API 共享同一套 CPO 框架，适合抽象成复用 adapter，降低后续维护成本。
+
+**影响范围**：
+- `job sites` 新增 15 个站点，总站点数从 20 个增加到 35 个。
+- 新站点支持 `filters`、`search`、`detail`、`all`、`analyze` 等现有 CLI 子命令。
+- 部分阿里子站当前公开社招列表返回 0 条岗位；新 adapter 将空列表视为正常结果，避免把“暂无岗位”误报为接口失败。
+- 父级分类参数会自动展开为其所有子分类，避免用户传入 `--category 产品` 时退化成无效筛选或空结果。
+- 阿里 CPO 站点依赖页面 HTML 中的 `window.__sysconfig.__token__`，列表查询 channel 与前端保持为 `group_official_site`。若前端页面结构、API CSRF 机制或 channel 策略变更，需要同步更新 `src/sites/alibaba-cpo/utils.js`。
+
+---
+
 ## 2026-04-19
 
 ### 新增 6 个社会招聘站点 adapter

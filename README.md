@@ -65,6 +65,21 @@ OpenCLI 不是必需依赖，只作为已有 OpenCLI 用户的可选兼容层保
 | 携程 | `job ctrip ...` | careers.ctrip.com | 公开接口，getJobAd 列表已带详情字段。 |
 | 华为 | `job huawei ...` | career.huawei.com | 公开接口，社招 getJobPage，关键词本地过滤。 |
 | 大疆 | `job dji ...` | we.dji.com | 公开接口，职位卡片列表已带详情字段。 |
+| 淘天集团 | `job taotian ...` | talent.taotian.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 淘宝闪购 | `job taobao-shangou ...` | talent.ele.me | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 飞猪 | `job fliggy ...` | career.fliggy.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 阿里国际 | `job alibaba-intl ...` | aidc-jobs.alibaba.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 阿里云 | `job aliyun ...` | careers.aliyun.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 通义实验室 | `job tongyi ...` | careers-tongyi.alibaba.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 钉钉 | `job dingtalk ...` | talent.dingtalk.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 千问 C 端事业群 | `job quark ...` | talent.quark.cn | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 平头哥 | `job thead ...` | recruitment.t-head.cn | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 高德地图 | `job amap ...` | talent.amap.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 菜鸟 | `job cainiao ...` | talent.cainiao.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 虎鲸文娱 | `job hujing ...` | jobs.hujing-dme.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 盒马 | `job freshippo ...` | hire.freshippo.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 阿里健康 | `job alihealth ...` | careers.alihealth.cn | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| 灵犀互娱 | `job lingxi ...` | talent.lingxigames.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
 
 ## 快速开始
 

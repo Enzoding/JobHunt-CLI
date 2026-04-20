@@ -18,6 +18,7 @@ import mihoyoAdapter from '../sites/mihoyo/index.js';
 import minimaxAdapter from '../sites/minimax/index.js';
 import moonshotAdapter from '../sites/moonshot/index.js';
 import zhipuAdapter from '../sites/zhipu/index.js';
+import { ALIBABA_CPO_ADAPTERS } from '../sites/alibaba-cpo/index.js';
 import { ArgumentError } from './errors.js';
 
 const adapters = new Map([
@@ -61,6 +62,10 @@ const adapters = new Map([
   [moonshotAdapter.opencliSite, moonshotAdapter],
   [zhipuAdapter.id, zhipuAdapter],
   [zhipuAdapter.opencliSite, zhipuAdapter],
+  ...ALIBABA_CPO_ADAPTERS.flatMap(adapter => [
+    [adapter.id, adapter],
+    [adapter.opencliSite, adapter],
+  ]),
 ]);
 
 export function listSites() {

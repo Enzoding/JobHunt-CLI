@@ -68,7 +68,8 @@
     "smoke:minimax": "node scripts/smoke-minimax-api.js",
     "smoke:moonshot": "node scripts/smoke-moonshot-api.js",
     "smoke:zhipu": "node scripts/smoke-zhipu-api.js",
-    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan && npm run smoke:xiaomi && npm run smoke:tencent && npm run smoke:baidu && npm run smoke:jd && npm run smoke:xiaohongshu && npm run smoke:bilibili && npm run smoke:netease && npm run smoke:ctrip && npm run smoke:huawei && npm run smoke:dji && npm run smoke:ant && npm run smoke:dewu && npm run smoke:mihoyo && npm run smoke:minimax && npm run smoke:moonshot && npm run smoke:zhipu",
+    "smoke:alibaba-cpo": "node scripts/smoke-alibaba-cpo-api.js",
+    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan && npm run smoke:xiaomi && npm run smoke:tencent && npm run smoke:baidu && npm run smoke:jd && npm run smoke:xiaohongshu && npm run smoke:bilibili && npm run smoke:netease && npm run smoke:ctrip && npm run smoke:huawei && npm run smoke:dji && npm run smoke:ant && npm run smoke:dewu && npm run smoke:mihoyo && npm run smoke:minimax && npm run smoke:moonshot && npm run smoke:zhipu && npm run smoke:alibaba-cpo",
     "smoke:cli": "node bin/job.js xiaomi search AI --limit 1 --format json"
   },
   "keywords": [
@@ -87,6 +88,9 @@
     "ctrip",
     "huawei",
     "dji",
+    "alibaba",
+    "aliyun",
+    "cainiao",
     "jobs",
     "recruitment",
     "job-search"
