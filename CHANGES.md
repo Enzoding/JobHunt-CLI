@@ -4,7 +4,78 @@
 
 ---
 
+## 2026-04-20
+
+### 新增 15 个阿里巴巴集团 CPO 招聘站点 adapter
+
+**修改文件**：`src/core/registry.js`、`src/sites/alibaba-cpo/`、`scripts/smoke-alibaba-cpo-api.js`、`package.json`、`README.md`
+
+**修改内容**：
+1. 新增 `src/sites/alibaba-cpo/` 共享 adapter 工厂，统一封装阿里 CPO 招聘站点的动态 `_csrf` 初始化、Cookie 会话、社招频道识别、筛选项、列表搜索、详情拉取和分页导出逻辑。
+2. 注册 15 个阿里巴巴集团站点：`taotian`、`taobao-shangou`、`fliggy`、`alibaba-intl`、`aliyun`、`tongyi`、`dingtalk`、`quark`、`thead`、`amap`、`cainiao`、`hujing`、`freshippo`、`alihealth`、`lingxi`。
+3. 新增 `npm run smoke:alibaba-cpo`，批量验证 15 个阿里 CPO 站点的 filters/search/all，并在站点当前有岗位时额外验证 detail。
+4. 更新 README 当前支持站点列表和 package scripts/keywords。
+5. 修正阿里 CPO 站点列表请求 channel：Chrome DevTools 抓包确认前端真实使用 `group_official_site`，而不是 HTML `channelCodeMap.offCampus` 中的子频道值；使用子频道会导致接口成功但岗位列表为空。
+6. 修正阿里 CPO 站点父级岗位分类解析：接口不接受单独父级 code，例如钉钉 `产品类` 必须展开为 `平台型/商业型/用户型/综合管理` 等子类 code；同时支持用户输入 `产品` 匹配官网筛选项 `产品类`。
+
+**原因**：
+继续扩展 JobHunt-CLI 的招聘数据源覆盖范围。上述站点均为阿里巴巴集团相关招聘官网，前端页面和公开 API 共享同一套 CPO 框架，适合抽象成复用 adapter，降低后续维护成本。
+
+**影响范围**：
+- `job sites` 新增 15 个站点，总站点数从 20 个增加到 35 个。
+- 新站点支持 `filters`、`search`、`detail`、`all`、`analyze` 等现有 CLI 子命令。
+- 部分阿里子站当前公开社招列表返回 0 条岗位；新 adapter 将空列表视为正常结果，避免把“暂无岗位”误报为接口失败。
+- 父级分类参数会自动展开为其所有子分类，避免用户传入 `--category 产品` 时退化成无效筛选或空结果。
+- 阿里 CPO 站点依赖页面 HTML 中的 `window.__sysconfig.__token__`，列表查询 channel 与前端保持为 `group_official_site`。若前端页面结构、API CSRF 机制或 channel 策略变更，需要同步更新 `src/sites/alibaba-cpo/utils.js`。
+
+---
+
+## 2026-04-19
+
+### 新增 6 个社会招聘站点 adapter
+
+**修改文件**：`src/core/registry.js`、`src/sites/shared.js`、`src/sites/ant/`、`src/sites/dewu/`、`src/sites/feishu-saas/`、`src/sites/mihoyo/`、`src/sites/minimax/`、`src/sites/moonshot/`、`src/sites/zhipu/`、`scripts/smoke-*-api.js`、`package.json`
+
+**修改内容**：
+1. 新增蚂蚁集团、得物、米哈游、MiniMax、月之暗面、智谱 6 个社会招聘 adapter，并注册为 CLI 站点：`ant`、`dewu`、`mihoyo`、`minimax`、`moonshot`、`zhipu`。
+2. 新增 `src/sites/shared.js`，复用字段文本化、HTML 清洗、别名匹配、分页参数规整等通用逻辑。
+3. 新增 `src/sites/feishu-saas/utils.js`，封装飞书招聘 SaaS 站点的公开签名加载、`web_id` 初始化、筛选项、搜索、详情回查和分页导出逻辑，供得物、MiniMax、智谱复用。
+4. 新增 Moka（月之暗面）会话初始化、加密响应解密和客户端筛选逻辑，支持从公开招聘页拉取并标准化职位数据。
+5. 新增 6 个 smoke 脚本，并把它们接入 `npm run smoke`。
+
+**原因**：
+继续扩展 JobHunt-CLI 的公开招聘数据源覆盖范围，支持更多互联网、AI 和消费平台公司的社会招聘数据查询，满足后续脚本化导出和 AI agent 分析需求。
+
+**影响范围**：
+- `job sites` 新增 6 个站点，总站点数从 14 个增加到 20 个。
+- 新站点支持 `filters`、`search`、`detail`、`all` 和 `analyze` 等现有 CLI 子命令。
+- 飞书招聘 SaaS 站点依赖其公开前端 bundle 中的 `_signature` 逻辑；若飞书前端模块 ID 或签名算法变更，`dewu`、`minimax`、`zhipu` 可能需要同步调整共享签名加载逻辑。
+- Moka 站点依赖公开页面中的 `init-data.aesIv` 和 API 返回的 `necromancer` 字段解密；若 Moonshot 招聘页迁移或加密字段变化，需要更新 `src/sites/moonshot/utils.js`。
+
+---
+
 ## 2026-04-16
+
+### P1: 优化代理自动检测和网络错误诊断
+
+**修改文件**：`src/core/network.js`、`src/cli.js`、`README.md`
+
+**修改内容**：
+1. 新增 `JOBHUNT_PROXY` 代理策略环境变量：
+   - `auto`（默认）：检测到代理变量后先探测代理端口，代理可达才启用代理，不可达则自动直连；代理请求失败时再直连重试一次。
+   - `always`：强制使用代理，适合服务器必须通过代理访问外网的场景。
+   - `direct`：忽略代理变量，强制直连。
+2. 在网络层包装 `globalThis.fetch`，为 fetch 失败错误补充 `requestUrl`，避免连接失败时只显示 `(unknown)`。
+3. CLI debug 输出增加代理绕过和探测失败信息。
+4. README 新增网络代理使用和排查说明。
+
+**原因**：
+本地环境可能残留 `https_proxy=http://127.0.0.1:<port>`，当代理软件未启动或端口变化时，CLI 会因代理不可达而失败；但服务器环境又可能必须走代理。需要兼顾两类场景：默认自动规避坏代理，同时允许服务器显式强制代理。
+
+**影响范围**：
+所有站点的 CLI 网络请求。默认行为更稳健：可用代理仍会使用，不可用代理会自动直连；必须走代理的环境可通过 `JOBHUNT_PROXY=always` 保持强制代理语义。
+
+---
 
 ### P0: 修复 `index.js` 导出符号错误
 

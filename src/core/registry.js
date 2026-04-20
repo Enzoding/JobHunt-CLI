@@ -12,6 +12,13 @@ import neteaseAdapter from '../sites/netease/index.js';
 import ctripAdapter from '../sites/ctrip/index.js';
 import huaweiAdapter from '../sites/huawei/index.js';
 import djiAdapter from '../sites/dji/index.js';
+import antAdapter from '../sites/ant/index.js';
+import dewuAdapter from '../sites/dewu/index.js';
+import mihoyoAdapter from '../sites/mihoyo/index.js';
+import minimaxAdapter from '../sites/minimax/index.js';
+import moonshotAdapter from '../sites/moonshot/index.js';
+import zhipuAdapter from '../sites/zhipu/index.js';
+import { ALIBABA_CPO_ADAPTERS } from '../sites/alibaba-cpo/index.js';
 import { ArgumentError } from './errors.js';
 
 const adapters = new Map([
@@ -43,6 +50,22 @@ const adapters = new Map([
   [huaweiAdapter.opencliSite, huaweiAdapter],
   [djiAdapter.id, djiAdapter],
   [djiAdapter.opencliSite, djiAdapter],
+  [antAdapter.id, antAdapter],
+  [antAdapter.opencliSite, antAdapter],
+  [dewuAdapter.id, dewuAdapter],
+  [dewuAdapter.opencliSite, dewuAdapter],
+  [mihoyoAdapter.id, mihoyoAdapter],
+  [mihoyoAdapter.opencliSite, mihoyoAdapter],
+  [minimaxAdapter.id, minimaxAdapter],
+  [minimaxAdapter.opencliSite, minimaxAdapter],
+  [moonshotAdapter.id, moonshotAdapter],
+  [moonshotAdapter.opencliSite, moonshotAdapter],
+  [zhipuAdapter.id, zhipuAdapter],
+  [zhipuAdapter.opencliSite, zhipuAdapter],
+  ...ALIBABA_CPO_ADAPTERS.flatMap(adapter => [
+    [adapter.id, adapter],
+    [adapter.opencliSite, adapter],
+  ]),
 ]);
 
 export function listSites() {

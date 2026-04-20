@@ -52,7 +52,7 @@ async function output(value, options, columns) {
 function handleError(error, lastUrl) {
   const code = error.code || 'ERROR';
   const exitCode = error.exitCode || 1;
-  const networkMsg = formatNetworkError(error, lastUrl);
+  const networkMsg = formatNetworkError(error, error.requestUrl || lastUrl);
   if (networkMsg) {
     process.stderr.write(`error: ${code}: ${networkMsg}\n`);
   } else {
@@ -155,6 +155,11 @@ export async function run(argv = process.argv) {
       if (info.proxyEnabled) {
         process.stderr.write(`[debug] ${info.proxyVar}=${info.proxyUrl}\n`);
         if (info.noProxy) process.stderr.write(`[debug] NO_PROXY=${info.noProxy}\n`);
+      } else if (info.proxyBypassed) {
+        process.stderr.write(`[debug] proxy env bypassed (${info.proxyVar}=${info.proxyUrl})\n`);
+        if (info.proxyProbeError) process.stderr.write(`[debug] proxy probe failed: ${info.proxyProbeError}\n`);
+      } else if (detected && info.proxyMode === 'direct') {
+        process.stderr.write(`[debug] proxy env detected (${detected.key}) but ignored by JOBHUNT_PROXY=direct\n`);
       } else if (detected && !info.proxySupported) {
         process.stderr.write(`[debug] proxy env detected (${detected.key}) but undici unavailable\n`);
       }
