@@ -51,7 +51,7 @@
     "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
     "smoke:didi": "node scripts/smoke-didi-api.js",
     "smoke:bytedance": "node scripts/smoke-bytedance-api.js",
-    "smoke:meituan": "node scripts/smoke-meituan-api.js",
+    "smoke:meituan": "node scripts/smoke-meituan-api.js && node scripts/smoke-meituan-url.js",
     "smoke:xiaomi": "node scripts/smoke-xiaomi-api.js",
     "smoke:tencent": "node scripts/smoke-tencent-api.js",
     "smoke:baidu": "node scripts/smoke-baidu-api.js",

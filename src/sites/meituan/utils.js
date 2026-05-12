@@ -195,7 +195,7 @@ async function meituanPost(endpoint, body = {}) {
 }
 
 export function jobUrl(id) {
-  return `${BASE_URL}/web/social/position/${id}`;
+  return `${BASE_URL}/web/position/detail?jobUnionId=${id}`;
 }
 
 function fieldText(value) {
