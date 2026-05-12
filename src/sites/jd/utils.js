@@ -151,7 +151,9 @@ async function jdPost(endpoint, data = {}) {
 }
 
 export function jobUrl(id) {
-  return `${BASE_URL}/web/job/job_detail/${id}`;
+  // JD does not provide public job detail deep links; detail pages require login.
+  // Fallback to the public social recruitment list page.
+  return SOCIAL_URL;
 }
 
 export function normalizeJob(job) {
