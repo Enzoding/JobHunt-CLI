@@ -55,7 +55,7 @@
     "smoke:xiaomi": "node scripts/smoke-xiaomi-api.js",
     "smoke:tencent": "node scripts/smoke-tencent-api.js",
     "smoke:baidu": "node scripts/smoke-baidu-api.js",
-    "smoke:jd": "node scripts/smoke-jd-api.js",
+    "smoke:jd": "node scripts/smoke-jd-api.js && node scripts/smoke-jd-url.js",
     "smoke:xiaohongshu": "node scripts/smoke-xiaohongshu-api.js",
     "smoke:bilibili": "node scripts/smoke-bilibili-api.js",
     "smoke:netease": "node scripts/smoke-netease-api.js && node scripts/smoke-netease-url.js",
