@@ -356,6 +356,8 @@ npm run smoke:jd
 npm run smoke:xiaohongshu
 ```
 
+> **Note**: smoke 测试仅验证 API 连通性和返回数据格式（包括 URL 格式正则匹配）。由于多数招聘官网为 SPA 架构，URL 实际可达性需在浏览器中目视确认。
+
 本地直接运行 CLI：
 
 ```bash
