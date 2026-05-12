@@ -58,7 +58,7 @@
     "smoke:jd": "node scripts/smoke-jd-api.js",
     "smoke:xiaohongshu": "node scripts/smoke-xiaohongshu-api.js",
     "smoke:bilibili": "node scripts/smoke-bilibili-api.js",
-    "smoke:netease": "node scripts/smoke-netease-api.js",
+    "smoke:netease": "node scripts/smoke-netease-api.js && node scripts/smoke-netease-url.js",
     "smoke:ctrip": "node scripts/smoke-ctrip-api.js",
     "smoke:huawei": "node scripts/smoke-huawei-api.js",
     "smoke:dji": "node scripts/smoke-dji-api.js",

@@ -131,7 +131,7 @@ async function neteaseFetch(endpoint, { method = 'GET', body } = {}) {
 }
 
 export function jobUrl(id) {
-  return `${BASE_URL}/job-detail.html?id=${id}`;
+  return `${BASE_URL}/job-detail.html?id=${id}&lang=zh`;
 }
 
 export function normalizeJob(job) {
