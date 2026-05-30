@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-05-30
+
+### 修复 Meituan 岗位详情链接 404 问题
+
+**修改文件**：`src/sites/meituan/utils.js`
+
+**修改内容**：
+1. 更新 `jobUrl` 函数，将岗位详情的 URL 格式从旧版的 `https://zhaopin.meituan.com/web/social/position/${id}` 修改为目前官方真实使用的 `https://zhaopin.meituan.com/web/position/detail?highlightType=social&jobUnionId=${id}`。
+
+**原因**：
+美团招聘官网旧版 `/web/social/position/${id}` 路径在前端 SPA 路由中已被废弃，导致进入后页面展示失效/404；而新的带有 `jobUnionId` 的参数化链接能正常稳定地加载并展示社招职位详情。
+
+**影响范围**：
+- 仅影响 Meituan 站点返回的岗位 URL 属性，不改变列表拉取或命令行正常运行。
+
+---
+
 ## 2026-04-20
 
 ### 发布 0.1.11
