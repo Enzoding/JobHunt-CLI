@@ -80,6 +80,7 @@ OpenCLI 不是必需依赖，只作为已有 OpenCLI 用户的可选兼容层保
 | 盒马 | `job freshippo ...` | hire.freshippo.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
 | 阿里健康 | `job alihealth ...` | careers.alihealth.cn | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
 | 灵犀互娱 | `job lingxi ...` | talent.lingxigames.com | 阿里 CPO 公开接口，动态 CSRF + 社招频道。 |
+| DeepSeek | `job deepseek ...` | app.mokahr.com/social-recruitment/high-flyer/140576 | Moka 公开接口，动态 Cookie + 加密响应解密。 |
 
 ## 快速开始
 
@@ -354,6 +355,7 @@ npm run smoke:tencent
 npm run smoke:baidu
 npm run smoke:jd
 npm run smoke:xiaohongshu
+npm run smoke:deepseek
 ```
 
 > **Note**: smoke 测试仅验证 API 连通性和返回数据格式（包括 URL 格式正则匹配）。由于多数招聘官网为 SPA 架构，URL 实际可达性需在浏览器中目视确认。
