@@ -4,6 +4,44 @@
 
 ---
 
+## 2026-07-05
+
+### 发布 0.1.13
+
+**修改文件**：`package.json`
+
+**修改内容**：
+1. 将 npm 包版本从 `0.1.12` 提升到 `0.1.13`。
+
+**原因**：
+npm registry 上 `jobhunt-cli` 最新版本已是 `0.1.12`，DeepSeek adapter 需要使用新的 patch 版本发布。
+
+**影响范围**：
+- 仅影响 npm 发布版本号，不改变运行时代码逻辑。
+
+---
+
+### 新增 DeepSeek 社会招聘站点 adapter
+
+**修改文件**：`src/core/registry.js`、`src/sites/deepseek/`、`scripts/smoke-deepseek-api.js`、`package.json`、`README.md`
+
+**修改内容**：
+1. 新增 `deepseek` 站点 adapter，对接 `https://app.mokahr.com/social-recruitment/high-flyer/140576#/` 公开 Moka 招聘页。
+2. 实现 Moka 会话初始化、Cookie 保持、`init-data.aesIv` 读取、加密 API 响应解密、岗位搜索、详情回查、筛选项和分页导出。
+3. 针对 DeepSeek 岗位字段补充城市字段解析和 `核心要求`/`任职要求` 文本拆分，使 `description` 与 `requirement` 更适合 agent 消费。
+4. 注册 `job deepseek ...` 命令，新增 `npm run smoke:deepseek` 并接入总 `npm run smoke`。
+5. 更新 README 支持站点列表和 smoke 示例。
+
+**原因**：
+扩展 JobHunt-CLI 的公开招聘数据源覆盖范围，支持 DeepSeek/幻方公开社会招聘岗位查询、导出和分析。
+
+**影响范围**：
+- `job sites` 新增 `deepseek` 站点，总站点数从 35 个增加到 36 个。
+- 新站点支持 `filters`、`search`、`detail`、`all`、`analyze` 等现有 CLI 子命令。
+- DeepSeek adapter 依赖 Moka 页面中的 `init-data`、`aesIv` 和 `/api/outer/ats-apply/website/jobs/v2` 接口；若 Moka 页面结构、加密字段或接口请求参数变化，需要同步更新 `src/sites/deepseek/utils.js`。
+
+---
+
 ## 2026-04-20
 
 ### 发布 0.1.11
