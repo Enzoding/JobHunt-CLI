@@ -6,6 +6,21 @@
 
 ## 2026-07-05
 
+### 发布 0.1.13
+
+**修改文件**：`package.json`
+
+**修改内容**：
+1. 将 npm 包版本从 `0.1.12` 提升到 `0.1.13`。
+
+**原因**：
+npm registry 上 `jobhunt-cli` 最新版本已是 `0.1.12`，DeepSeek adapter 需要使用新的 patch 版本发布。
+
+**影响范围**：
+- 仅影响 npm 发布版本号，不改变运行时代码逻辑。
+
+---
+
 ### 新增 DeepSeek 社会招聘站点 adapter
 
 **修改文件**：`src/core/registry.js`、`src/sites/deepseek/`、`scripts/smoke-deepseek-api.js`、`package.json`、`README.md`
