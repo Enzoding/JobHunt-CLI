@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'netease-hr';
 export const DOMAIN = 'hr.163.com';
@@ -8,6 +9,13 @@ export const SOCIAL_URL = `${BASE_URL}/job-list.html`;
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 100;
+
+/** DevTools/API 2026-07-19: workType 0=全职社招, 1=实习. /campus.html is 404 SPA; no public campus channel. */
+export const NATURE_WORK_TYPES = {
+  social: '0',
+  intern: '1',
+};
+export const SUPPORTED_NATURES = ['social', 'intern'];
 
 export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
@@ -88,12 +96,8 @@ function resolveCity(input) {
   return CITY_ALIASES[normalizeAliasKey(value)] || CITY_ALIASES[normalizeCompactKey(value)] || value;
 }
 
-function resolveNature(input) {
-  if (!input) return '';
-  const value = normalizeCompactKey(input);
-  if (['全职', '社招', 'fulltime', 'full'].includes(value)) return '0';
-  if (['实习', '实习生', 'intern', 'internship'].includes(value)) return '1';
-  return String(input).trim();
+function workTypeForNature(nature = DEFAULT_NATURE) {
+  return NATURE_WORK_TYPES[nature] || NATURE_WORK_TYPES[DEFAULT_NATURE];
 }
 
 export function coerceLimit(value, fallback = DEFAULT_PAGE_SIZE, maximum = MAX_PAGE_SIZE) {
@@ -134,7 +138,7 @@ export function jobUrl(id) {
   return `${BASE_URL}/job-detail.html?id=${id}&lang=zh`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.id);
   const visible = {
     id,
@@ -142,8 +146,8 @@ export function normalizeJob(job) {
     url: jobUrl(id),
     category_code: fieldText(job.firstPostType),
     category_name: fieldText(job.firstPostTypeName),
-    nature_code: fieldText(job.workType),
-    nature_name: job.workType === '1' ? '实习' : '全职',
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.workPlaceList),
     location_names: fieldText(job.workPlaceNameList),
     experience_code: fieldText(job.reqWorkYearsName),
@@ -157,19 +161,29 @@ export function normalizeJob(job) {
   const output = { ...visible };
   Object.defineProperty(output, 'raw', {
     enumerable: true,
-    value: { id: job.id, product: job.product, recruit_num: job.recruitNum, geek_flag: job.geekPassionateTalentFlag },
+    value: {
+      id: job.id,
+      product: job.product,
+      recruit_num: job.recruitNum,
+      geek_flag: job.geekPassionateTalentFlag,
+      work_type: job.workType,
+    },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(job.workType),
+    name: job.workType === '1' ? '实习' : '全职',
+  });
 }
 
 export async function fetchJobs(args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
   const city = resolveCity(args.location);
   const body = {
     currentPage: page,
     pageSize: limit,
     keyword: args.query || '',
     postType: resolveCategory(args.category),
-    workType: resolveNature(args.nature),
+    workType: workTypeForNature(nature),
   };
   if (city) body.workPlace = [Number.isNaN(Number(city)) ? city : Number(city)];
   const data = await neteaseFetch('/api/hr163/position/queryPage', { method: 'POST', body });
@@ -182,13 +196,13 @@ export async function fetchJobs(args, page, limit) {
   };
 }
 
-export async function fetchJobById(id) {
+export async function fetchJobById(id, _args = {}) {
   const data = await neteaseFetch(`/api/hr163/position/query?id=${encodeURIComponent(id)}`);
   if (!data?.id) throw new EmptyResultError(`${SITE} detail`, `No NetEase job found for id ${id}`);
   return data;
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(_args = {}) {
   const [categories, products] = await Promise.all([
     neteaseFetch('/api/hr163/options/positionType/queryItemList?type=0'),
     neteaseFetch('/api/hr163/options/queryList?code=product&hasSub=1'),
@@ -200,8 +214,6 @@ export async function fetchFilters() {
   for (const [index, item] of (products || []).entries()) {
     rows.push({ group: 'department', parent: '', code: fieldText(item.id), name: fieldText(item.name), en_name: '', sort_id: index + 1 });
   }
-  rows.push({ group: 'nature', parent: '', code: '0', name: '全职', en_name: 'Full-time', sort_id: 1 });
-  rows.push({ group: 'nature', parent: '', code: '1', name: '实习', en_name: 'Internship', sort_id: 2 });
   return rows;
 }
 

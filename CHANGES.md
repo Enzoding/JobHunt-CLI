@@ -6,6 +6,22 @@
 
 ## 2026-07-19
 
+### Phase 4 起步：NetEase / Ctrip 社招+实习
+
+**修改文件**：`src/sites/netease/*`、`src/sites/ctrip/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **NetEase**：`workType` `0/1` → social/intern；标准化输出；`/campus.html` DevTools 确认为 404，campus unsupported。
+2. **Ctrip**：`kind` `Regular`/`Intern_Long_Term` → social/intern；公开 filters 无校园 kind，campus unsupported。
+
+**原因**：
+Phase 4 优先落地已有 intern 线索且可快速取证的独立站点。
+
+**影响范围**：
+- `job netease|ctrip ... --nature intern` 可用；`--nature campus` 明确报错。
+
+---
+
 ### Phase 3：Alibaba CPO 15 站 + Feishu SaaS 3 站招聘类型接入
 
 **修改文件**：`src/sites/alibaba-cpo/*`、`src/sites/feishu-saas/utils.js`、`src/sites/{dewu,minimax,zhipu}/utils.js`、`scripts/smoke-alibaba-cpo-api.js`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`

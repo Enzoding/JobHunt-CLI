@@ -1,4 +1,5 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'ctrip-careers';
 export const DOMAIN = 'careers.ctrip.com';
@@ -7,6 +8,13 @@ export const SOCIAL_URL = `${BASE_URL}/index.html#/experienced/jobList`;
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 100;
+
+/** DevTools/API 2026-07-19: OverseasCareersKind Regular=全职, Intern_Long_Term=实习. No campus kind in public filters. */
+export const NATURE_KINDS = {
+  social: 'Regular',
+  intern: 'Intern_Long_Term',
+};
+export const SUPPORTED_NATURES = ['social', 'intern'];
 
 export const COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
@@ -114,13 +122,8 @@ function resolveCity(input) {
   return CITY_ALIASES[normalizeAliasKey(value)] || CITY_ALIASES[normalizeCompactKey(value)] || value;
 }
 
-function resolveNature(input) {
-  if (!input) return '';
-  const value = normalizeCompactKey(input);
-  if (['全职', '社招', 'fulltime', 'regular'].includes(value)) return 'Regular';
-  if (['实习', '实习生', 'intern', 'internship'].includes(value)) return 'Intern_Long_Term';
-  if (['兼职', 'parttime'].includes(value)) return 'Temporary';
-  return String(input).trim();
+function kindForNature(nature = DEFAULT_NATURE) {
+  return NATURE_KINDS[nature] || NATURE_KINDS[DEFAULT_NATURE];
 }
 
 export function coerceLimit(value, fallback = DEFAULT_PAGE_SIZE, maximum = MAX_PAGE_SIZE) {
@@ -161,7 +164,7 @@ export function jobUrl(code) {
   return `${SOCIAL_URL}?fromId=${encodeURIComponent(code)}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const parts = splitDescription(job.requirements || job.duty);
   const code = fieldText(job.fromId);
   const visible = {
@@ -172,8 +175,8 @@ export function normalizeJob(job) {
     url: jobUrl(code),
     category_code: fieldText(job.jobFamilyGroupCode),
     category_name: fieldText(job.jobFamilyGroupName),
-    nature_code: fieldText(job.kind),
-    nature_name: fieldText(job.kindName || '社招'),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.city),
     location_names: fieldText(job.cityName),
     experience_code: '',
@@ -187,17 +190,28 @@ export function normalizeJob(job) {
   const output = { ...visible };
   Object.defineProperty(output, 'raw', {
     enumerable: true,
-    value: { id: job.id, from_id: job.fromId, job_id: job.jobId, ats_api_type: job.atsApiType },
+    value: {
+      id: job.id,
+      from_id: job.fromId,
+      job_id: job.jobId,
+      ats_api_type: job.atsApiType,
+      kind: job.kind,
+      kind_name: job.kindName,
+    },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(job.kind),
+    name: fieldText(job.kindName),
+  });
 }
 
 function conditionFromArgs(args = {}) {
   const category = resolveCategory(args.category);
+  const nature = args.nature || DEFAULT_NATURE;
   return {
     fromId: [],
     keyword: args.query || '',
-    kind: resolveNature(args.nature) ? [resolveNature(args.nature)] : [],
+    kind: [kindForNature(nature)],
     country: [],
     city: resolveCity(args.location) ? [resolveCity(args.location)] : [],
     bucode: [],
@@ -221,9 +235,9 @@ export async function fetchJobs(args, page, limit) {
   };
 }
 
-export async function fetchJobByCode(code) {
+export async function fetchJobByCode(code, args = {}) {
   const data = await ctripPost('/api/hrrecruit/getJobAd', {
-    condition: { ...conditionFromArgs(), fromId: [code] },
+    condition: { ...conditionFromArgs(args), fromId: [code] },
     pager: { index: '1', size: '1' },
   });
   const job = data?.recruitJobAdList?.[0];
@@ -231,12 +245,11 @@ export async function fetchJobByCode(code) {
   return job;
 }
 
-export async function fetchFilters() {
-  const [locations, groups, bu, kinds] = await Promise.all([
+export async function fetchFilters(_args = {}) {
+  const [locations, groups, bu] = await Promise.all([
     ctripPost('/api/oversea/getLocation', { countryCode: '', citycode: '', type: 'OverseasCareersWorkPlace' }),
     ctripPost('/api/oversea/getCategory', { categorycode: '', type: 'OverseasCareersJobFamilyGroupCode' }),
     ctripPost('/api/oversea/getCategory', { categorycode: '', type: 'OverseasCareersBucode' }),
-    ctripPost('/api/oversea/getCategory', { categorycode: '', type: 'OverseasCareersKind' }),
   ]);
   const rows = [];
   const add = (group, items, codeKey, nameKey, parentKey = '') => {
@@ -247,7 +260,6 @@ export async function fetchFilters() {
   add('location', locations, 'code', 'name');
   add('category', groups, 'categoryCode', 'categoryName', 'parentCode');
   add('department', bu, 'categoryCode', 'categoryName');
-  add('nature', kinds, 'categoryCode', 'categoryName');
   return rows.filter(row => row.code || row.name);
 }
 

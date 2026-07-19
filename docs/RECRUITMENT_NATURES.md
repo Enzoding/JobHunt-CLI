@@ -25,8 +25,8 @@
 | jd | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待类型路径抓包 | 2026-07-19 |
 | xiaohongshu | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 recruitType 枚举抓包 | 2026-07-19 |
 | bilibili | SUPPORTED | PENDING | PENDING | 社招基线；已有 campus filter 线索 | 待 campus position API 抓包 | 2026-07-19 |
-| netease | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 workType/校招路由抓包 | 2026-07-19 |
-| ctrip | SUPPORTED | PENDING | PENDING | 社招基线；含 Intern kind 线索 | 待校招/实习入口抓包 | 2026-07-19 |
+| netease | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | `/job-list.html`；`/campus.html` 为 404 | API：`workType` `0` 社招 / `1` 实习；校园页无公开列表 | 2026-07-19 |
+| ctrip | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | experienced jobList | API：`kind` `Regular`/`Intern_Long_Term`；filters 无校园 kind | 2026-07-19 |
 | huawei | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 campus jobType 抓包 | 2026-07-19 |
 | dji | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待校招/实习列表抓包 | 2026-07-19 |
 | ant | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 /api/campus 抓包 | 2026-07-19 |
