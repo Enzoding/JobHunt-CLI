@@ -1,9 +1,19 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'baidu-talent';
 export const DOMAIN = 'talent.baidu.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/jobs/social-list?dev=0`;
+export const CAMPUS_URL = `${BASE_URL}/jobs/graduate-list?dev=0`;
+export const INTERN_URL = `${BASE_URL}/jobs/intern-list?dev=0`;
+
+/** recruitType: SOCIAL / GRADUATE / INTERN */
+export const NATURE_RECRUIT_TYPES = {
+  social: 'SOCIAL',
+  campus: 'GRADUATE',
+  intern: 'INTERN',
+};
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 10;
@@ -33,20 +43,36 @@ export const DETAIL_COLUMNS = [
   'url',
 ];
 
-const REQUEST_HEADERS = {
-  Accept: 'application/json, text/plain, */*',
-  'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-  Origin: BASE_URL,
-  Referer: SOCIAL_URL,
-  'User-Agent':
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
-};
+const USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
 
-const HTML_HEADERS = {
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  Referer: SOCIAL_URL,
-  'User-Agent': REQUEST_HEADERS['User-Agent'],
-};
+function listUrlForNature(nature = DEFAULT_NATURE) {
+  if (nature === 'campus') return CAMPUS_URL;
+  if (nature === 'intern') return INTERN_URL;
+  return SOCIAL_URL;
+}
+
+function requestHeaders(nature = DEFAULT_NATURE) {
+  return {
+    Accept: 'application/json, text/plain, */*',
+    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    Origin: BASE_URL,
+    Referer: listUrlForNature(nature),
+    'User-Agent': USER_AGENT,
+  };
+}
+
+function htmlHeaders(nature = DEFAULT_NATURE) {
+  return {
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    Referer: listUrlForNature(nature),
+    'User-Agent': USER_AGENT,
+  };
+}
+
+function recruitTypeForNature(nature = DEFAULT_NATURE) {
+  return NATURE_RECRUIT_TYPES[nature] || NATURE_RECRUIT_TYPES[DEFAULT_NATURE];
+}
 
 const CATEGORY_ALIASES = {
   技术: '1',
@@ -139,7 +165,7 @@ async function readJsonResponse(response, endpoint) {
   return payload.data;
 }
 
-async function baiduPost(endpoint, data = {}) {
+async function baiduPost(endpoint, data = {}, nature = DEFAULT_NATURE) {
   const body = new URLSearchParams();
   for (const [key, value] of Object.entries(data)) {
     if (Array.isArray(value)) body.set(key, value.join(','));
@@ -147,18 +173,18 @@ async function baiduPost(endpoint, data = {}) {
   }
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'POST',
-    headers: REQUEST_HEADERS,
+    headers: requestHeaders(nature),
     body,
   });
   return readJsonResponse(response, endpoint);
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/jobs/detail/SOCIAL/${id}?dev=0`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  return `${BASE_URL}/jobs/detail/${recruitTypeForNature(nature)}/${id}?dev=0`;
 }
 
-async function baiduGetText(url, label) {
-  const response = await fetch(url, { headers: HTML_HEADERS });
+async function baiduGetText(url, label, nature = DEFAULT_NATURE) {
+  const response = await fetch(url, { headers: htmlHeaders(nature) });
   const text = await response.text();
   if (!response.ok) {
     throw new CliError('BAIDU_HTTP', `Baidu page request failed with HTTP ${response.status}`, `${label}: ${text.slice(0, 160)}`);
@@ -182,17 +208,18 @@ function parseSsrDetail(html, id) {
   return job;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.postId);
+  const recruitType = fieldText(job.recruitType) || recruitTypeForNature(nature);
   const visible = {
     id,
     job_no: fieldText(job.jobId),
     name: fieldText(job.name),
-    url: jobUrl(id),
+    url: jobUrl(id, nature),
     category_code: fieldText(job.postType),
     category_name: fieldText(job.postType),
-    nature_code: 'SOCIAL',
-    nature_name: '社招',
+    nature_code: nature,
+    nature_name: nature,
     location_codes: '',
     location_names: fieldText(job.workPlace),
     experience_code: fieldText(job.workYears),
@@ -212,39 +239,45 @@ export function normalizeJob(job) {
       recruit_num: job.recruitNum,
       bg_short_name: job.bgShortName,
       hot_flag: job.hotFlag,
+      recruit_type: recruitType,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: recruitType,
+    name: recruitType === 'GRADUATE' ? '校招' : recruitType === 'INTERN' ? '实习' : '社招',
+  });
 }
 
 export async function fetchJobs(args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
   const data = await baiduPost('/httservice/getPostListNew', {
-    recruitType: 'SOCIAL',
+    recruitType: recruitTypeForNature(nature),
     pageSize: limit,
     keyWord: args.query || '',
     curPage: page,
     projectType: '',
     workPlace: resolveCity(args.location),
     postType: resolveCategory(args.category),
-  });
+  }, nature);
   return {
     total: Number(data?.total || 0),
     list: Array.isArray(data?.list) ? data.list : [],
   };
 }
 
-export async function fetchJobById(id) {
-  const detailHtml = await baiduGetText(jobUrl(id), `detail ${id}`);
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const detailHtml = await baiduGetText(jobUrl(id, nature), `detail ${id}`, nature);
   const ssrJob = parseSsrDetail(detailHtml, id);
   if (ssrJob) return ssrJob;
 
   for (let page = 1; page <= 20; page++) {
-    const result = await fetchJobs({ query: '' }, page, MAX_PAGE_SIZE);
+    const result = await fetchJobs({ ...args, query: '', nature }, page, MAX_PAGE_SIZE);
     const match = result.list.find(job => String(job.postId) === String(id) || String(job.jobId) === String(id));
     if (match) return match;
     if (!result.list.length || page * MAX_PAGE_SIZE >= result.total) break;
   }
-  const searched = await fetchJobs({ query: id }, 1, MAX_PAGE_SIZE);
+  const searched = await fetchJobs({ ...args, query: id, nature }, 1, MAX_PAGE_SIZE);
   const match = searched.list.find(job => String(job.postId) === String(id) || String(job.jobId) === String(id)) || searched.list[0];
   if (match) return match;
   throw new EmptyResultError(`${SITE} detail`, `No Baidu job found for id ${id}`);
@@ -281,7 +314,6 @@ export async function fetchFilters() {
     { value: '3301', label: '杭州市' },
     { value: '9000', label: '全国' },
   ]);
-  rows.push({ group: 'nature', parent: '', code: 'SOCIAL', name: '社招', en_name: 'Social', sort_id: 1 });
   return rows;
 }
 

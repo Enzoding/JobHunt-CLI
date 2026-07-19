@@ -17,8 +17,8 @@ export const djiAdapter = {
   id: 'dji',
   opencliSite: SITE,
   name: 'DJI',
-  description: 'DJI social recruitment',
-  supportedNatures: ['social'],
+  description: 'DJI social and intern recruitment',
+  supportedNatures: ['social', 'intern'],
   defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
@@ -26,26 +26,29 @@ export const djiAdapter = {
   detailIdField: 'id',
   detailIdHint: 'positionId from search results, e.g. 1922291404030431232',
   async filters(args = {}) {
-    const rows = await fetchFilters();
+    const rows = await fetchFilters(args);
     assertNonEmpty(rows, 'dji filters', 'The DJI filter endpoints returned no data.');
     return rows;
   },
   async search(args = {}) {
     const page = coercePage(args.page);
     const limit = coerceLimit(args.limit);
+    const nature = args.nature || 'social';
     const result = await fetchJobs(args, page, limit);
-    const rows = result.list.map(normalizeJob);
+    const rows = result.list.map(job => normalizeJob(job, nature));
     assertNonEmpty(rows, 'dji search', 'Try a different keyword or inspect filters with `job dji filters`.');
     return rows;
   },
   async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job dji search`.');
-    return normalizeJob(await fetchJobById(normalizedId));
+    const nature = args.nature || 'social';
+    return normalizeJob(await fetchJobById(normalizedId, args), nature);
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE);
     const max = Math.max(0, Number(args.max || 0));
+    const nature = args.nature || 'social';
     const rows = [];
     const seen = new Set();
     let page = 1;
@@ -55,10 +58,11 @@ export const djiAdapter = {
       totalPage = result.totalPage || page;
       if (!result.list.length) break;
       for (const job of result.list) {
-        const jobId = job.positionId;
-        if (!jobId || seen.has(jobId)) continue;
-        seen.add(jobId);
-        rows.push(normalizeJob(job));
+        const normalized = normalizeJob(job, nature);
+        const key = `${normalized.nature_code}:${normalized.id}`;
+        if (!normalized.id || seen.has(key)) continue;
+        seen.add(key);
+        rows.push(normalized);
         if (max && rows.length >= max) break;
       }
       if (result.list.length < pageSize || page >= totalPage) break;

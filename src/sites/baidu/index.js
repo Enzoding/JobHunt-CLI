@@ -17,8 +17,8 @@ export const baiduAdapter = {
   id: 'baidu',
   opencliSite: SITE,
   name: 'Baidu',
-  description: 'Baidu social recruitment',
-  supportedNatures: ['social'],
+  description: 'Baidu social, campus, and intern recruitment',
+  supportedNatures: ['social', 'campus', 'intern'],
   defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
@@ -33,8 +33,9 @@ export const baiduAdapter = {
   async search(args = {}) {
     const page = coercePage(args.page);
     const limit = coerceLimit(args.limit);
+    const nature = args.nature || 'social';
     const result = await fetchJobs(args, page, limit);
-    const rows = result.list.map(normalizeJob);
+    const rows = result.list.map(job => normalizeJob(job, nature));
     assertNonEmpty(rows, 'baidu search', 'Try a different keyword or inspect filters with `job baidu filters`.');
     return rows;
   },
@@ -43,11 +44,13 @@ export const baiduAdapter = {
     if (!normalizedId) {
       throw new ArgumentError('Job id is required', 'Use an id returned by `job baidu search`.');
     }
-    return normalizeJob(await fetchJobById(normalizedId));
+    const nature = args.nature || 'social';
+    return normalizeJob(await fetchJobById(normalizedId, args), nature);
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE);
     const max = Math.max(0, Number(args.max || 0));
+    const nature = args.nature || 'social';
     const rows = [];
     const seen = new Set();
     let page = 1;
@@ -59,10 +62,11 @@ export const baiduAdapter = {
       if (!result.list.length) break;
 
       for (const job of result.list) {
-        const jobId = job.postId;
-        if (!jobId || seen.has(jobId)) continue;
-        seen.add(jobId);
-        rows.push(normalizeJob(job));
+        const normalized = normalizeJob(job, nature);
+        const key = `${normalized.nature_code}:${normalized.id}`;
+        if (!normalized.id || seen.has(key)) continue;
+        seen.add(key);
+        rows.push(normalized);
         if (max && rows.length >= max) break;
       }
 

@@ -15,24 +15,24 @@
 
 | Site ID | social | campus | intern | 官方入口 / 备注 | DevTools 证据摘要 | 验证日期 |
 | --- | --- | --- | --- | --- | --- | --- |
-| didi | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待校招/实习入口抓包 | 2026-07-19 |
+| didi | SUPPORTED | SUPPORTED | SUPPORTED | 社招 `talent.didiglobal.com`；校招 Moka `campus.didiglobal.com/96064`；实习 Moka `app.mokahr.com/6222` | 社招沿用 recruit-portal；校招/实习 Moka `jobs/v2` + AES 解密（siteId 96064/6222） | 2026-07-19 |
 | kuaishou | SUPPORTED | SUPPORTED | SUPPORTED | 社招/日常实习：`zhaopin.kuaishou.cn`；校招：`campus.kuaishou.cn` | DevTools：social `C001`；trainee `C002`+`G002`；campus `POST .../positions/simple` + `GET .../positions/find` | 2026-07-19 |
-| bytedance | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 portal/recruitment filter 抓包 | 2026-07-19 |
+| bytedance | SUPPORTED | SUPPORTED | SUPPORTED | `/experienced` + `/campus`（实习无独立 `/internship` 路径） | DevTools：campus headers + `portal_type=3` + `recruitment_id_list` 201/202 | 2026-07-19 |
 | meituan | SUPPORTED | SUPPORTED | SUPPORTED | `/web/social`、`/web/campus` | DevTools：`jobType` `3/1/2` → social/campus/intern；detail `jobShareType=1` | 2026-07-19 |
 | xiaomi | SUPPORTED | SUPPORTED | SUPPORTED | `hr.xiaomi.com` → `/index` `/campus/` `/internship/` | DevTools：同 API，`website-path` 头区分渠道；`portal_type` 均为 6 | 2026-07-19 |
-| tencent | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待校招独立 API/attrId 抓包 | 2026-07-19 |
-| baidu | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待校招列表与 SSR 详情抓包 | 2026-07-19 |
-| jd | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待类型路径抓包 | 2026-07-19 |
-| xiaohongshu | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 recruitType 枚举抓包 | 2026-07-19 |
-| bilibili | SUPPORTED | PENDING | PENDING | 社招基线；已有 campus filter 线索 | 待 campus position API 抓包 | 2026-07-19 |
+| tencent | SUPPORTED | SUPPORTED | SUPPORTED | `careers.tencent.com`；`attrId` `1/2/3` | DevTools：Query API `attrId` 区分社招/校招/实习 | 2026-07-19 |
+| baidu | SUPPORTED | SUPPORTED | SUPPORTED | `talent.baidu.com` 列表 + SSR 详情 | DevTools：`recruitType` `SOCIAL/GRADUATE/INTERN` | 2026-07-19 |
+| jd | SUPPORTED | SUPPORTED | SUPPORTED | 社招 `zhaopin.jd.com`；校招/实习 `campus.jd.com` | DevTools：`POST /api/wx/position/page?type=present\|internship`；`pageIndex` 0-based | 2026-07-19 |
+| xiaohongshu | SUPPORTED | SUPPORTED | SUPPORTED | `job.xiaohongshu.com` `/social|/campus|/intern` | DevTools：`recruitType` + `applyType` 枚举 | 2026-07-19 |
+| bilibili | SUPPORTED | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | 社招 `/api/srs`；校招 `/api/campus/position/positionList` | DevTools：`X-Channel` social/campus；`recruitType: 1` 校招；无实习渠道 | 2026-07-19 |
 | netease | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | `/job-list.html`；`/campus.html` 为 404 | API：`workType` `0` 社招 / `1` 实习；校园页无公开列表 | 2026-07-19 |
 | ctrip | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | experienced jobList | API：`kind` `Regular`/`Intern_Long_Term`；filters 无校园 kind | 2026-07-19 |
-| huawei | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 campus jobType 抓包 | 2026-07-19 |
-| dji | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待校招/实习列表抓包 | 2026-07-19 |
-| ant | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 /api/campus 抓包 | 2026-07-19 |
-| mihoyo | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 hireType 枚举抓包 | 2026-07-19 |
-| moonshot | SUPPORTED | PENDING | PENDING | Moka 社招基线 | 待独立 campus/intern site 调研 | 2026-07-19 |
-| deepseek | SUPPORTED | PENDING | PENDING | Moka 社招基线 | 待公开校招/实习入口调研 | 2026-07-19 |
+| huawei | SUPPORTED | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | 社招/校招 job-list | DevTools：`jobType` `SR/CR`；校招 `getCampusRecruitmentCategory`；无公开实习渠道 | 2026-07-19 |
+| dji | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | `we.dji.com` 社招/校园页 | DevTools：`schoolFlag` `N/Y`；社招当前可空（`NO_LIVE_JOBS`） | 2026-07-19 |
+| ant | SUPPORTED | SUPPORTED | SUPPORTED | 社招 `/api/social`；校招/实习 `/api/campus` | DevTools：`campus_group_official_site`；客户端 `batchType` graduate/trainee 过滤 | 2026-07-19 |
+| mihoyo | SUPPORTED | SUPPORTED | SUPPORTED | `jobs.mihoyo.com` ATS portal | DevTools：`hireType` `0` 社招；`1`+`jobNatures` `[1]`/`[3]` 校招/实习 | 2026-07-19 |
+| moonshot | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | UNSUPPORTED_NO_PUBLIC_CHANNEL | Moka 社招 `app.mokahr.com/apply/moonshot` | DevTools：仅 social site；无独立校招/实习 portal | 2026-07-19 |
+| deepseek | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | UNSUPPORTED_NO_PUBLIC_CHANNEL | Moka 社招 `social-recruitment/high-flyer` | DevTools：仅 social site；无公开校招/实习入口 | 2026-07-19 |
 | dewu | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | DevTools+API：`recruitment_id_list` `101` 社招 / `301` 实习；`/campus` 404 | 2026-07-19 |
 | minimax | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | 同上；另有 `102` 外包未映射 | 2026-07-19 |
 | zhipu | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | DevTools：`portal_type=6`；`101`/`301` 过滤；校招入口不存在 | 2026-07-19 |
@@ -63,7 +63,8 @@
 | 试点站点多类型实现（xiaomi/meituan/kuaishou） | Done |
 | Alibaba CPO 15 站共享协议改造 | Done |
 | Feishu SaaS 3 站（social/intern） | Done |
-| 全矩阵 DevTools 证据 | Pending（其余独立站） |
+| Phase 4 独立站 + Moka | Done |
+| 全矩阵 live smoke（支持渠道） | Done（2026-07-19：FAIL 0 / EMPTY 20 季节性空岗 / PASS 76） |
 | `0.2.0-beta.0` 预发布 | Pending |
 
 ## Phase 3 取证摘要（Alibaba CPO）

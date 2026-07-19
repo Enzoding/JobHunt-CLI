@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 import {
   coerceLimit,
   coercePage,
@@ -168,7 +169,6 @@ function filterJob(job, args = {}) {
   if (args.query && !jobText(job).toLowerCase().includes(String(args.query).toLowerCase())) return false;
   if (args.category && !matchesAlias(args.category, [job.zhineng?.id, job.zhineng?.name, job.department?.id, job.department?.name])) return false;
   if (args.location && !jobLocations(job).some(location => matchesAlias(args.location, [location.labelCityId, location.cityId, location.label, location.city, location.name]))) return false;
-  if (args.nature && !matchesAlias(args.nature, [job.commitment])) return false;
   return true;
 }
 
@@ -198,7 +198,7 @@ export function jobUrl(id) {
   return `${APPLY_URL}#/job/${encodeURIComponent(id)}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.id);
   const locations = jobLocations(job);
   const visible = {
@@ -209,8 +209,8 @@ export function normalizeJob(job) {
     url: jobUrl(id),
     category_code: fieldText(job.zhineng?.id),
     category_name: fieldText(job.zhineng?.name),
-    nature_code: fieldText(job.commitment),
-    nature_name: fieldText(job.commitment),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: locations.map(location => fieldText(location.labelCityId ?? location.cityId ?? location.id)).filter(Boolean).join(','),
     location_names: locations.map(location => fieldText(location.label ?? location.city ?? location.name)).filter(Boolean).join(','),
     experience_code: fieldText(job.experience),
@@ -228,9 +228,13 @@ export function normalizeJob(job) {
       id: job.id,
       mj_code: job.mjCode,
       published_at: job.publishedAt,
+      commitment: job.commitment,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(job.commitment),
+    name: fieldText(job.commitment),
+  });
 }
 
 export async function fetchJobs(args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) {
@@ -273,9 +277,6 @@ export async function fetchFilters() {
   addGroup('department', initData.jobsGroupedByDepartment);
   addGroup('experience', initData.jobsGroupedByExperience);
   addGroup('education', initData.jobsGroupedByEducation);
-  for (const [index, name] of ['全职', '兼职', '实习', '其他'].entries()) {
-    rows.push({ group: 'nature', parent: '', code: name, name, en_name: '', sort_id: index + 1 });
-  }
   return rows.filter(row => row.code || row.name);
 }
 

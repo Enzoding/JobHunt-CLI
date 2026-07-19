@@ -17,24 +17,25 @@ export const jdAdapter = {
   id: 'jd',
   opencliSite: SITE,
   name: 'JD',
-  description: 'JD social recruitment',
-  supportedNatures: ['social'],
+  description: 'JD social, campus, and intern recruitment',
+  supportedNatures: ['social', 'campus', 'intern'],
   defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
-  detailIdHint: 'positionId from search results, e.g. 213332',
+  detailIdHint: 'positionId/publishId from search results, e.g. 213332 or 7892',
   async filters(args = {}) {
-    const rows = await fetchFilters();
+    const rows = await fetchFilters(args);
     assertNonEmpty(rows, 'jd filters', 'The JD filter endpoint returned no data.');
     return rows;
   },
   async search(args = {}) {
     const page = coercePage(args.page);
     const limit = coerceLimit(args.limit);
+    const nature = args.nature || 'social';
     const result = await fetchJobs(args, page, limit);
-    const rows = result.list.map(normalizeJob);
+    const rows = result.list.map(job => normalizeJob(job, nature));
     assertNonEmpty(rows, 'jd search', 'Try a different keyword or inspect filters with `job jd filters`.');
     return rows;
   },
@@ -43,29 +44,34 @@ export const jdAdapter = {
     if (!normalizedId) {
       throw new ArgumentError('Job id is required', 'Use an id returned by `job jd search`.');
     }
-    return normalizeJob(await fetchJobById(normalizedId));
+    const nature = args.nature || 'social';
+    return normalizeJob(await fetchJobById(normalizedId, args), nature);
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE);
     const max = Math.max(0, Number(args.max || 0));
+    const nature = args.nature || 'social';
     const rows = [];
     const seen = new Set();
     let page = 1;
-    let hasMore = true;
+    let totalPage = Infinity;
 
-    while (hasMore && (!max || rows.length < max)) {
+    while (page <= totalPage && (!max || rows.length < max)) {
       const result = await fetchJobs(args, page, pageSize);
+      totalPage = result.totalPage || page;
       if (!result.list.length) break;
 
       for (const job of result.list) {
-        const jobId = job.positionId || job.id;
-        if (!jobId || seen.has(jobId)) continue;
-        seen.add(jobId);
-        rows.push(normalizeJob(job));
+        const normalized = normalizeJob(job, nature);
+        const key = `${normalized.nature_code}:${normalized.id}`;
+        const jobId = normalized.id;
+        if (!jobId || seen.has(key)) continue;
+        seen.add(key);
+        rows.push(normalized);
         if (max && rows.length >= max) break;
       }
 
-      if (result.list.length < pageSize) hasMore = false;
+      if (result.list.length < pageSize || page >= totalPage) break;
       page += 1;
     }
 

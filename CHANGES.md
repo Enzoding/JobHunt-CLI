@@ -6,6 +6,47 @@
 
 ## 2026-07-19
 
+### Phase 4：ByteDance / Ant / JD / Didi 三类招聘
+
+**修改文件**：`src/sites/bytedance/*`、`src/sites/ant/*`、`src/sites/jd/*`、`src/sites/didi/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **ByteDance**：社招 `portal_type=6`；校招/实习共用 campus portal（`portal_type=3` + campus headers），`recruitment_id_list` `201`/`202`；filters `/config/job/filters/3`。
+2. **Ant Group**：社招 `/api/social/position/search`；校招/实习 `/api/campus/position/search` + 客户端 `batchType` `graduate`/`trainee` 过滤。
+3. **JD**：社招保留 `zhaopin.jd.com`；校招/实习 `campus.jd.com` `POST /api/wx/position/page?type=present|internship`（0-based `pageIndex`）。
+4. **Didi**：社招 `talent.didiglobal.com`；校招/实习 Moka 双站点（AES 解密，复用 moonshot 会话模式）。
+
+**原因**：
+Phase 4 独立站 DevTools 取证完成后实现三类招聘并标准化 `nature_code`。
+
+**影响范围**：
+- `job bytedance|ant|jd|didi ... --nature campus|intern|all` 可用。
+
+---
+
+### Phase 4：Tencent / Baidu / 小红书 / miHoYo / Huawei / Bilibili / DJI / Moonshot / DeepSeek 招聘类型
+
+**修改文件**：`src/sites/{tencent,baidu,xiaohongshu,mihoyo,huawei,bilibili,dji,moonshot,deepseek}/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **Tencent**：`attrId` `1/2/3` → social/campus/intern；标准化 `nature_code`；移除 vendor nature filter 行。
+2. **Baidu**：`recruitType` `SOCIAL/GRADUATE/INTERN`；详情/Referer 按类型切换。
+3. **小红书**：`recruitType` + `applyType` + job URL 路径 `/social|/campus|/intern`。
+4. **miHoYo**：`hireType`/`jobNatures` 映射三类；不再将 CLI `--nature` 解析为 vendor JobNatureEnum。
+5. **Huawei**：`jobType` `SR/CR`；校招 filters 使用 `getCampusRecruitmentCategory`；intern unsupported。
+6. **Bilibili**：社招 `/api/srs` + `X-Channel: social`；校招 `/api/campus/position/positionList` + `recruitType: 1`；intern unsupported。
+7. **DJI**：`schoolFlag` `N/Y` → social/intern；campus unsupported；社招空列表允许（`NO_LIVE_JOBS`）。
+8. **Moonshot / DeepSeek**：Moka 社招基线；`stampStandardNature(..., 'social')`；移除将 `commitment` 误映射为 `--nature` 的客户端过滤。
+
+**原因**：
+Phase 4 继续铺开独立站点的标准招聘类型契约，按 DevTools 取证映射 vendor 参数。
+
+**影响范围**：
+- 上述站点 `--nature` 按 `supportedNatures` 声明可用；未支持类型报 `UNSUPPORTED_NATURE`。
+- `all()` 去重键改为 `nature:id`；filters 由 registry 注入标准 nature 行。
+
+---
+
 ### Phase 4 起步：NetEase / Ctrip 社招+实习
 
 **修改文件**：`src/sites/netease/*`、`src/sites/ctrip/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`

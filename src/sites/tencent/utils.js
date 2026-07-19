@@ -1,9 +1,17 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'tencent-careers';
 export const DOMAIN = 'careers.tencent.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/jobopportunity.html`;
+
+/** attrId: social=1, campus=2, intern=3 */
+export const NATURE_ATTR_IDS = {
+  social: '1',
+  campus: '2',
+  intern: '3',
+};
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 50;
@@ -32,12 +40,25 @@ export const DETAIL_COLUMNS = [
   'url',
 ];
 
-const REQUEST_HEADERS = {
-  Accept: 'application/json, text/plain, */*',
-  Referer: SOCIAL_URL,
-  'User-Agent':
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
-};
+const USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
+
+function requestHeaders(nature = DEFAULT_NATURE) {
+  const referer = nature === 'campus'
+    ? `${BASE_URL}/campus.html`
+    : nature === 'intern'
+      ? `${BASE_URL}/intern.html`
+      : SOCIAL_URL;
+  return {
+    Accept: 'application/json, text/plain, */*',
+    Referer: referer,
+    'User-Agent': USER_AGENT,
+  };
+}
+
+function attrIdForNature(nature = DEFAULT_NATURE) {
+  return NATURE_ATTR_IDS[nature] || NATURE_ATTR_IDS[DEFAULT_NATURE];
+}
 
 const CATEGORY_ALIASES = {
   技术: '40001001',
@@ -150,13 +171,13 @@ async function readJsonResponse(response, endpoint) {
   return payload.Data;
 }
 
-async function tencentGet(endpoint, params = {}) {
+async function tencentGet(endpoint, params = {}, nature = DEFAULT_NATURE) {
   const url = new URL(`${BASE_URL}${endpoint}`);
   url.searchParams.set('timestamp', Date.now());
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value ?? '');
   }
-  const response = await fetch(url, { headers: REQUEST_HEADERS });
+  const response = await fetch(url, { headers: requestHeaders(nature) });
   return readJsonResponse(response, endpoint);
 }
 
@@ -164,10 +185,11 @@ export function jobUrl(id) {
   return `${BASE_URL}/jobdesc.html?postId=${id}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.PostId);
   const responsibility = fieldText(job.Responsibility);
   const requirement = fieldText(job.Requirement || job.Responsibility);
+  const sourceCode = fieldText(job.PostAttrId || job.AttrId) || attrIdForNature(nature);
   const visible = {
     id,
     job_no: fieldText(job.RecruitPostId),
@@ -175,8 +197,8 @@ export function normalizeJob(job) {
     url: fieldText(job.PostURL) || jobUrl(id),
     category_code: fieldText(job.OuterPostTypeID),
     category_name: fieldText(job.CategoryName),
-    nature_code: 'social',
-    nature_name: '社招',
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.LocationId),
     location_names: fieldText(job.LocationName || job.CountryName),
     experience_code: fieldText(job.RequireWorkYearsName),
@@ -196,12 +218,17 @@ export function normalizeJob(job) {
       source_id: job.SourceID,
       bg_name: job.BGName,
       product_name: job.ProductName,
+      attr_id: sourceCode,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: sourceCode,
+    name: fieldText(job.PostAttrName),
+  });
 }
 
 export async function fetchJobs(args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
   const data = await tencentGet('/tencentcareer/api/post/Query', {
     countryId: '',
     cityId: resolveCity(args.location),
@@ -209,13 +236,13 @@ export async function fetchJobs(args, page, limit) {
     productId: '',
     categoryId: resolveCategory(args.category),
     parentCategoryId: '',
-    attrId: '1',
+    attrId: attrIdForNature(nature),
     keyword: args.query || '',
     pageIndex: page,
     pageSize: limit,
     language: 'zh-cn',
     area: 'cn',
-  });
+  }, nature);
   return {
     total: Number(data?.Count || 0),
     list: Array.isArray(data?.Posts) ? data.Posts : [],
@@ -253,11 +280,7 @@ export async function fetchFilters() {
     }
   };
   addRows('location', dict?.WorkPlace || dict?.LocationList || []);
-  addRows('nature', dict?.PostAttr || [], 'Code', 'Name');
   addRows('category', categories?.CategoryList || categories || [], 'CategoryId', 'CategoryName');
-  if (!rows.some(r => r.group === 'nature')) {
-    rows.push({ group: 'nature', parent: '', code: '1', name: '社招', en_name: 'Experienced', sort_id: 1 });
-  }
   return rows.filter(r => r.code || r.name);
 }
 

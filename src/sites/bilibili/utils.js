@@ -1,9 +1,16 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'bilibili-jobs';
 export const DOMAIN = 'jobs.bilibili.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/social/positions?isTrusted=true`;
+export const CAMPUS_URL = `${BASE_URL}/campus/positions?isTrusted=true`;
+
+export const NATURE_CHANNELS = {
+  social: { channel: 'social', listPath: '/api/srs/position/positionList', detailPath: '/api/srs/position/detail', pagePath: 'social', recruitType: 0 },
+  campus: { channel: 'campus', listPath: '/api/campus/position/positionList', detailPath: '/api/campus/position/detail', pagePath: 'campus', recruitType: 1 },
+};
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 50;
@@ -11,16 +18,27 @@ export const MAX_PAGE_SIZE = 50;
 export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
 
-const REQUEST_HEADERS = {
+const BASE_REQUEST_HEADERS = {
   Accept: 'application/json, text/plain, */*',
   'Content-Type': 'application/json',
   Origin: BASE_URL,
-  Referer: '',
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
   'X-AppKey': 'ops.ehr-api.auth',
-  'X-Channel': 'social',
   'X-UserType': '2',
 };
+
+function resolveChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
+}
+
+function requestHeaders(nature = DEFAULT_NATURE) {
+  const channel = resolveChannel(nature);
+  return {
+    ...BASE_REQUEST_HEADERS,
+    Referer: `${BASE_URL}/${channel.pagePath}/positions?isTrusted=true`,
+    'X-Channel': channel.channel,
+  };
+}
 
 const CATEGORY_ALIASES = {
   技术: '01',
@@ -120,35 +138,36 @@ async function readJsonResponse(response, endpoint) {
   return payload.data;
 }
 
-async function getCsrf() {
-  const response = await fetch(`${BASE_URL}/api/auth/v1/csrf/token`, { headers: REQUEST_HEADERS });
+async function getCsrf(nature = DEFAULT_NATURE) {
+  const response = await fetch(`${BASE_URL}/api/auth/v1/csrf/token`, { headers: requestHeaders(nature) });
   return readJsonResponse(response, '/api/auth/v1/csrf/token');
 }
 
-async function bilibiliFetch(endpoint, options = {}) {
-  const csrf = await getCsrf();
+async function bilibiliFetch(endpoint, options = {}, nature = DEFAULT_NATURE) {
+  const csrf = await getCsrf(nature);
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
-    headers: { ...REQUEST_HEADERS, 'X-CSRF': csrf, ...(options.headers || {}) },
+    headers: { ...requestHeaders(nature), 'X-CSRF': csrf, ...(options.headers || {}) },
   });
   return readJsonResponse(response, endpoint);
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/social/positions/${id}?isTrusted=true`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const pagePath = resolveChannel(nature).pagePath;
+  return `${BASE_URL}/${pagePath}/positions/${id}?isTrusted=true`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.id);
   const parts = splitDescription(job.positionDescription);
   const visible = {
     id,
     name: fieldText(job.positionName),
-    url: jobUrl(id),
+    url: jobUrl(id, nature),
     category_code: fieldText(job.postCode),
     category_name: fieldText(job.postCodeName),
-    nature_code: fieldText(job.positionTypeName),
-    nature_name: fieldText(job.positionTypeName || '社招'),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.workLocation),
     location_names: fieldText(job.workLocation),
     experience_code: '',
@@ -166,26 +185,36 @@ export function normalizeJob(job) {
       id: job.id,
       hot_recruit: job.hotRecruit,
       recruit_type: job.recruitType,
+      channel: resolveChannel(nature).channel,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(job.recruitType ?? job.positionTypeName),
+    name: fieldText(job.positionTypeName),
+  });
 }
 
 export async function fetchJobs(args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveChannel(nature);
   const category = resolveCategory(args.category);
-  const data = await bilibiliFetch('/api/srs/position/positionList', {
+  const body = {
+    pageSize: limit,
+    pageNum: page,
+    positionName: args.query || '',
+    postCode: category,
+    postCodeList: category,
+    workLocationList: args.location || '',
+    workTypeList: [3],
+    positionTypeList: '3',
+  };
+  if (nature === 'campus') {
+    body.recruitType = channel.recruitType;
+  }
+  const data = await bilibiliFetch(channel.listPath, {
     method: 'POST',
-    body: JSON.stringify({
-      pageSize: limit,
-      pageNum: page,
-      positionName: args.query || '',
-      postCode: category,
-      postCodeList: category,
-      workLocationList: args.location || '',
-      workTypeList: [3],
-      positionTypeList: '3',
-    }),
-  });
+    body: JSON.stringify(body),
+  }, nature);
   return {
     total: Number(data?.total || 0),
     pageNo: Number(data?.pageNum || page),
@@ -195,17 +224,21 @@ export async function fetchJobs(args, page, limit) {
   };
 }
 
-export async function fetchJobById(id) {
-  const data = await bilibiliFetch(`/api/srs/position/detail/${encodeURIComponent(id)}`);
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveChannel(nature);
+  const data = await bilibiliFetch(`${channel.detailPath}/${encodeURIComponent(id)}`, {}, nature);
   if (!data?.id) throw new EmptyResultError(`${SITE} detail`, `No Bilibili job found for id ${id}`);
   return data;
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveChannel(nature);
   const rows = [];
   const [cities, tree] = await Promise.all([
-    bilibiliFetch('/api/srs/position/cityList?recruitType=0&positionTypeList=3&workTypeList=3&postCodeList='),
-    bilibiliFetch('/api/campus/position/postCodeList?workTypeList=3&recruitType=0'),
+    bilibiliFetch(`/api/srs/position/cityList?recruitType=${channel.recruitType}&positionTypeList=3&workTypeList=3&postCodeList=`, {}, nature),
+    bilibiliFetch(`/api/campus/position/postCodeList?workTypeList=3&recruitType=${channel.recruitType}`, {}, nature),
   ]);
   for (const [index, name] of (Array.isArray(cities) ? cities : []).entries()) {
     rows.push({ group: 'location', parent: '', code: name, name, en_name: '', sort_id: index + 1 });
@@ -219,7 +252,6 @@ export async function fetchFilters() {
     }
   };
   walk(Array.isArray(tree) ? tree : []);
-  rows.push({ group: 'nature', parent: '', code: '3', name: '全职', en_name: 'Full-time', sort_id: 1 });
   return rows.filter(row => row.code || row.name);
 }
 

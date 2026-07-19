@@ -17,25 +17,26 @@ export const bytedanceAdapter = {
   id: 'bytedance',
   opencliSite: SITE,
   name: 'ByteDance',
-  description: 'ByteDance social recruitment',
-  supportedNatures: ['social'],
+  description: 'ByteDance social, campus, and intern recruitment',
+  supportedNatures: ['social', 'campus', 'intern'],
   defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'code',
-  detailIdHint: 'Job code from search results, e.g. A57861',
+  detailIdHint: 'Job code from search results, e.g. A57861 (social) or numeric id (campus/intern)',
   async filters(args = {}) {
-    const rows = await fetchFilters();
+    const rows = await fetchFilters(args);
     assertNonEmpty(rows, 'bytedance filters', 'The ByteDance filter endpoint returned no data.');
     return rows;
   },
   async search(args = {}) {
     const page = coercePage(args.page);
     const limit = coerceLimit(args.limit);
+    const nature = args.nature || 'social';
     const offset = (page - 1) * limit;
     const result = await fetchJobs(args, offset, limit);
-    const rows = result.list.map(normalizeJob);
+    const rows = result.list.map(job => normalizeJob(job, nature));
     assertNonEmpty(rows, 'bytedance search', 'Try a different keyword or inspect filters with `jobs bytedance filters`.');
     return rows;
   },
@@ -44,11 +45,13 @@ export const bytedanceAdapter = {
     if (!normalizedId) {
       throw new ArgumentError('Job id is required', 'Use an id returned by `jobs bytedance search`.');
     }
-    return normalizeJob(await fetchJobById(normalizedId));
+    const nature = args.nature || 'social';
+    return normalizeJob(await fetchJobById(normalizedId, args), nature);
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE);
     const max = Math.max(0, Number(args.max || 0));
+    const nature = args.nature || 'social';
     const rows = [];
     const seen = new Set();
     let offset = 0;
@@ -60,9 +63,11 @@ export const bytedanceAdapter = {
       if (!result.list.length) break;
 
       for (const job of result.list) {
-        if (!job.id || seen.has(job.id)) continue;
-        seen.add(job.id);
-        rows.push(normalizeJob(job));
+        const normalized = normalizeJob(job, nature);
+        const key = `${normalized.nature_code}:${normalized.id}`;
+        if (!job.id || seen.has(key)) continue;
+        seen.add(key);
+        rows.push(normalized);
         if (max && rows.length >= max) break;
       }
 

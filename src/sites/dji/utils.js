@@ -1,9 +1,17 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'dji-careers';
 export const DOMAIN = 'we.dji.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/zh-CN/social`;
+export const INTERN_URL = `${BASE_URL}/zh-CN/campus`;
+
+/** schoolFlag: N=social, Y=intern (campus portal hosts intern listings) */
+export const NATURE_SCHOOL_FLAGS = {
+  social: 'N',
+  intern: 'Y',
+};
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 100;
@@ -11,13 +19,25 @@ export const MAX_PAGE_SIZE = 100;
 export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
 
-const REQUEST_HEADERS = {
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  Origin: BASE_URL,
-  Referer: SOCIAL_URL,
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
-};
+const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
+
+function listUrlForNature(nature = DEFAULT_NATURE) {
+  return nature === 'intern' ? INTERN_URL : SOCIAL_URL;
+}
+
+function requestHeaders(nature = DEFAULT_NATURE) {
+  return {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Origin: BASE_URL,
+    Referer: listUrlForNature(nature),
+    'User-Agent': USER_AGENT,
+  };
+}
+
+function schoolFlagForNature(nature = DEFAULT_NATURE) {
+  return NATURE_SCHOOL_FLAGS[nature] || NATURE_SCHOOL_FLAGS[DEFAULT_NATURE];
+}
 
 const CATEGORY_ALIASES = {
   技术: '1',
@@ -109,29 +129,29 @@ async function readJsonResponse(response, endpoint) {
   return payload.data;
 }
 
-async function djiFetch(endpoint, { method = 'GET', body } = {}) {
+async function djiFetch(endpoint, { method = 'GET', body, nature = DEFAULT_NATURE } = {}) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method,
-    headers: REQUEST_HEADERS,
+    headers: requestHeaders(nature),
     body: body ? JSON.stringify(body) : undefined,
   });
   return readJsonResponse(response, endpoint);
 }
 
-export function jobUrl(id) {
+export function jobUrl(id, nature = DEFAULT_NATURE) {
   return `${BASE_URL}/zh-CN/position/detail?positionId=${id}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.positionId);
   const visible = {
     id,
     name: fieldText(job.jobTitle),
-    url: jobUrl(id),
+    url: jobUrl(id, nature),
     category_code: fieldText(job.positionCategoryId || job.parentId),
     category_name: fieldText(job.positionCategorySecond || job.positionCategory),
-    nature_code: fieldText(job.recruitmentType),
-    nature_name: fieldText(job.recruitmentName || '社招'),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.locCode),
     location_names: fieldText(job.locationDescription),
     experience_code: '',
@@ -145,16 +165,29 @@ export function normalizeJob(job) {
   const output = { ...visible };
   Object.defineProperty(output, 'raw', {
     enumerable: true,
-    value: { position_id: job.positionId, parent_id: job.parentId, team_code: job.teamCode, hot: job.hot },
+    value: {
+      position_id: job.positionId,
+      parent_id: job.parentId,
+      team_code: job.teamCode,
+      hot: job.hot,
+      school_flag: schoolFlagForNature(nature),
+      recruitment_type: job.recruitmentType,
+    },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(job.recruitmentType),
+    name: fieldText(job.recruitmentName),
+  });
 }
 
 export async function fetchJobs(args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const schoolFlag = schoolFlagForNature(nature);
   const category = resolveCategory(args.category);
   const city = resolveCity(args.location);
   const data = await djiFetch('/hire_front/api/common/position/queryPositionCardList', {
     method: 'POST',
+    nature,
     body: {
       currentPage: page,
       keyWord: args.query || '',
@@ -163,7 +196,7 @@ export async function fetchJobs(args, page, limit) {
       cityList: city ? [city] : [],
       teamList: [],
       positionCategoryList: category ? [category] : [],
-      schoolFlag: 'N',
+      schoolFlag,
     },
   });
   return {
@@ -175,9 +208,10 @@ export async function fetchJobs(args, page, limit) {
   };
 }
 
-export async function fetchJobById(id) {
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
   for (let page = 1; page <= 20; page++) {
-    const result = await fetchJobs({ query: '' }, page, MAX_PAGE_SIZE);
+    const result = await fetchJobs({ ...args, query: '', nature }, page, MAX_PAGE_SIZE);
     const match = result.list.find(job => String(job.positionId) === String(id));
     if (match) return match;
     if (!result.list.length || page >= result.totalPage) break;
@@ -185,11 +219,13 @@ export async function fetchJobById(id) {
   throw new EmptyResultError(`${SITE} detail`, `No DJI job found for id ${id}`);
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const schoolFlag = schoolFlagForNature(nature);
   const [teams, cities, categories] = await Promise.all([
-    djiFetch('/hire_front/api/common/enumnote/query/team'),
-    djiFetch('/hire_front/api/common/position/queryUsingAndOldCity/N'),
-    djiFetch('/hire_front/api/common/position/getAllPositionCategory'),
+    djiFetch('/hire_front/api/common/enumnote/query/team', { nature }),
+    djiFetch(`/hire_front/api/common/position/queryUsingAndOldCity/${schoolFlag}`, { nature }),
+    djiFetch('/hire_front/api/common/position/getAllPositionCategory', { nature }),
   ]);
   const rows = [];
   for (const [index, item] of (teams || []).entries()) rows.push({ group: 'department', parent: '', code: fieldText(item.code), name: fieldText(item.enumShortNote), en_name: fieldText(item.enNote), sort_id: index + 1 });
@@ -201,7 +237,6 @@ export async function fetchFilters() {
     }
   };
   walk(categories || []);
-  rows.push({ group: 'nature', parent: '', code: 'SZ-01', name: '社招', en_name: 'Social', sort_id: 1 });
   return rows.filter(row => row.code || row.name);
 }
 

@@ -1,4 +1,5 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'huawei-careers';
 export const DOMAIN = 'career.huawei.com';
@@ -6,10 +7,25 @@ export const API_DOMAIN = 'apigw-dgg-b0.huawei.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const API_URL = `https://${API_DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/cn/social-recruitment-job-list`;
-export const HW_ID = process.env.HUAWEI_HW_ID || 'app_000000035886';
+export const CAMPUS_URL = `${BASE_URL}/cn/campus-recruitment-job-list`;
+
+/** jobType: SR=social, CR=campus */
+export const NATURE_JOB_TYPES = {
+  social: 'SR',
+  campus: 'CR',
+};
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 100;
+export const HW_ID = process.env.HUAWEI_HW_ID || 'app_000000035886';
+
+function jobTypeForNature(nature = DEFAULT_NATURE) {
+  return NATURE_JOB_TYPES[nature] || NATURE_JOB_TYPES[DEFAULT_NATURE];
+}
+
+function listUrlForNature(nature = DEFAULT_NATURE) {
+  return nature === 'campus' ? CAMPUS_URL : SOCIAL_URL;
+}
 
 export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
@@ -106,20 +122,21 @@ async function huaweiFetch(endpoint, { method = 'GET', body } = {}) {
   return readJsonResponse(response, endpoint);
 }
 
-export function jobUrl(id) {
-  return `${SOCIAL_URL}?jobId=${id}`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  return `${listUrlForNature(nature)}?jobId=${id}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.jobId || job.advertisementId || job.advertisementsIntegrationId);
+  const jobType = fieldText(job.jobType) || jobTypeForNature(nature);
   const visible = {
     id,
     name: fieldText(job.jobName),
-    url: jobUrl(id),
+    url: jobUrl(id, nature),
     category_code: fieldText(job.jobFamClsCode || job.jobFamily),
     category_name: fieldText(job.jobFamilyName),
-    nature_code: 'SR',
-    nature_name: '社招',
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.jobAddress),
     location_names: fieldText(job.workPlace),
     experience_code: fieldText(job.workYear),
@@ -133,9 +150,18 @@ export function normalizeJob(job) {
   const output = { ...visible };
   Object.defineProperty(output, 'raw', {
     enumerable: true,
-    value: { job_id: job.jobId, advertisement_id: job.advertisementId, integration_id: job.advertisementsIntegrationId, job_class: job.jobClass },
+    value: {
+      job_id: job.jobId,
+      advertisement_id: job.advertisementId,
+      integration_id: job.advertisementsIntegrationId,
+      job_class: job.jobClass,
+      job_type: jobType,
+    },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: jobType,
+    name: jobType === 'CR' ? '校招' : '社招',
+  });
 }
 
 function matchesQuery(job, query) {
@@ -145,10 +171,12 @@ function matchesQuery(job, query) {
 }
 
 export async function fetchJobs(args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const jobType = jobTypeForNature(nature);
   const body = {
     curPage: page,
     pageSize: limit,
-    jobType: 'SR',
+    jobType,
     jobFamily: resolveCategory(args.category) || undefined,
     jobAddress: resolveCity(args.location) || undefined,
   };
@@ -178,30 +206,36 @@ export async function fetchAllJobs(args = {}, pageSize = MAX_PAGE_SIZE) {
   return args.query ? rows.filter(job => matchesQuery(job, args.query)) : rows;
 }
 
-export async function fetchJobById(id) {
-  const rows = await fetchAllJobs({}, MAX_PAGE_SIZE);
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const rows = await fetchAllJobs({ ...args, nature, query: '' }, MAX_PAGE_SIZE);
   const job = rows.find(item => [item.jobId, item.advertisementId, item.advertisementsIntegrationId].some(value => String(value) === String(id)));
   if (!job) throw new EmptyResultError(`${SITE} detail`, `No Huawei job found for id ${id}`);
   return job;
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const jobType = jobTypeForNature(nature);
+  const categoryEndpoint = nature === 'campus'
+    ? '/api/apig/channelhw/recruitmentPosition/pub/getCampusRecruitmentCategory'
+    : '/api/apig/channelhw/recruitmentPosition/pub/getSocialRecruitmentCategory';
   const [lookup, locations, categories, departments] = await Promise.all([
     huaweiFetch('/api/apig/channelhw/common/config/pub/lookup/list?lookupType=WORK_YEAR,HOT_ADDRESS&language=zh_CN'),
-    huaweiFetch('/api/apig/channelhw/recruitmentPosition/pub/findSocialJobAddressList', { method: 'POST', body: { jobType: 'SR' } }),
-    huaweiFetch('/api/apig/channelhw/recruitmentPosition/pub/getSocialRecruitmentCategory', { method: 'POST', body: { jobType: 'SR' } }),
-    huaweiFetch('/api/apig/channelhw/recruitmentPosition/pub/findJobDeptList', { method: 'POST', body: { jobType: 'SR' } }),
+    huaweiFetch('/api/apig/channelhw/recruitmentPosition/pub/findSocialJobAddressList', { method: 'POST', body: { jobType } }),
+    huaweiFetch(categoryEndpoint, { method: 'POST', body: { jobType } }),
+    huaweiFetch('/api/apig/channelhw/recruitmentPosition/pub/findJobDeptList', { method: 'POST', body: { jobType } }),
   ]);
   const rows = [];
   for (const group of (locations || [])) {
-    for (const item of group.socialJobAddressList || []) {
+    const addressList = group.socialJobAddressList || group.campusJobAddressList || [];
+    for (const item of addressList) {
       rows.push({ group: 'location', parent: fieldText(group.provinceName), code: fieldText(item.jobAddress), name: fieldText(item.cityName), en_name: fieldText(item.cityNameEn), sort_id: rows.length + 1 });
     }
   }
   for (const [index, item] of (categories || []).entries()) rows.push({ group: 'category', parent: '', code: fieldText(item.jobFamily), name: fieldText(item.jobFamilyName), en_name: '', sort_id: index + 1 });
   for (const [index, item] of (departments || []).entries()) rows.push({ group: 'department', parent: '', code: fieldText(item.deptCode), name: fieldText(item.deptName), en_name: '', sort_id: index + 1 });
   for (const [index, item] of (lookup?.WORK_YEAR || []).entries()) rows.push({ group: 'experience', parent: '', code: fieldText(item.itemCode), name: fieldText(item.itemName), en_name: '', sort_id: index + 1 });
-  rows.push({ group: 'nature', parent: '', code: 'SR', name: '社招', en_name: 'Social', sort_id: 1 });
   return rows.filter(row => row.code || row.name);
 }
 
