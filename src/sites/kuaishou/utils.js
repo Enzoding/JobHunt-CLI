@@ -10,35 +10,38 @@ export const CAMPUS_BASE_URL = `https://${CAMPUS_DOMAIN}`;
 export const API_PREFIX = '/recruit/e';
 export const CAMPUS_API_PREFIX = '/recruit/campus/e';
 export const SIGN_SECRET = process.env.KUAISHOU_SIGN_SECRET || '652f962a-0575-4575-98d2-f04e2291bee2';
-export const SOCIAL_URL = `${BASE_URL}/#/official/social/`;
+/** SPA web container roots — hash routes must sit under these paths or Nginx 302 drops `#`. */
+export const SOCIAL_SPA_ROOT = `${BASE_URL}/recruit/e/`;
+export const CAMPUS_SPA_ROOT = `${CAMPUS_BASE_URL}/recruit/campus/e/`;
+export const SOCIAL_URL = `${SOCIAL_SPA_ROOT}#/official/social/`;
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
 
 /**
  * Verified 2026-07-19 via Chrome DevTools:
- * - social/intern: zhaopin.kuaishou.cn signed API with C001/C002
- * - campus: campus.kuaishou.cn JSON API (positions/simple + positions/find)
+ * - social/intern: zhaopin.kuaishou.cn signed API with C001/C002; SPA under /recruit/e/
+ * - campus: campus.kuaishou.cn JSON API (positions/simple + positions/find); SPA under /recruit/campus/e/
  */
 export const NATURE_CHANNELS = {
   social: {
     backend: 'social',
     positionNatureCode: 'C001',
     channelCode: 'official',
-    referer: `${BASE_URL}/#/official/social/`,
+    referer: `${SOCIAL_SPA_ROOT}#/official/social/`,
     jobPath: 'social',
   },
   intern: {
     backend: 'social',
     positionNatureCode: 'C002',
     channelCode: 'G002',
-    referer: `${BASE_URL}/#/official/trainee/`,
+    referer: `${SOCIAL_SPA_ROOT}#/official/trainee/`,
     jobPath: 'trainee',
   },
   campus: {
     backend: 'campus',
     positionNatureCode: 'fulltime',
-    referer: `${CAMPUS_BASE_URL}/recruit/campus/e/`,
+    referer: CAMPUS_SPA_ROOT,
     jobPath: 'campus',
   },
 };
@@ -387,12 +390,15 @@ function normalizeLocations(job) {
   };
 }
 
-export function jobUrl(id, nature = DEFAULT_NATURE) {
+export function jobUrl(id, nature = DEFAULT_NATURE, options = {}) {
   const channel = resolveNatureChannel(nature);
   if (channel.backend === 'campus') {
-    return `${CAMPUS_BASE_URL}/recruit/campus/e/#/campus/job-info/${id}`;
+    let url = `${CAMPUS_SPA_ROOT}#/campus/job-info/${id}`;
+    const batch = options.recruitSubProjectCode;
+    if (batch) url += `?recruitSubProjectCodes=${encodeURIComponent(batch)}`;
+    return url;
   }
-  return `${BASE_URL}/#/official/${channel.jobPath}/job-info/${id}`;
+  return `${SOCIAL_SPA_ROOT}#/official/${channel.jobPath}/job-info/${id}`;
 }
 
 function campusLocations(job) {
@@ -420,10 +426,11 @@ export function normalizeJob(job, channelNature = DEFAULT_NATURE) {
   const updatedAt = typeof job.updateTime === 'number'
     ? new Date(job.updateTime).toISOString().slice(0, 10)
     : fieldText(job.updateTime);
+  const urlNature = nature === 'intern' && channelNature === 'campus' ? 'intern' : nature;
   const visible = {
     id: job.id,
     name: fieldText(job.name),
-    url: jobUrl(job.id, nature === 'intern' && channelNature === 'campus' ? 'intern' : nature),
+    url: jobUrl(job.id, urlNature, { recruitSubProjectCode: job.recruitSubProjectCode }),
     category_code: fieldText(job.positionCategoryCode),
     category_name: CATEGORY_MAP[job.positionCategoryCode] || fieldText(job.positionCategoryCode),
     nature_code: nature,

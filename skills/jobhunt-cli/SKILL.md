@@ -209,3 +209,4 @@ job <site> search "目标岗位" --nature campus --limit 20 --format json
 8. **空结果时**区分：关键词过窄、筛选项错误、季节性无岗位（渠道已支持）、`UNSUPPORTED_NATURE`（未接入）。
 9. **不要硬编码站点列表、能力或 ID 格式**，始终通过 `job sites --format json` 动态发现。
 10. 更细的站点能力证据见仓库文档 `docs/RECRUITMENT_NATURES.md`（若本地可读）。
+11. **打开岗位 `url` 时原样使用 CLI 输出**，不要截断 Hash（`#/...`）或 SPA 容器路径（如快手 `/recruit/e/`、`/recruit/campus/e/`）。部分站点在往期校招批次、无 Session 环境下可能被前端重定向回列表页——这是官网行为，不是 CLI 缺字段；可改用同 nature 下较新岗位或官网列表入口。详见 `docs/job_url_diagnosis_report.md`。

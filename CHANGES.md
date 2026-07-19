@@ -6,6 +6,39 @@
 
 ## 2026-07-19
 
+### 岗位 URL 诊断修复：快手 SPA 容器路径 + 美团 jobType
+
+**修改文件**：`src/sites/kuaishou/utils.js`、`src/sites/meituan/utils.js`、`skills/jobhunt-cli/SKILL.md`、`docs/job_url_diagnosis_report.md`、`CHANGES.md`
+
+**修改内容**：
+1. 快手社招/实习 `jobUrl` 从 `zhaopin.kuaishou.cn/#/official/...` 改为容器路径 `.../recruit/e/#/official/...`；校招继续使用 `/recruit/campus/e/`，并在有数据时附加 `?recruitSubProjectCodes=`。
+2. 美团三类详情 URL 统一带上 `jobType`（含社招 `3`）。
+3. 新增 `docs/job_url_diagnosis_report.md` 全站 URL 风险分类；skill 补充「原样打开 url、勿截断 Hash/容器路径」防呆说明。
+
+**原因**：
+快手 SPA 脱离部署根目录时 Nginx 302 会丢弃 Hash；美团详情依赖 `jobType` 区分招聘渠道。避免导出链接在非浏览器客户端或跨渠道场景失效。
+
+**影响范围**：
+- `kuaishou` / `meituan` 搜索、详情、all 输出的 `url` 字段。
+- Agent 使用 skill 打开岗位链接时的行为约定。
+
+---
+
+### 确认快手校招 Web 前端路由完整基准路径
+
+**修改文件**：`src/sites/kuaishou/utils.js`、`CHANGES.md`
+
+**修改内容**：
+经对快手校招 SPA 静态资源与页面路径排查，确认 `https://campus.kuaishou.cn/recruit/campus/e/` 为校招前端单页应用的基准目录，保持 `jobUrl` 生成规则为 `https://campus.kuaishou.cn/recruit/campus/e/#/campus/job-info/${id}`。
+
+**原因**：
+快手校招前端工程部署于 `/recruit/campus/e/` 路径下，脱离该基准路径访问会导致页面重定向至主页。
+
+**影响范围**：
+快手校招 (`--nature campus`) 岗位的搜索与详情输出 URL。
+
+---
+
 ### Phase 5/6：文档、skill 与 `0.2.0-beta.0` 本地预发布
 
 **修改文件**：`README.md`、`docs/ADDING_SITE.md`、`docs/RECRUITMENT_NATURES.md`、`skills/jobhunt-cli/SKILL.md`、`package.json`、`scripts/smoke-nature-matrix.js`、`CHANGES.md`

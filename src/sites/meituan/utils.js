@@ -216,7 +216,7 @@ async function meituanPost(endpoint, body = {}, nature = DEFAULT_NATURE) {
 
 export function jobUrl(id, nature = DEFAULT_NATURE) {
   const channel = resolveNatureChannel(nature);
-  if (nature === 'social') return `${BASE_URL}/web/position/detail?jobUnionId=${id}`;
+  // Always include jobType so deep links stay on the correct recruitment channel.
   return `${BASE_URL}/web/position/detail?jobUnionId=${id}&jobType=${channel.jobType}`;
 }
 
