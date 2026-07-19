@@ -19,12 +19,14 @@ export const mihoyoAdapter = {
   opencliSite: SITE,
   name: 'miHoYo',
   description: 'miHoYo social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'Numeric id from search results, e.g. 8612',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'mihoyo filters', 'The miHoYo filter endpoints returned no data.');
     return rows;
@@ -37,7 +39,7 @@ export const mihoyoAdapter = {
     assertNonEmpty(rows, 'mihoyo search', 'Try a different keyword or inspect filters with `job mihoyo filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job mihoyo search`.');
     return normalizeJob(await fetchJobById(normalizedId));

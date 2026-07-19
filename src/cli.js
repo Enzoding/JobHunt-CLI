@@ -4,12 +4,14 @@ import { analyzeJobs, analyzeCsv } from './core/analysis.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
 import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
+import { ALL_NATURE, NATURES } from './core/natures.js';
 import { initNetwork, setDebugMode, getNetworkInfo, formatNetworkError, detectProxyEnv } from './core/network.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
 
 const VALID_FORMATS = ['table', 'json', 'csv', 'md', 'markdown'];
+const NATURE_HELP = `${[...NATURES, ALL_NATURE].join('|')} (default: social; aliases: 社招/校招/实习/全部)`;
 
 function addCommonOptions(command, defaultFormat = 'table') {
   return command
@@ -73,18 +75,36 @@ export async function run(argv = process.argv) {
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
     .action(async options => {
       const format = ensureFormat(options.format);
-      const columns = format === 'json' ? [] : ['id', 'name', 'description'];
-      return output(listSites(), options, columns);
+      const columns = format === 'json'
+        ? []
+        : ['id', 'name', 'supported_natures', 'default_nature', 'description'];
+      const sites = listSites().map(site => ({
+        ...site,
+        supported_natures: Array.isArray(site.supported_natures)
+          ? site.supported_natures.join(',')
+          : site.supported_natures,
+      }));
+      return output(format === 'json' ? listSites() : sites, options, columns);
     });
 
   for (const siteInfo of listSites()) {
     const site = getSite(siteInfo.id);
     const siteCommand = program.command(site.id).description(site.description);
+    const supportedHelp = (site.supportedNatures || ['social']).join(', ');
 
     addCommonOptions(
-      siteCommand.command('filters').description(`List ${site.name} filter values`),
+      siteCommand
+        .command('filters')
+        .description(`List ${site.name} filter values`)
+        .option('--nature <nature>', `Recruitment type: ${NATURE_HELP}`),
       'table',
-    ).action(async options => output(await listFilters(site.id), options, ['group', 'parent', 'code', 'name', 'en_name', 'sort_id']));
+    ).action(async options => {
+      const rows = await listFilters(site.id, commandArgs('', options));
+      const columns = rows.some(row => row.applies_to)
+        ? ['group', 'parent', 'code', 'name', 'en_name', 'applies_to', 'sort_id']
+        : ['group', 'parent', 'code', 'name', 'en_name', 'sort_id'];
+      return output(rows, options, columns);
+    });
 
     addCommonOptions(
       siteCommand
@@ -93,7 +113,7 @@ export async function run(argv = process.argv) {
         .argument('[query]', 'Search keyword')
         .option('--location <location>', 'City name or source code')
         .option('--category <category>', 'Category name or source code')
-        .option('--nature <nature>', 'Recruitment type')
+        .option('--nature <nature>', `Recruitment type: ${NATURE_HELP}`)
         .option('--page <n>', 'Page number', value => Number(value), 1)
         .option('--limit <n>', `Number of jobs to return, max ${site.maxPageSize}`, value => Number(value), undefined),
       'table',
@@ -103,9 +123,10 @@ export async function run(argv = process.argv) {
       siteCommand
         .command('detail')
         .description(`Get one ${site.name} job detail`)
-        .argument('<id>', 'Job id'),
+        .argument('<id>', 'Job id')
+        .option('--nature <nature>', `Recruitment type (single channel only; supported: ${supportedHelp})`),
       'json',
-    ).action(async (id, options) => output(await getJobDetail(site.id, id), options, site.detailColumns));
+    ).action(async (id, options) => output(await getJobDetail(site.id, id, commandArgs('', options)), options, site.detailColumns));
 
     addCommonOptions(
       siteCommand
@@ -114,7 +135,7 @@ export async function run(argv = process.argv) {
         .argument('[query]', 'Optional search keyword')
         .option('--location <location>', 'City name or source code')
         .option('--category <category>', 'Category name or source code')
-        .option('--nature <nature>', 'Recruitment type')
+        .option('--nature <nature>', `Recruitment type: ${NATURE_HELP}`)
         .option('--page-size <n>', `Page size, max ${site.maxPageSize}`, value => Number(value), site.maxPageSize)
         .option('--max <n>', 'Maximum jobs to return; 0 means all matching jobs', value => Number(value), 0),
       'json',
@@ -127,7 +148,7 @@ export async function run(argv = process.argv) {
         .argument('[keyword]', 'Search keyword to analyze, e.g. AI, 算法, 后端')
         .option('--category <category>', 'Category filter')
         .option('--location <location>', 'Location filter')
-        .option('--nature <nature>', 'Recruitment type filter')
+        .option('--nature <nature>', `Recruitment type: ${NATURE_HELP}`)
         .option('--max <n>', 'Maximum jobs to inspect; 0 means all matching jobs', value => Number(value), 0),
       'md',
     ).action(async (keyword, options) => {
@@ -138,7 +159,7 @@ export async function run(argv = process.argv) {
         writeOutput(analyzeCsv(result.rows), options.output);
         return;
       }
-      if (format === 'table') return output(result.rows, options, ['id', 'name', 'category_name', 'location_names', 'department_name', 'updated_at']);
+      if (format === 'table') return output(result.rows, options, ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at']);
       writeOutput(result.markdown, options.output);
     });
   }

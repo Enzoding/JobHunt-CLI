@@ -18,12 +18,14 @@ export const tencentAdapter = {
   opencliSite: SITE,
   name: 'Tencent',
   description: 'Tencent social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'PostId from search results, e.g. 2011285787706019840',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'tencent filters', 'The Tencent filter endpoint returned no data.');
     return rows;
@@ -36,7 +38,7 @@ export const tencentAdapter = {
     assertNonEmpty(rows, 'tencent search', 'Try a different keyword or inspect filters with `job tencent filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) {
       throw new ArgumentError('Job id is required', 'Use an id returned by `job tencent search`.');

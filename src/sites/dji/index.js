@@ -18,12 +18,14 @@ export const djiAdapter = {
   opencliSite: SITE,
   name: 'DJI',
   description: 'DJI social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'positionId from search results, e.g. 1922291404030431232',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'dji filters', 'The DJI filter endpoints returned no data.');
     return rows;
@@ -36,7 +38,7 @@ export const djiAdapter = {
     assertNonEmpty(rows, 'dji search', 'Try a different keyword or inspect filters with `job dji filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job dji search`.');
     return normalizeJob(await fetchJobById(normalizedId));

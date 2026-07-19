@@ -17,35 +17,40 @@ export const meituanAdapter = {
   id: 'meituan',
   opencliSite: SITE,
   name: 'Meituan',
-  description: 'Meituan social recruitment',
+  description: 'Meituan social, campus, and intern recruitment',
+  supportedNatures: ['social', 'campus', 'intern'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'Numeric jobUnionId from search results, e.g. 3977772011',
-  async filters() {
-    const rows = await fetchFilters();
+  async filters(args = {}) {
+    const rows = await fetchFilters(args);
     assertNonEmpty(rows, 'meituan filters', 'The Meituan filter endpoint returned no data.');
     return rows;
   },
   async search(args = {}) {
     const pageNo = coercePage(args.page);
     const pageSize = coerceLimit(args.limit);
+    const nature = args.nature || 'social';
     const result = await fetchJobs(args, pageNo, pageSize);
-    const rows = result.list.map(normalizeJob);
-    assertNonEmpty(rows, 'meituan search', 'Try a different keyword or inspect filters with `jobs meituan filters`.');
+    const rows = result.list.map(job => normalizeJob(job, nature));
+    assertNonEmpty(rows, 'meituan search', 'Try a different keyword or inspect filters with `job meituan filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!/^\d+$/.test(normalizedId)) {
-      throw new ArgumentError('Job id must be numeric', 'Use an id returned by `jobs meituan search`.');
+      throw new ArgumentError('Job id must be numeric', 'Use an id returned by `job meituan search`.');
     }
-    return normalizeJob(await fetchJobDetail(normalizedId));
+    const nature = args.nature || 'social';
+    return normalizeJob(await fetchJobDetail(normalizedId, args), nature);
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE);
     const max = Math.max(0, Number(args.max || 0));
+    const nature = args.nature || 'social';
     const rows = [];
     const seen = new Set();
     let pageNo = 1;
@@ -57,10 +62,11 @@ export const meituanAdapter = {
       if (!result.list.length) break;
 
       for (const job of result.list) {
-        const jobId = job.jobUnionId;
-        if (!jobId || seen.has(jobId)) continue;
-        seen.add(jobId);
-        rows.push(normalizeJob(job));
+        const normalized = normalizeJob(job, nature);
+        const key = `${normalized.nature_code}:${normalized.id}`;
+        if (!normalized.id || seen.has(key)) continue;
+        seen.add(key);
+        rows.push(normalized);
         if (max && rows.length >= max) break;
       }
 
@@ -68,7 +74,7 @@ export const meituanAdapter = {
       pageNo += 1;
     }
 
-    assertNonEmpty(rows, 'meituan all', 'Try fewer filters or inspect filters with `jobs meituan filters`.');
+    assertNonEmpty(rows, 'meituan all', 'Try fewer filters or inspect filters with `job meituan filters`.');
     return rows;
   },
 };

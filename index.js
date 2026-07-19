@@ -9,3 +9,12 @@ export {
 
 export { analyzeJobs, analyzeCsv } from './src/core/analysis.js';
 export { JobHuntCliError, ApiError, EmptyResultError, ArgumentError } from './src/core/errors.js';
+export {
+  ALL_NATURE,
+  DEFAULT_NATURE,
+  NATURES,
+  NATURE_NAMES,
+  normalizeNature,
+  resolveSupportedNatures,
+  natureDisplayName,
+} from './src/core/natures.js';

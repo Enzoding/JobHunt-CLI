@@ -18,12 +18,14 @@ export const jdAdapter = {
   opencliSite: SITE,
   name: 'JD',
   description: 'JD social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'positionId from search results, e.g. 213332',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'jd filters', 'The JD filter endpoint returned no data.');
     return rows;
@@ -36,7 +38,7 @@ export const jdAdapter = {
     assertNonEmpty(rows, 'jd search', 'Try a different keyword or inspect filters with `job jd filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) {
       throw new ArgumentError('Job id is required', 'Use an id returned by `job jd search`.');

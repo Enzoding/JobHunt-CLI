@@ -19,12 +19,14 @@ export const didiAdapter = {
   opencliSite: SITE,
   name: 'Didi',
   description: 'Didi social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'Numeric id from search results, e.g. 60517',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'didi filters', 'The Didi filter endpoint returned no data.');
     return rows;
@@ -37,7 +39,7 @@ export const didiAdapter = {
     assertNonEmpty(rows, 'didi search', 'Try a different keyword or inspect filters with `jobs didi filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!/^\d+$/.test(normalizedId)) {
       throw new ArgumentError('Job id must be numeric', 'Use an id returned by `jobs didi search`.');

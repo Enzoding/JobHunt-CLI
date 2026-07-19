@@ -18,12 +18,14 @@ export const ctripAdapter = {
   opencliSite: SITE,
   name: 'Ctrip',
   description: 'Ctrip social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'code',
   detailIdHint: 'fromId from search results, e.g. MJ021758',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'ctrip filters', 'The Ctrip filter endpoints returned no data.');
     return rows;

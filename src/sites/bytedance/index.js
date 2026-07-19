@@ -18,12 +18,14 @@ export const bytedanceAdapter = {
   opencliSite: SITE,
   name: 'ByteDance',
   description: 'ByteDance social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'code',
   detailIdHint: 'Job code from search results, e.g. A57861',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'bytedance filters', 'The ByteDance filter endpoint returned no data.');
     return rows;
@@ -37,7 +39,7 @@ export const bytedanceAdapter = {
     assertNonEmpty(rows, 'bytedance search', 'Try a different keyword or inspect filters with `jobs bytedance filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) {
       throw new ArgumentError('Job id is required', 'Use an id returned by `jobs bytedance search`.');

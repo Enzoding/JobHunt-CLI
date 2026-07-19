@@ -18,12 +18,14 @@ export const baiduAdapter = {
   opencliSite: SITE,
   name: 'Baidu',
   description: 'Baidu social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'postId from search results, e.g. abaaf0ed-39e3-4508-a208-d9e6ca20b27c',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'baidu filters', 'The Baidu filter endpoint returned no data.');
     return rows;
@@ -36,7 +38,7 @@ export const baiduAdapter = {
     assertNonEmpty(rows, 'baidu search', 'Try a different keyword or inspect filters with `job baidu filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) {
       throw new ArgumentError('Job id is required', 'Use an id returned by `job baidu search`.');

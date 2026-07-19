@@ -19,24 +19,26 @@ function createAlibabaCpoAdapter(config) {
     opencliSite: config.opencliSite,
     name: config.name,
     description: config.description,
+    supportedNatures: config.supportedNatures || ['social'],
+    defaultNature: config.defaultNature || 'social',
     columns: COLUMNS,
     detailColumns: DETAIL_COLUMNS,
     maxPageSize: MAX_PAGE_SIZE,
     detailIdField: 'id',
     detailIdHint: `Numeric position id from search results, e.g. 100001386032`,
-    async filters() {
-      return fetchFilters(config);
+    async filters(args = {}) {
+      return fetchFilters(config, args);
     },
     async search(args = {}) {
       const page = coercePage(args.page);
       const limit = coerceLimit(args.limit, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
       const result = await fetchJobs(config, args, page, limit);
-      return result.list.map(job => normalizeJob(config, job));
+      return result.list.map(job => normalizeJob(config, job, args.nature || 'social'));
     },
-    async detail(id) {
+    async detail(id, args = {}) {
       const normalizedId = String(id || '').trim();
       if (!normalizedId) throw new ArgumentError('Job id is required', `Use an id returned by \`job ${config.id} search\`.`);
-      return normalizeJob(config, await fetchJobById(config, normalizedId));
+      return normalizeJob(config, await fetchJobById(config, normalizedId, args), args.nature || 'social');
     },
     async all(args = {}) {
       const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE, MAX_PAGE_SIZE);
@@ -45,6 +47,7 @@ function createAlibabaCpoAdapter(config) {
       const seen = new Set();
       let page = 1;
       let totalPage = Infinity;
+      const nature = args.nature || 'social';
 
       while (page <= totalPage && (!max || rows.length < max)) {
         const result = await fetchJobs(config, args, page, pageSize);
@@ -52,9 +55,10 @@ function createAlibabaCpoAdapter(config) {
         if (!result.list.length) break;
 
         for (const job of result.list) {
-          const normalized = normalizeJob(config, job);
-          if (!normalized.id || seen.has(normalized.id)) continue;
-          seen.add(normalized.id);
+          const normalized = normalizeJob(config, job, nature);
+          const key = `${normalized.nature_code}:${normalized.id}`;
+          if (!normalized.id || seen.has(key)) continue;
+          seen.add(key);
           rows.push(normalized);
           if (max && rows.length >= max) break;
         }

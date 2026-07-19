@@ -18,12 +18,14 @@ export const neteaseAdapter = {
   opencliSite: SITE,
   name: 'NetEase',
   description: 'NetEase social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'Numeric id from search results, e.g. 75371',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'netease filters', 'The NetEase filter endpoints returned no data.');
     return rows;
@@ -36,7 +38,7 @@ export const neteaseAdapter = {
     assertNonEmpty(rows, 'netease search', 'Try a different keyword or inspect filters with `job netease filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job netease search`.');
     return normalizeJob(await fetchJobById(normalizedId));

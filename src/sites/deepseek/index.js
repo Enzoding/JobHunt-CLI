@@ -19,12 +19,14 @@ export const deepseekAdapter = {
   opencliSite: SITE,
   name: 'DeepSeek',
   description: 'DeepSeek social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'Moka job id from search results.',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'deepseek filters', 'The DeepSeek filter data returned no rows.');
     return rows;
@@ -37,7 +39,7 @@ export const deepseekAdapter = {
     assertNonEmpty(rows, 'deepseek search', 'Try a different keyword or inspect filters with `job deepseek filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job deepseek search`.');
     return normalizeJob(await fetchJobById(normalizedId));

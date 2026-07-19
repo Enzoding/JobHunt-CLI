@@ -4,6 +4,87 @@
 
 ---
 
+## 2026-07-19
+
+### Phase 3 调研：Alibaba CPO 校招/实习渠道取证（未改运行时）
+
+**修改文件**：`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. 通过 Chrome DevTools 抓包淘天集团校园页，确认校招使用 `campus_group_official_site` + `categoryType=freshman`，实习使用 `categoryType=internship`。
+2. 确认批次接口 `searchCondition/listBatch`；当前淘天 `internship` 批次为空（季节性空岗）。
+3. 记录社招仍应使用配置中的 `group_official_site`，不能误用 HTML `cdc_*` 窄渠道。
+
+**原因**：
+共享工厂改造前先固定真实请求契约，避免 15 站错误套用 channel。
+
+**影响范围**：
+- 本次仅补充证据与文档，Alibaba CPO adapter 运行时行为未变。
+
+---
+
+### Phase 2：试点站点 Xiaomi / Meituan / Kuaishou 三类招聘
+
+**修改文件**：`src/sites/xiaomi/*`、`src/sites/meituan/*`、`src/sites/kuaishou/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **Xiaomi**：以 Chrome DevTools 抓包确认渠道差异为请求头 `website-path`（`index`/`campus`/`internship`），实现社招/校招/实习的 filters、search、detail、all；标准 `nature_code` 输出，原始类型写入 `raw.source_nature_*`。
+2. **Meituan**：确认 `jobType` `3/1/2` 分别对应社招/校招/实习，按类型切换 Referer 与请求体，详情沿用 `jobShareType=1`。
+3. **Kuaishou**：社招/日常实习沿用签名 API（`C001`/`C002`）；校招接入独立域名 `campus.kuaishou.cn` 的 `positions/simple` 与 `positions/find`。
+4. 三站 `supportedNatures` 均声明 `['social','campus','intern']`，并更新能力矩阵证据摘要。
+
+**原因**：
+按执行计划先打通试点站点，验证公共契约与真实官网渠道映射，再铺开其余 33 站。
+
+**影响范围**：
+- `job xiaomi|meituan|kuaishou ... --nature campus|intern|all` 现已可用。
+- 其余站点仍仅声明 `social`；显式请求未接入类型仍会报 `UNSUPPORTED_NATURE`。
+
+---
+
+### Phase 0/1：招聘类型公共契约与离线测试
+
+**修改文件**：`src/core/natures.js`、`src/core/registry.js`、`src/core/errors.js`、`src/core/analysis.js`、`src/cli.js`、`index.js`、`src/sites/*/index.js`、`src/sites/alibaba-cpo/*`、`src/sites/feishu-saas/utils.js`、`test/*.test.js`、`docs/RECRUITMENT_NATURES.md`、`package.json`、`CHANGES.md`
+
+**修改内容**：
+1. 新增 `src/core/natures.js`，统一 `social/campus/intern/all` 标准值、中英文别名、能力校验、标准筛选项和 `nature+id` 去重键。
+2. 扩展 registry：`listSites` 暴露 `supported_natures/default_nature`；`filters/search/all` 支持单类型与顺序聚合；`detail` 拒绝 `--nature all`；任一已支持渠道失败则整体失败。
+3. CLI 为 `filters`/`detail` 增加 `--nature`，`sites` 表格展示能力字段；analyze 报告增加招聘类型条件与分布。
+4. 36 个 adapter 基线声明 `supportedNatures: ['social']`，并统一 `filters(args)` / `detail(id, args)` 签名。
+5. 新增 Node 内置离线契约测试（`npm test`）与能力矩阵文档模板 `docs/RECRUITMENT_NATURES.md`。
+
+**原因**：
+先落地可离线验证的公共契约，再按站点调研校招/实习渠道，避免各 adapter 各自实现不一致的 `--nature` 语义。
+
+**影响范围**：
+- 省略 `--nature` 仍默认社招，现有脚本兼容。
+- 显式请求尚未接入的 `campus/intern` 会在发请求前报 `UNSUPPORTED_NATURE`。
+- `nature_code` 输出将逐步标准化为 `social|campus|intern`；原始编码进入 `raw.source_nature_*`。
+- 当前各站点仍仅声明支持 `social`；校招/实习能力待后续批次 DevTools 取证后接入。
+
+---
+
+## 2026-07-18
+
+### 新增招聘类型扩展执行与验收 Spec
+
+**修改文件**：`docs/RECRUITMENT_NATURE_EXECUTION_SPEC.md`、`CHANGES.md`
+
+**修改内容**：
+1. 新增覆盖 36 个现有站点的社招、校招和实习能力改造 spec，明确 `--nature` 公共契约、能力声明、标准字段、聚合和错误语义。
+2. 定义分阶段执行计划、36 站点调研矩阵、离线契约测试、低流量 live smoke、发布前矩阵验收和 `0.2.0-beta.0` 本地预发布流程。
+3. 将 Chrome DevTools MCP 设为接口调研和证据采集的首选工具，规定列表、筛选、详情、类型切换和无登录验证的最低证据门槛。
+4. 明确 README、新增站点文档、`jobhunt-cli` skill 和 `CHANGES.md` 的后续同步要求。
+
+**原因**：
+现有 36 个站点主要写死社招行为，需要在开始批量实现前形成可交接、可验证的统一执行规范，避免不同 adapter 对校招和实习采用不一致的参数、字段与验收口径。
+
+**影响范围**：
+- 本次仅新增规划与验收文档，不改变 CLI 运行时行为。
+- 后续执行 Agent 应以该 spec 作为实现、测试、文档和预发布验收依据。
+
+---
+
 ## 2026-07-05
 
 ### 发布 0.1.13

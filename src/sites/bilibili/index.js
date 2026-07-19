@@ -18,12 +18,14 @@ export const bilibiliAdapter = {
   opencliSite: SITE,
   name: 'Bilibili',
   description: 'Bilibili social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'Numeric id from search results, e.g. 25143',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'bilibili filters', 'The Bilibili filter endpoints returned no data.');
     return rows;
@@ -36,7 +38,7 @@ export const bilibiliAdapter = {
     assertNonEmpty(rows, 'bilibili search', 'Try a different keyword or inspect filters with `job bilibili filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job bilibili search`.');
     return normalizeJob(await fetchJobById(normalizedId));

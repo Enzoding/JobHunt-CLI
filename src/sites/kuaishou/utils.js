@@ -1,15 +1,47 @@
 import crypto from 'node:crypto';
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, natureDisplayName, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'kuaishou-jobs';
 export const DOMAIN = 'zhaopin.kuaishou.cn';
 export const BASE_URL = `https://${DOMAIN}`;
+export const CAMPUS_DOMAIN = 'campus.kuaishou.cn';
+export const CAMPUS_BASE_URL = `https://${CAMPUS_DOMAIN}`;
 export const API_PREFIX = '/recruit/e';
+export const CAMPUS_API_PREFIX = '/recruit/campus/e';
 export const SIGN_SECRET = process.env.KUAISHOU_SIGN_SECRET || '652f962a-0575-4575-98d2-f04e2291bee2';
 export const SOCIAL_URL = `${BASE_URL}/#/official/social/`;
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
+
+/**
+ * Verified 2026-07-19 via Chrome DevTools:
+ * - social/intern: zhaopin.kuaishou.cn signed API with C001/C002
+ * - campus: campus.kuaishou.cn JSON API (positions/simple + positions/find)
+ */
+export const NATURE_CHANNELS = {
+  social: {
+    backend: 'social',
+    positionNatureCode: 'C001',
+    channelCode: 'official',
+    referer: `${BASE_URL}/#/official/social/`,
+    jobPath: 'social',
+  },
+  intern: {
+    backend: 'social',
+    positionNatureCode: 'C002',
+    channelCode: 'G002',
+    referer: `${BASE_URL}/#/official/trainee/`,
+    jobPath: 'trainee',
+  },
+  campus: {
+    backend: 'campus',
+    positionNatureCode: 'fulltime',
+    referer: `${CAMPUS_BASE_URL}/recruit/campus/e/`,
+    jobPath: 'campus',
+  },
+};
 
 export const COLUMNS = [
   'id',
@@ -193,21 +225,18 @@ const LOCATION_ALIASES = {
   'sao paulo': 'saopaulo',
 };
 
-const NATURE_MAP = {
+const SOURCE_NATURE_NAMES = {
   C001: '全职',
   C002: '实习',
+  fulltime: '全职',
+  intern: '实习',
 };
 
-const NATURE_ALIASES = {
-  全职: 'C001',
-  社招: 'C001',
-  正式: 'C001',
-  fulltime: 'C001',
-  'full-time': 'C001',
-  实习: 'C002',
-  实习生: 'C002',
-  intern: 'C002',
-  internship: 'C002',
+const SOURCE_TO_STANDARD = {
+  C001: 'social',
+  C002: 'intern',
+  fulltime: 'campus',
+  intern: 'intern',
 };
 
 function normalizeAliasKey(value) {
@@ -311,11 +340,23 @@ export function resolveLocation(input) {
   return LOCATION_ALIASES[normalizeAliasKey(value)] || LOCATION_ALIASES[normalizeCompactKey(value)] || value;
 }
 
-export function resolveNature(input) {
-  if (!input) return '';
+export function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
+}
+
+export function resolveNature(input, channelNature = DEFAULT_NATURE) {
+  if (!input) return resolveNatureChannel(channelNature).positionNatureCode;
   const value = String(input).trim();
-  if (NATURE_MAP[value]) return value;
-  return NATURE_ALIASES[normalizeAliasKey(value)] || NATURE_ALIASES[normalizeCompactKey(value)] || value;
+  if (NATURE_CHANNELS[value]) return NATURE_CHANNELS[value].positionNatureCode;
+  if (SOURCE_TO_STANDARD[value]) return value;
+  const key = normalizeAliasKey(value);
+  if (key === 'c001' || key === '全职' || key === '社招' || key === '正式' || key === 'fulltime' || key === 'full-time') {
+    return 'C001';
+  }
+  if (key === 'c002' || key === '实习' || key === '实习生' || key === 'intern' || key === 'internship') {
+    return 'C002';
+  }
+  return resolveNatureChannel(channelNature).positionNatureCode;
 }
 
 export function coerceLimit(value, fallback = DEFAULT_PAGE_SIZE, maximum = MAX_PAGE_SIZE) {
@@ -346,26 +387,54 @@ function normalizeLocations(job) {
   };
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/#/official/social/job-info/${id}`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  if (channel.backend === 'campus') {
+    return `${CAMPUS_BASE_URL}/recruit/campus/e/#/campus/job-info/${id}`;
+  }
+  return `${BASE_URL}/#/official/${channel.jobPath}/job-info/${id}`;
 }
 
-export function normalizeJob(job) {
-  const locations = normalizeLocations(job);
+function campusLocations(job) {
+  const dicts = Array.isArray(job.workLocationDicts) ? job.workLocationDicts : [];
+  return {
+    codes: dicts.map(item => item.code).filter(Boolean),
+    names: dicts.map(item => item.name).filter(Boolean),
+  };
+}
+
+function resolveStandardNature(job, channelNature = DEFAULT_NATURE) {
+  const sourceCode = fieldText(job.positionNatureCode);
+  if (SOURCE_TO_STANDARD[sourceCode] === 'intern' || /实习|intern/i.test(sourceCode)) return 'intern';
+  if (channelNature === 'campus' || SOURCE_TO_STANDARD[sourceCode] === 'campus') return 'campus';
+  if (SOURCE_TO_STANDARD[sourceCode]) return SOURCE_TO_STANDARD[sourceCode];
+  return channelNature;
+}
+
+export function normalizeJob(job, channelNature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(channelNature);
+  const locations = channel.backend === 'campus' ? campusLocations(job) : normalizeLocations(job);
+  const sourceCode = fieldText(job.positionNatureCode);
+  const sourceName = SOURCE_NATURE_NAMES[sourceCode] || sourceCode;
+  const nature = resolveStandardNature(job, channelNature);
+  const updatedAt = typeof job.updateTime === 'number'
+    ? new Date(job.updateTime).toISOString().slice(0, 10)
+    : fieldText(job.updateTime);
   const visible = {
     id: job.id,
     name: fieldText(job.name),
-    url: jobUrl(job.id),
+    url: jobUrl(job.id, nature === 'intern' && channelNature === 'campus' ? 'intern' : nature),
     category_code: fieldText(job.positionCategoryCode),
     category_name: CATEGORY_MAP[job.positionCategoryCode] || fieldText(job.positionCategoryCode),
-    nature_code: fieldText(job.positionNatureCode),
-    nature_name: NATURE_MAP[job.positionNatureCode] || fieldText(job.positionNatureCode),
+    nature_code: nature,
+    nature_name: natureDisplayName(nature),
     location_codes: locations.codes.join(','),
     location_names: locations.names.join(','),
     experience_code: fieldText(job.workExperienceCode),
     levels: fieldText(job.levels),
     department_code: fieldText(job.departmentCode),
-    updated_at: fieldText(job.updateTime),
+    department_name: fieldText(job.departmentName),
+    updated_at: updatedAt,
     description: fieldText(job.description).trim(),
     requirement: fieldText(job.positionDemand).trim(),
   };
@@ -374,7 +443,9 @@ export function normalizeJob(job) {
     enumerable: true,
     value: {
       id: job.id,
+      code: job.code,
       recruitProjectCode: job.recruitProjectCode,
+      recruitSubProjectCode: job.recruitSubProjectCode,
       positionNatureCode: job.positionNatureCode,
       positionCategoryCode: job.positionCategoryCode,
       workLocationCode: job.workLocationCode,
@@ -383,23 +454,78 @@ export function normalizeJob(job) {
       departmentCode: job.departmentCode,
       channelCode: job.channelCode,
       updateTime: job.updateTime,
+      source_nature_code: sourceCode,
+      source_nature_name: sourceName,
+      backend: channel.backend,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, { code: sourceCode, name: sourceName });
 }
 
 export function buildSearchParams(args, pageNum, pageSize) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
   return {
     pageNum,
     pageSize,
     name: args.query,
     workLocationCode: resolveLocation(args.location),
     positionCategoryCode: resolveCategory(args.category),
-    positionNatureCode: resolveNature(args.nature),
+    positionNatureCode: resolveNature(args.nature, nature) || channel.positionNatureCode,
   };
 }
 
+async function campusPost(endpoint, body = {}) {
+  const url = `${CAMPUS_BASE_URL}${CAMPUS_API_PREFIX}${endpoint}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
+      Referer: NATURE_CHANNELS.campus.referer,
+      Origin: CAMPUS_BASE_URL,
+      'User-Agent': REQUEST_HEADERS['User-Agent'],
+    },
+    body: JSON.stringify(body),
+  });
+  return readJsonResponse(response, endpoint);
+}
+
+async function campusGet(endpoint) {
+  const url = `${CAMPUS_BASE_URL}${CAMPUS_API_PREFIX}${endpoint}`;
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'application/json, text/plain, */*',
+      Referer: NATURE_CHANNELS.campus.referer,
+      'User-Agent': REQUEST_HEADERS['User-Agent'],
+    },
+  });
+  return readJsonResponse(response, endpoint);
+}
+
 export async function fetchJobs(args, pageNum, pageSize) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
+  if (channel.backend === 'campus') {
+    const body = cleanParams({
+      pageNum,
+      pageSize,
+      name: args.query || undefined,
+      workLocationCode: resolveLocation(args.location) || undefined,
+      positionCategoryCode: resolveCategory(args.category) || undefined,
+      positionNatureCode: channel.positionNatureCode,
+    });
+    const result = await campusPost('/api/v1/open/positions/simple', body);
+    return {
+      total: Number(result?.total || 0),
+      pageNum,
+      pageSize,
+      pages: Math.ceil(Number(result?.total || 0) / pageSize) || 0,
+      hasNextPage: pageNum * pageSize < Number(result?.total || 0),
+      list: Array.isArray(result?.list) ? result.list : [],
+    };
+  }
+
   const result = await kuaishouApi('/api/v1/open/positions/simple', buildSearchParams(args, pageNum, pageSize));
   return {
     total: Number(result?.total || 0),
@@ -411,7 +537,16 @@ export async function fetchJobs(args, pageNum, pageSize) {
   };
 }
 
-export async function fetchJobDetail(id) {
+export async function fetchJobDetail(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
+  if (channel.backend === 'campus') {
+    const result = await campusGet(`/api/v1/open/positions/find?id=${encodeURIComponent(id)}`);
+    if (!result || !result.id) {
+      throw new EmptyResultError(`${SITE} detail`, `No Kuaishou campus job found for id ${id}`);
+    }
+    return result;
+  }
   const result = await kuaishouApi('/api/v1/open/position', { id });
   if (!result || !result.id) {
     throw new EmptyResultError(`${SITE} detail`, `No Kuaishou job found for id ${id}`);
@@ -434,10 +569,53 @@ function flattenLabelGroup(group, groupName) {
   });
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
+
+  if (channel.backend === 'campus') {
+    const result = await campusGet(
+      '/api/v1/dictionary/batch?types=workLocation,positionCategory,positionNature,recruitSubProject',
+    );
+    const locationRows = Array.isArray(result?.workLocation)
+      ? result.workLocation.filter(item => item.ifActive !== false).map(item => ({
+          group: 'location',
+          parent: '',
+          code: item.code,
+          name: item.name,
+          en_name: '',
+          sort_id: item.sortId ?? '',
+        }))
+      : [];
+    const categoryRows = Array.isArray(result?.positionCategory)
+      ? result.positionCategory.flatMap(parent => {
+          const self = [{
+            group: 'category',
+            parent: '',
+            code: parent.code,
+            name: parent.name,
+            en_name: '',
+            sort_id: parent.sortId ?? '',
+          }];
+          const children = Array.isArray(parent.children)
+            ? parent.children.map(child => ({
+                group: 'category',
+                parent: parent.name,
+                code: child.code,
+                name: child.name,
+                en_name: '',
+                sort_id: child.sortId ?? '',
+              }))
+            : [];
+          return [...self, ...children];
+        })
+      : [];
+    return [...locationRows, ...categoryRows];
+  }
+
   const result = await kuaishouApi(
     '/api/v1/open/positions/label',
-    { channelCode: 'official', positionNatureCode: 'C001' },
+    { channelCode: channel.channelCode, positionNatureCode: channel.positionNatureCode },
     { signed: false },
   );
   const locationRows = [
@@ -454,15 +632,7 @@ export async function fetchFilters() {
         sort_id: item.sortId ?? '',
       }))
     : [];
-  const natureRows = Object.entries(NATURE_MAP).map(([code, name], index) => ({
-    group: 'nature',
-    parent: '',
-    code,
-    name,
-    en_name: code === 'C001' ? 'Full-time' : 'Internship',
-    sort_id: index + 1,
-  }));
-  return [...locationRows, ...categoryRows, ...natureRows];
+  return [...locationRows, ...categoryRows];
 }
 
 export function assertNonEmpty(rows, command, hint) {

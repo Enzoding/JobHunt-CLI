@@ -19,12 +19,14 @@ export const huaweiAdapter = {
   opencliSite: SITE,
   name: 'Huawei',
   description: 'Huawei social recruitment',
+  supportedNatures: ['social'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'jobId from search results, e.g. 97792',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'huawei filters', 'The Huawei filter endpoints returned no data.');
     return rows;
@@ -37,7 +39,7 @@ export const huaweiAdapter = {
     assertNonEmpty(rows, 'huawei search', 'Try a different keyword or inspect filters with `job huawei filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job huawei search`.');
     return normalizeJob(await fetchJobById(normalizedId));

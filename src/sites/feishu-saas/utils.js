@@ -266,7 +266,7 @@ export function jobUrl(config, id) {
   return `https://${config.domain}${config.path || '/index'}?spread=${encodeURIComponent(id)}`;
 }
 
-export function normalizeFeishuJob(config, job) {
+export function normalizeFeishuJob(config, job, _nature = 'social') {
   const info = job.job_post_info || {};
   const category = job.job_category || info.job_category || {};
   const nature = job.recruit_type || info.recruit_type || info.recruitment_type || {};
@@ -304,7 +304,7 @@ export function normalizeFeishuJob(config, job) {
   return output;
 }
 
-export async function fetchFilters(config) {
+export async function fetchFilters(config, _args = {}) {
   const data = await feishuFetch(config, '/api/v1/config/job/filters/6');
   return toFilterRows(data);
 }
@@ -324,7 +324,7 @@ export async function fetchJobs(config, args, page, limit) {
   };
 }
 
-export async function fetchJobById(config, id) {
+export async function fetchJobById(config, id, _args = {}) {
   let page = 1;
   let totalPage = Infinity;
   while (page <= totalPage) {
@@ -344,13 +344,15 @@ export function createFeishuSaasAdapter(config) {
     opencliSite: config.opencliSite,
     name: config.name,
     description: config.description,
+    supportedNatures: config.supportedNatures || ['social'],
+    defaultNature: config.defaultNature || 'social',
     columns: COLUMNS,
     detailColumns: DETAIL_COLUMNS,
     maxPageSize: MAX_PAGE_SIZE,
     detailIdField: 'id',
     detailIdHint: 'Feishu/Lark numeric job id from search results.',
-    async filters() {
-      const rows = await fetchFilters(config);
+    async filters(args = {}) {
+      const rows = await fetchFilters(config, args);
       assertNonEmpty(rows, `${config.id} filters`, `The ${config.name} filter endpoint returned no data.`);
       return rows;
     },
@@ -358,14 +360,14 @@ export function createFeishuSaasAdapter(config) {
       const page = coercePage(args.page);
       const limit = coerceLimit(args.limit, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
       const result = await fetchJobs(config, args, page, limit);
-      const rows = result.list.map(job => normalizeFeishuJob(config, job));
+      const rows = result.list.map(job => normalizeFeishuJob(config, job, args.nature || 'social'));
       assertNonEmpty(rows, `${config.id} search`, `Try a different keyword or inspect filters with \`job ${config.id} filters\`.`);
       return rows;
     },
-    async detail(id) {
+    async detail(id, args = {}) {
       const normalizedId = String(id || '').trim();
       if (!normalizedId) throw new CliError('ARGUMENT_ERROR', 'Job id is required', `Use an id returned by \`job ${config.id} search\`.`);
-      return normalizeFeishuJob(config, await fetchJobById(config, normalizedId));
+      return normalizeFeishuJob(config, await fetchJobById(config, normalizedId, args), args.nature || 'social');
     },
     async all(args = {}) {
       const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE, MAX_PAGE_SIZE);
@@ -374,14 +376,16 @@ export function createFeishuSaasAdapter(config) {
       const seen = new Set();
       let page = 1;
       let totalPage = Infinity;
+      const nature = args.nature || 'social';
       while (page <= totalPage && (!max || rows.length < max)) {
         const result = await fetchJobs(config, args, page, pageSize);
         totalPage = result.totalPage || page;
         if (!result.list.length) break;
         for (const job of result.list) {
-          const normalized = normalizeFeishuJob(config, job);
-          if (!normalized.id || seen.has(normalized.id)) continue;
-          seen.add(normalized.id);
+          const normalized = normalizeFeishuJob(config, job, nature);
+          const key = `${normalized.nature_code}:${normalized.id}`;
+          if (!normalized.id || seen.has(key)) continue;
+          seen.add(key);
           rows.push(normalized);
           if (max && rows.length >= max) break;
         }

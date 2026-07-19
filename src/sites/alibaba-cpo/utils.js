@@ -389,7 +389,7 @@ function experienceText(experience) {
   return '';
 }
 
-export function normalizeJob(config, job) {
+export function normalizeJob(config, job, _nature = 'social') {
   const id = fieldText(job.id ?? job.positionId);
   const categories = job.categories || job.categoryNames || [];
   const locations = job.workLocations || job.locations || job.locationNames || [];
@@ -435,7 +435,7 @@ export async function fetchJobs(config, args = {}, page = 1, limit = DEFAULT_PAG
   return listPayload(data, page, limit);
 }
 
-export async function fetchJobById(config, id) {
+export async function fetchJobById(config, id, _args = {}) {
   const session = await loadSession(config);
   const job = await cpoPost(config, '/position/detail', {
     id: Number(id) || id,
@@ -450,7 +450,7 @@ export async function fetchJobById(config, id) {
   throw new EmptyResultError(`${config.id} detail`, `No ${config.name} job found for id ${id}`);
 }
 
-export async function fetchFilters(config) {
+export async function fetchFilters(config, _args = {}) {
   const session = await loadSession(config);
   const [categories, locations] = await Promise.all([
     cpoPost(config, '/category/list', { channel: session.channel, language: 'zh' }),
