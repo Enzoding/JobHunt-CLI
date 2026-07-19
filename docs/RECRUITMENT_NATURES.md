@@ -65,7 +65,8 @@
 | Feishu SaaS 3 站（social/intern） | Done |
 | Phase 4 独立站 + Moka | Done |
 | 全矩阵 live smoke（支持渠道） | Done（2026-07-19：FAIL 0 / EMPTY 20 季节性空岗 / PASS 76） |
-| `0.2.0-beta.0` 预发布 | Pending |
+| README / ADDING_SITE / skill | Done |
+| `0.2.0-beta.0` 本地预发布 | Done（见 CHANGES；未 npm publish） |
 
 ## Phase 3 取证摘要（Alibaba CPO）
 

@@ -6,17 +6,18 @@
 
 它可以做这些事：
 
-- 检索社招岗位：按公司、关键词、城市、职位类别查询岗位。
+- 检索社招、校招、实习岗位：按公司、关键词、城市、职位类别和招聘类型查询。
 - 查看岗位详情：拉取岗位职责、任职要求、地点、部门、更新时间和原始调试字段。
 - 批量导出数据：把匹配岗位导出为 `json`、`csv` 或 Markdown。
-- 生成岗位画像：统计岗位类别、地域、部门、更新时间、高频技能和任职要求关键词。
+- 生成岗位画像：统计岗位类别、地域、部门、招聘类型、更新时间、高频技能和任职要求关键词。
 - 支持跨公司对比：所有站点都归一成标准字段，方便对比同一方向在不同公司的要求差异。
 - 服务 AI agent：仓库内置 `jobhunt-cli` skill，告诉 agent 如何发现站点、读取筛选项、检索详情、生成报告。
 
 ```bash
 npx jobhunt-cli sites
 job meituan search AI --category 技术类 --limit 10
-job kuaishou search 算法 --location 北京 --limit 10
+job xiaomi search --nature campus --limit 5
+job kuaishou search 算法 --nature intern --location 北京 --limit 10
 job didi analyze ai-product --output reports/didi-ai-product-report.md
 ```
 
@@ -44,14 +45,54 @@ OpenCLI 不是必需依赖，只作为已有 OpenCLI 用户的可选兼容层保
 
 - “帮我看看小红书当前 AI 产品岗有哪些”：`job xiaohongshu search AI --category 产品 --format json`
 - “导出美团技术岗前 100 条”：`job meituan all --category 技术类 --max 100 --format csv --output meituan-tech.csv`
+- “查小米校招算法岗”：`job xiaomi search 算法 --nature campus --limit 10 --format json`
 - “分析字节后端岗要求”：`job bytedance analyze 后端 --category 后端 --format md`
 - “比较几家公司 AI 产品经理要求”：分别对多个站点运行 `all` 或 `analyze`，再用标准字段做对比。
 
+## 招聘类型（`--nature`）
+
+所有站点共用标准招聘类型：
+
+| 标准值 | 含义 | 说明 |
+| --- | --- | --- |
+| `social` | 社招 | **默认值**；省略 `--nature` 时查询社招 |
+| `campus` | 校招 | 应届全职 / 春招 / 秋招等 |
+| `intern` | 实习 | 日常实习 / 暑期实习等 |
+| `all` | 全部 | 仅聚合该站点**已支持**的类型；顺序执行，不并发 |
+
+别名示例：`社招`/`校招`/`实习`/`全部`，以及 `graduate`/`internship` 等。
+
+能力发现：
+
+```bash
+job sites --format json   # 查看 supported_natures / default_nature
+job <site> filters --nature campus --format json
+```
+
+行为约定：
+
+- 显式请求站点未支持的类型会报 `UNSUPPORTED_NATURE`，并列出支持值；**不会回退到社招**。
+- `detail` 必须指定单一渠道，`--nature all` 会在发请求前失败。
+- `search --limit` / `all --max` / `analyze --max` 在 `--nature all` 时是合并后的**全局上限**；`--max 0` 才拉全量。
+- 岗位输出的 `nature_code` 只能是 `social|campus|intern`；官网原始类型保留在 `raw.source_nature_code/name`。
+- 各站点支持范围以 `job sites` 和 [`docs/RECRUITMENT_NATURES.md`](docs/RECRUITMENT_NATURES.md) 为准；季节性无岗位记为 `NO_LIVE_JOBS`，不等于未接入。
+
+示例：
+
+```bash
+job meituan search AI --nature campus --limit 5
+job xiaomi all --nature all --max 9 --format json
+job zhipu search --nature intern --limit 5
+job moonshot search --nature campus   # 若未支持会直接报错
+```
+
 ## 当前支持
+
+各站点是否支持校招/实习，请以 `job sites --format json` 的 `supported_natures` 为准（完整证据见 [`docs/RECRUITMENT_NATURES.md`](docs/RECRUITMENT_NATURES.md)）。
 
 | 公司 | 命令 | 官网 | 说明 |
 | --- | --- | --- | --- |
-| 滴滴 | `job didi ...` | talent.didiglobal.com | 公开接口，列表补齐详情字段。 |
+| 滴滴 | `job didi ...` | talent.didiglobal.com | 公开接口；社招 + 校招/实习 Moka 渠道。 |
 | 快手 | `job kuaishou ...` | zhaopin.kuaishou.cn | 公开接口，已内置请求签名。 |
 | 字节跳动 | `job bytedance ...` | jobs.bytedance.com | 公开接口，搜索即返回完整详情。 |
 | 美团 | `job meituan ...` | zhaopin.meituan.com | 公开接口，POST JSON，无需签名。 |
@@ -216,32 +257,33 @@ npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli
 
 ```bash
 job sites
-job <site> filters --format json
-job <site> search [query] --location <城市> --category <类别> --limit <数量> --format json
-job <site> detail <岗位ID> --format json
-job <site> all [query] --category <类别> --max <数量> --format csv --output jobs.csv
-job <site> analyze [query] --category <类别> --output report.md
+job <site> filters [--nature <类型>] --format json
+job <site> search [query] [--nature <类型>] --location <城市> --category <类别> --limit <数量> --format json
+job <site> detail <岗位ID> [--nature <类型>] --format json
+job <site> all [query] [--nature <类型>] --category <类别> --max <数量> --format csv --output jobs.csv
+job <site> analyze [query] [--nature <类型>] --category <类别> --output report.md
 ```
 
 常用示例：
 
 ```bash
 job meituan search AI --category 技术类 --limit 10
-job meituan detail 4305933827 --format json
+job meituan search AI --nature campus --limit 5
+job meituan detail 4305933827 --nature social --format json
 job meituan all --category 职能类 --max 50 --format csv --output meituan-hr.csv
-job xiaomi search 嵌入式 --category 技术类 --limit 10
-job kuaishou search 算法 --location 北京 --limit 10
-job didi all AI --category 产品 --max 20 --format csv --output didi-ai.csv
-job bytedance search 后端 --category 后端 --limit 5 --format json
-job tencent search AI --location 北京 --limit 5
-job baidu detail <postId> --format json
-job jd search AI --category 研发 --limit 5
-job xiaohongshu search AI --category 技术 --limit 5
-job bilibili search AI --category 技术类 --limit 5
-job netease search AI --category 人工智能 --limit 5
-job ctrip detail MJ021758 --format json
-job huawei search 审计 --limit 5
-job dji search 算法 --location 深圳 --limit 5
+job xiaomi search 嵌入式 --nature intern --limit 10
+job kuaishou search 算法 --nature campus --location 北京 --limit 10
+job didi all AI --nature all --max 9 --format json
+job bytedance search 后端 --nature campus --limit 5 --format json
+job tencent search AI --nature intern --location 北京 --limit 5
+job baidu detail <postId> --nature campus --format json
+job jd search AI --nature campus --limit 5
+job xiaohongshu search AI --nature intern --category 技术 --limit 5
+job bilibili search AI --nature campus --limit 5
+job netease search AI --nature intern --limit 5
+job ctrip detail MJ021758 --nature social --format json
+job huawei search 审计 --nature campus --limit 5
+job dji search 算法 --nature intern --location 深圳 --limit 5
 ```
 
 ## 输出格式
@@ -271,8 +313,8 @@ name
 url
 category_code
 category_name
-nature_code
-nature_name
+nature_code          # 仅 social | campus | intern
+nature_name          # 仅 社招 | 校招 | 实习
 location_codes
 location_names
 experience_code
@@ -282,10 +324,10 @@ department_name
 updated_at
 description
 requirement
-raw
+raw                  # 含 source_nature_code / source_nature_name 等调试字段
 ```
 
-`raw` 只保留必要的原始字段，方便排查接口变化，不作为表格输出的主要内容。
+`raw` 只保留必要的原始字段（含官网原始招聘类型），方便排查接口变化，不作为表格输出的主要内容。
 
 ## 给 AI Agent 的用法
 

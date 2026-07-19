@@ -6,6 +6,26 @@
 
 ## 2026-07-19
 
+### Phase 5/6：文档、skill 与 `0.2.0-beta.0` 本地预发布
+
+**修改文件**：`README.md`、`docs/ADDING_SITE.md`、`docs/RECRUITMENT_NATURES.md`、`skills/jobhunt-cli/SKILL.md`、`package.json`、`scripts/smoke-nature-matrix.js`、`CHANGES.md`
+
+**修改内容**：
+1. README 增加招聘类型契约（默认 social、`all`、能力发现、安全全量）与命令示例。
+2. `ADDING_SITE.md` 补充多类型 DevTools 调研、`supportedNatures`/`stampStandardNature` 与验收清单。
+3. `jobhunt-cli` skill：意图不明先问招聘类型；detail 沿用搜索 nature；`all` 先小规模预览。
+4. 新增 `npm run smoke:nature-matrix` 低流量全矩阵冒烟。
+5. 版本标记为 `0.2.0-beta.0`，完成本地 `npm pack` 安装验证；**未执行 `npm publish`**。
+
+**原因**：
+按执行 Spec 完成文档/skill 同步与本地预发布验收，保留人工发布控制权。
+
+**影响范围**：
+- 使用者与 Agent 可通过文档/skill 正确使用 `--nature`。
+- npm 包版本进入 `0.2.0-beta.0`；发布需另行人工执行。
+
+---
+
 ### Phase 4：ByteDance / Ant / JD / Didi 三类招聘
 
 **修改文件**：`src/sites/bytedance/*`、`src/sites/ant/*`、`src/sites/jd/*`、`src/sites/didi/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`

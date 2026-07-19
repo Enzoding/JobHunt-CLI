@@ -1,4 +1,4 @@
+*.tgz
 node_modules/
 package-lock.json
 reports/
-*.tgz

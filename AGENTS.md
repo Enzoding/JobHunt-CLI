@@ -72,17 +72,21 @@ JobHunt-CLI 是一个 Node.js CLI 工具，目标是把中国互联网公司的�
   opencliSite: 'meituan-jobs', // OpenCLI 兼容名
   name: 'Meituan',
   description: '...',
+  supportedNatures: ['social', 'campus', 'intern'], // 仅声明已验证渠道
+  defaultNature: 'social',
   columns: [...],              // search 默认表格列
   detailColumns: [...],        // detail/all 默认表格列
   maxPageSize: 30,
   detailIdField: 'id',         // detail 命令应使用搜索结果的哪个字段作为 ID
   detailIdHint: '...',         // ID 格式说明
-  async filters() { ... },     // 返回筛选项列表
-  async search(args) { ... },  // 返回岗位数组
-  async detail(id) { ... },    // 返回单个岗位详情
-  async all(args) { ... },     // 分页拉取全部匹配岗位
+  async filters(args) { ... }, // args.nature 为单一标准类型
+  async search(args) { ... },  // 返回岗位数组（标准化 nature_code）
+  async detail(id, args) { ... },
+  async all(args) { ... },     // 分页拉取；去重键 nature:id
 }
 ```
+
+招聘类型公共逻辑见 `src/core/natures.js`；能力矩阵见 `docs/RECRUITMENT_NATURES.md`。
 
 新增站点时，只需在 `src/sites/<site>/` 下创建 `index.js` 和 `utils.js`，然后在 `src/core/registry.js` 中注册即可。详细流程见 `docs/ADDING_SITE.md`。
 
