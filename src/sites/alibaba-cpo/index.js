@@ -19,7 +19,7 @@ function createAlibabaCpoAdapter(config) {
     opencliSite: config.opencliSite,
     name: config.name,
     description: config.description,
-    supportedNatures: config.supportedNatures || ['social'],
+    supportedNatures: config.supportedNatures || ['social', 'campus', 'intern'],
     defaultNature: config.defaultNature || 'social',
     columns: COLUMNS,
     detailColumns: DETAIL_COLUMNS,

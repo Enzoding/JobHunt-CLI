@@ -6,6 +6,27 @@
 
 ## 2026-07-19
 
+### Phase 3：Alibaba CPO 15 站 + Feishu SaaS 3 站招聘类型接入
+
+**修改文件**：`src/sites/alibaba-cpo/*`、`src/sites/feishu-saas/utils.js`、`src/sites/{dewu,minimax,zhipu}/utils.js`、`scripts/smoke-alibaba-cpo-api.js`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **Alibaba CPO**：共享工厂按 `nature` 切换会话页、`channel` 与 `categoryType`（社招 `group_official_site`；校招/实习 `campus_group_official_site` + `freshman`/`internship`），标准化 `nature_code`，15 站声明三类支持。
+2. DevTools（淘天/阿里云）确认校招请求使用通用 `campus_group_official_site`；逐站 live 验证 API 可用，季节性空岗返回空列表。
+3. **Feishu SaaS**（zhipu/minimax/dewu）：无公开 `/campus` 门户；社招门户内以 `recruitment_id_list` `101`/`301` 区分社招全职与实习；`campus` 明确 unsupported。
+4. 默认社招搜索改为只返回全职（`101`），不再混入实习岗位。
+5. 更新能力矩阵与 `smoke:alibaba-cpo`（覆盖 campus/intern 空岗可接受）。
+
+**原因**：
+按 Phase 3 完成共享实现族改造，并逐站验证后再声明能力，避免错误套用 channel。
+
+**影响范围**：
+- `job <cpo-site> ... --nature campus|intern|all` 可用。
+- `job zhipu|minimax|dewu ... --nature intern` 可用；`--nature campus` 报 `UNSUPPORTED_NATURE`。
+- 上述 Feishu 站点默认社招结果不再包含实习岗位。
+
+---
+
 ### Phase 3 调研：Alibaba CPO 校招/实习渠道取证（未改运行时）
 
 **修改文件**：`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
@@ -19,7 +40,7 @@
 共享工厂改造前先固定真实请求契约，避免 15 站错误套用 channel。
 
 **影响范围**：
-- 本次仅补充证据与文档，Alibaba CPO adapter 运行时行为未变。
+- 已被上方 Phase 3 实现条目覆盖；保留作取证过程记录。
 
 ---
 

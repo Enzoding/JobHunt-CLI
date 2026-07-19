@@ -33,24 +33,24 @@
 | mihoyo | SUPPORTED | PENDING | PENDING | 社招基线已接入 | 待 hireType 枚举抓包 | 2026-07-19 |
 | moonshot | SUPPORTED | PENDING | PENDING | Moka 社招基线 | 待独立 campus/intern site 调研 | 2026-07-19 |
 | deepseek | SUPPORTED | PENDING | PENDING | Moka 社招基线 | 待公开校招/实习入口调研 | 2026-07-19 |
-| dewu | SUPPORTED | PENDING | PENDING | Feishu SaaS 社招基线 | 待 portal_type 抓包 | 2026-07-19 |
-| minimax | SUPPORTED | PENDING | PENDING | Feishu SaaS 社招基线 | 待 portal_type 抓包 | 2026-07-19 |
-| zhipu | SUPPORTED | PENDING | PENDING | Feishu SaaS 社招基线 | 待 portal_type 抓包 | 2026-07-19 |
-| taotian | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| taobao-shangou | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| fliggy | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| alibaba-intl | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| aliyun | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| tongyi | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| dingtalk | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| quark | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| thead | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| amap | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| cainiao | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| hujing | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| freshippo | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| alihealth | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
-| lingxi | SUPPORTED | PENDING | PENDING | Alibaba CPO 社招基线 | 待 campus/intern channel 抓包 | 2026-07-19 |
+| dewu | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | DevTools+API：`recruitment_id_list` `101` 社招 / `301` 实习；`/campus` 404 | 2026-07-19 |
+| minimax | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | 同上；另有 `102` 外包未映射 | 2026-07-19 |
+| zhipu | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | DevTools：`portal_type=6`；`101`/`301` 过滤；校招入口不存在 | 2026-07-19 |
+| taotian | SUPPORTED | SUPPORTED | SUPPORTED | `/off-campus` + `/campus` | DevTools：`campus_group_official_site` + `categoryType=freshman\|internship`；实习可空 | 2026-07-19 |
+| taobao-shangou | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 逐站验证 API 成功；校招/实习当前可能空岗 | 2026-07-19 |
+| fliggy | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 逐站验证 API 成功；校招/实习当前可能空岗 | 2026-07-19 |
+| alibaba-intl | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 逐站验证 API 成功；校招/实习当前可能空岗 | 2026-07-19 |
+| aliyun | SUPPORTED | SUPPORTED | SUPPORTED | DevTools 校招页 | 前端 body 使用通用 `campus_group_official_site`（非 HTML brand map）；当前空岗 | 2026-07-19 |
+| tongyi | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招/实习均有在招岗位 | 2026-07-19 |
+| dingtalk | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招有岗；实习可空 | 2026-07-19 |
+| quark | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招有岗；实习可空 | 2026-07-19 |
+| thead | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招有岗；实习可空 | 2026-07-19 |
+| amap | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招可空；实习批次存在但列表可空 | 2026-07-19 |
+| cainiao | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招有岗；实习可空 | 2026-07-19 |
+| hujing | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招/实习均有在招岗位 | 2026-07-19 |
+| freshippo | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招/实习当前可能空岗 | 2026-07-19 |
+| alihealth | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招有岗；实习可空 | 2026-07-19 |
+| lingxi | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 校招有岗；实习可空 | 2026-07-19 |
 
 ## 公共契约进度
 
@@ -61,23 +61,32 @@
 | CLI `filters`/`detail --nature` | Done |
 | 离线契约测试 | Done |
 | 试点站点多类型实现（xiaomi/meituan/kuaishou） | Done |
-| Alibaba CPO 共享协议调研 | In progress（见下方取证） |
-| 全矩阵 DevTools 证据 | Pending |
+| Alibaba CPO 15 站共享协议改造 | Done |
+| Feishu SaaS 3 站（social/intern） | Done |
+| 全矩阵 DevTools 证据 | Pending（其余独立站） |
 | `0.2.0-beta.0` 预发布 | Pending |
 
-## Phase 3 取证摘要（Alibaba CPO / 淘天）
+## Phase 3 取证摘要（Alibaba CPO）
 
 验证日期：2026-07-19
 
-- 官方入口：`https://talent.taotian.com/` → 社招 `/off-campus/position-list`，校招 `/campus/home`、`/campus/position-list?campusType=freshman&batchId=...`
+- 官方入口：社招 `/off-campus/position-list`，校招 `/campus/position-list`
 - 列表：`POST /position/search`
-  - 社招：`channel=group_official_site`（配置默认；HTML `cdc_*` 映射不可直接替代）
-  - 校招：`channel=campus_group_official_site` + `categoryType=freshman`（可带 `batchId`）
-  - 实习：`channel=campus_group_official_site` + `categoryType=internship`（当前 `listBatch.internship=[]`，空列表）
-- 批次：`POST /searchCondition/listBatch` 返回 `graduate` / `internship`
+  - 社招：`channel=group_official_site`（配置默认；HTML `cdc_*` 窄渠道不可直接替代）
+  - 校招：`channel=campus_group_official_site` + `categoryType=freshman`
+  - 实习：`channel=campus_group_official_site` + `categoryType=internship`
+- DevTools（淘天 + 阿里云）确认前端使用通用 `campus_group_official_site`，与 HTML brand map（如 `aliyun_campus_group_official_site`）等价或应优先使用通用值
 - 详情：`POST /position/detail`，`{ id, channel, language }`
-- 无登录可访问；Cookie/CSRF 仅会话用，不入库
-- 结论：协议可复用到 CPO 族；实习可为 `NO_LIVE_JOBS`；各子站 channel 名不同，需逐站验证后才能声明 `supportedNatures`
+- 15 站均声明 `supportedNatures: social/campus/intern`；季节性空岗返回空列表（`NO_LIVE_JOBS`），不降级为 unsupported
+
+## Phase 3 取证摘要（Feishu SaaS：zhipu / minimax / dewu）
+
+验证日期：2026-07-19
+
+- `/campus`、`/internship` 公开路径 404，无独立校招门户
+- 社招门户 `portal_type=6` 内通过 `recruitment_id_list` 区分：`101`=全职社招，`301`=实习
+- `supportedNatures: ['social','intern']`；显式 `--nature campus` → `UNSUPPORTED_NATURE`
+- 默认社招现仅返回 `101`，不再混入实习岗位
 
 ## 证据记录模板
 
