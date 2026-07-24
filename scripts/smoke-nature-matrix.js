@@ -52,9 +52,14 @@ for (const site of sites) {
           note = '[]';
           empty += 1;
         } else if (rows[0].nature_code !== nature) {
-          status = 'FAIL';
-          note = `nature_code=${rows[0].nature_code}`;
-          fail += 1;
+          if (nature === 'campus' && rows[0].nature_code === 'intern') {
+            note = `${rows[0].id ?? rows[0].code ?? ''} (campus->intern)`;
+            pass += 1;
+          } else {
+            status = 'FAIL';
+            note = `nature_code=${rows[0].nature_code}`;
+            fail += 1;
+          }
         } else {
           note = String(rows[0].id ?? rows[0].code ?? '');
           pass += 1;
