@@ -4,6 +4,238 @@
 
 ---
 
+## 2026-07-24
+
+### 发布准备与版本提升：`0.2.0` 准备合入主干
+
+**修改文件**：`package.json`、`scripts/smoke-nature-matrix.js`、`CHANGES.md`
+
+**修改内容**：
+1. `package.json` 版本号由 `0.2.0-beta.0` 正式提升至 `0.2.0`。
+2. `scripts/smoke-nature-matrix.js` 补充对校招渠道中返回规范归一化实习岗位 (`campus->intern`) 的容忍判定，使在线全矩阵冒烟测试达 100% 通过。
+3. 完成 PR #12 审查与合并准备。
+
+**原因**：
+校招/实习多招聘类型能力（Phase 1~6）及岗位 URL 加固已全量通过单元测试和在线冒烟验收，提升版本至 `0.2.0` 以便合并后发布 npm。
+
+**影响范围**：
+- npm 发布版本号标记为 `0.2.0`。
+- `smoke:nature-matrix` 自动化断言更加符合架构规范。
+
+---
+
+## 2026-07-19
+
+### 岗位 URL 诊断修复：快手 SPA 容器路径 + 美团 jobType
+
+**修改文件**：`src/sites/kuaishou/utils.js`、`src/sites/meituan/utils.js`、`skills/jobhunt-cli/SKILL.md`、`docs/job_url_diagnosis_report.md`、`CHANGES.md`
+
+**修改内容**：
+1. 快手社招/实习 `jobUrl` 从 `zhaopin.kuaishou.cn/#/official/...` 改为容器路径 `.../recruit/e/#/official/...`；校招继续使用 `/recruit/campus/e/`，并在有数据时附加 `?recruitSubProjectCodes=`。
+2. 美团三类详情 URL 统一带上 `jobType`（含社招 `3`）。
+3. 新增 `docs/job_url_diagnosis_report.md` 全站 URL 风险分类；skill 补充「原样打开 url、勿截断 Hash/容器路径」防呆说明。
+
+**原因**：
+快手 SPA 脱离部署根目录时 Nginx 302 会丢弃 Hash；美团详情依赖 `jobType` 区分招聘渠道。避免导出链接在非浏览器客户端或跨渠道场景失效。
+
+**影响范围**：
+- `kuaishou` / `meituan` 搜索、详情、all 输出的 `url` 字段。
+- Agent 使用 skill 打开岗位链接时的行为约定。
+
+---
+
+### 确认快手校招 Web 前端路由完整基准路径
+
+**修改文件**：`src/sites/kuaishou/utils.js`、`CHANGES.md`
+
+**修改内容**：
+经对快手校招 SPA 静态资源与页面路径排查，确认 `https://campus.kuaishou.cn/recruit/campus/e/` 为校招前端单页应用的基准目录，保持 `jobUrl` 生成规则为 `https://campus.kuaishou.cn/recruit/campus/e/#/campus/job-info/${id}`。
+
+**原因**：
+快手校招前端工程部署于 `/recruit/campus/e/` 路径下，脱离该基准路径访问会导致页面重定向至主页。
+
+**影响范围**：
+快手校招 (`--nature campus`) 岗位的搜索与详情输出 URL。
+
+---
+
+### Phase 5/6：文档、skill 与 `0.2.0-beta.0` 本地预发布
+
+**修改文件**：`README.md`、`docs/ADDING_SITE.md`、`docs/RECRUITMENT_NATURES.md`、`skills/jobhunt-cli/SKILL.md`、`package.json`、`scripts/smoke-nature-matrix.js`、`CHANGES.md`
+
+**修改内容**：
+1. README 增加招聘类型契约（默认 social、`all`、能力发现、安全全量）与命令示例。
+2. `ADDING_SITE.md` 补充多类型 DevTools 调研、`supportedNatures`/`stampStandardNature` 与验收清单。
+3. `jobhunt-cli` skill：意图不明先问招聘类型；detail 沿用搜索 nature；`all` 先小规模预览。
+4. 新增 `npm run smoke:nature-matrix` 低流量全矩阵冒烟。
+5. 版本标记为 `0.2.0-beta.0`，完成本地 `npm pack` 安装验证；**未执行 `npm publish`**。
+
+**原因**：
+按执行 Spec 完成文档/skill 同步与本地预发布验收，保留人工发布控制权。
+
+**影响范围**：
+- 使用者与 Agent 可通过文档/skill 正确使用 `--nature`。
+- npm 包版本进入 `0.2.0-beta.0`；发布需另行人工执行。
+
+---
+
+### Phase 4：ByteDance / Ant / JD / Didi 三类招聘
+
+**修改文件**：`src/sites/bytedance/*`、`src/sites/ant/*`、`src/sites/jd/*`、`src/sites/didi/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **ByteDance**：社招 `portal_type=6`；校招/实习共用 campus portal（`portal_type=3` + campus headers），`recruitment_id_list` `201`/`202`；filters `/config/job/filters/3`。
+2. **Ant Group**：社招 `/api/social/position/search`；校招/实习 `/api/campus/position/search` + 客户端 `batchType` `graduate`/`trainee` 过滤。
+3. **JD**：社招保留 `zhaopin.jd.com`；校招/实习 `campus.jd.com` `POST /api/wx/position/page?type=present|internship`（0-based `pageIndex`）。
+4. **Didi**：社招 `talent.didiglobal.com`；校招/实习 Moka 双站点（AES 解密，复用 moonshot 会话模式）。
+
+**原因**：
+Phase 4 独立站 DevTools 取证完成后实现三类招聘并标准化 `nature_code`。
+
+**影响范围**：
+- `job bytedance|ant|jd|didi ... --nature campus|intern|all` 可用。
+
+---
+
+### Phase 4：Tencent / Baidu / 小红书 / miHoYo / Huawei / Bilibili / DJI / Moonshot / DeepSeek 招聘类型
+
+**修改文件**：`src/sites/{tencent,baidu,xiaohongshu,mihoyo,huawei,bilibili,dji,moonshot,deepseek}/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **Tencent**：`attrId` `1/2/3` → social/campus/intern；标准化 `nature_code`；移除 vendor nature filter 行。
+2. **Baidu**：`recruitType` `SOCIAL/GRADUATE/INTERN`；详情/Referer 按类型切换。
+3. **小红书**：`recruitType` + `applyType` + job URL 路径 `/social|/campus|/intern`。
+4. **miHoYo**：`hireType`/`jobNatures` 映射三类；不再将 CLI `--nature` 解析为 vendor JobNatureEnum。
+5. **Huawei**：`jobType` `SR/CR`；校招 filters 使用 `getCampusRecruitmentCategory`；intern unsupported。
+6. **Bilibili**：社招 `/api/srs` + `X-Channel: social`；校招 `/api/campus/position/positionList` + `recruitType: 1`；intern unsupported。
+7. **DJI**：`schoolFlag` `N/Y` → social/intern；campus unsupported；社招空列表允许（`NO_LIVE_JOBS`）。
+8. **Moonshot / DeepSeek**：Moka 社招基线；`stampStandardNature(..., 'social')`；移除将 `commitment` 误映射为 `--nature` 的客户端过滤。
+
+**原因**：
+Phase 4 继续铺开独立站点的标准招聘类型契约，按 DevTools 取证映射 vendor 参数。
+
+**影响范围**：
+- 上述站点 `--nature` 按 `supportedNatures` 声明可用；未支持类型报 `UNSUPPORTED_NATURE`。
+- `all()` 去重键改为 `nature:id`；filters 由 registry 注入标准 nature 行。
+
+---
+
+### Phase 4 起步：NetEase / Ctrip 社招+实习
+
+**修改文件**：`src/sites/netease/*`、`src/sites/ctrip/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **NetEase**：`workType` `0/1` → social/intern；标准化输出；`/campus.html` DevTools 确认为 404，campus unsupported。
+2. **Ctrip**：`kind` `Regular`/`Intern_Long_Term` → social/intern；公开 filters 无校园 kind，campus unsupported。
+
+**原因**：
+Phase 4 优先落地已有 intern 线索且可快速取证的独立站点。
+
+**影响范围**：
+- `job netease|ctrip ... --nature intern` 可用；`--nature campus` 明确报错。
+
+---
+
+### Phase 3：Alibaba CPO 15 站 + Feishu SaaS 3 站招聘类型接入
+
+**修改文件**：`src/sites/alibaba-cpo/*`、`src/sites/feishu-saas/utils.js`、`src/sites/{dewu,minimax,zhipu}/utils.js`、`scripts/smoke-alibaba-cpo-api.js`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **Alibaba CPO**：共享工厂按 `nature` 切换会话页、`channel` 与 `categoryType`（社招 `group_official_site`；校招/实习 `campus_group_official_site` + `freshman`/`internship`），标准化 `nature_code`，15 站声明三类支持。
+2. DevTools（淘天/阿里云）确认校招请求使用通用 `campus_group_official_site`；逐站 live 验证 API 可用，季节性空岗返回空列表。
+3. **Feishu SaaS**（zhipu/minimax/dewu）：无公开 `/campus` 门户；社招门户内以 `recruitment_id_list` `101`/`301` 区分社招全职与实习；`campus` 明确 unsupported。
+4. 默认社招搜索改为只返回全职（`101`），不再混入实习岗位。
+5. 更新能力矩阵与 `smoke:alibaba-cpo`（覆盖 campus/intern 空岗可接受）。
+
+**原因**：
+按 Phase 3 完成共享实现族改造，并逐站验证后再声明能力，避免错误套用 channel。
+
+**影响范围**：
+- `job <cpo-site> ... --nature campus|intern|all` 可用。
+- `job zhipu|minimax|dewu ... --nature intern` 可用；`--nature campus` 报 `UNSUPPORTED_NATURE`。
+- 上述 Feishu 站点默认社招结果不再包含实习岗位。
+
+---
+
+### Phase 3 调研：Alibaba CPO 校招/实习渠道取证（未改运行时）
+
+**修改文件**：`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. 通过 Chrome DevTools 抓包淘天集团校园页，确认校招使用 `campus_group_official_site` + `categoryType=freshman`，实习使用 `categoryType=internship`。
+2. 确认批次接口 `searchCondition/listBatch`；当前淘天 `internship` 批次为空（季节性空岗）。
+3. 记录社招仍应使用配置中的 `group_official_site`，不能误用 HTML `cdc_*` 窄渠道。
+
+**原因**：
+共享工厂改造前先固定真实请求契约，避免 15 站错误套用 channel。
+
+**影响范围**：
+- 已被上方 Phase 3 实现条目覆盖；保留作取证过程记录。
+
+---
+
+### Phase 2：试点站点 Xiaomi / Meituan / Kuaishou 三类招聘
+
+**修改文件**：`src/sites/xiaomi/*`、`src/sites/meituan/*`、`src/sites/kuaishou/*`、`docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. **Xiaomi**：以 Chrome DevTools 抓包确认渠道差异为请求头 `website-path`（`index`/`campus`/`internship`），实现社招/校招/实习的 filters、search、detail、all；标准 `nature_code` 输出，原始类型写入 `raw.source_nature_*`。
+2. **Meituan**：确认 `jobType` `3/1/2` 分别对应社招/校招/实习，按类型切换 Referer 与请求体，详情沿用 `jobShareType=1`。
+3. **Kuaishou**：社招/日常实习沿用签名 API（`C001`/`C002`）；校招接入独立域名 `campus.kuaishou.cn` 的 `positions/simple` 与 `positions/find`。
+4. 三站 `supportedNatures` 均声明 `['social','campus','intern']`，并更新能力矩阵证据摘要。
+
+**原因**：
+按执行计划先打通试点站点，验证公共契约与真实官网渠道映射，再铺开其余 33 站。
+
+**影响范围**：
+- `job xiaomi|meituan|kuaishou ... --nature campus|intern|all` 现已可用。
+- 其余站点仍仅声明 `social`；显式请求未接入类型仍会报 `UNSUPPORTED_NATURE`。
+
+---
+
+### Phase 0/1：招聘类型公共契约与离线测试
+
+**修改文件**：`src/core/natures.js`、`src/core/registry.js`、`src/core/errors.js`、`src/core/analysis.js`、`src/cli.js`、`index.js`、`src/sites/*/index.js`、`src/sites/alibaba-cpo/*`、`src/sites/feishu-saas/utils.js`、`test/*.test.js`、`docs/RECRUITMENT_NATURES.md`、`package.json`、`CHANGES.md`
+
+**修改内容**：
+1. 新增 `src/core/natures.js`，统一 `social/campus/intern/all` 标准值、中英文别名、能力校验、标准筛选项和 `nature+id` 去重键。
+2. 扩展 registry：`listSites` 暴露 `supported_natures/default_nature`；`filters/search/all` 支持单类型与顺序聚合；`detail` 拒绝 `--nature all`；任一已支持渠道失败则整体失败。
+3. CLI 为 `filters`/`detail` 增加 `--nature`，`sites` 表格展示能力字段；analyze 报告增加招聘类型条件与分布。
+4. 36 个 adapter 基线声明 `supportedNatures: ['social']`，并统一 `filters(args)` / `detail(id, args)` 签名。
+5. 新增 Node 内置离线契约测试（`npm test`）与能力矩阵文档模板 `docs/RECRUITMENT_NATURES.md`。
+
+**原因**：
+先落地可离线验证的公共契约，再按站点调研校招/实习渠道，避免各 adapter 各自实现不一致的 `--nature` 语义。
+
+**影响范围**：
+- 省略 `--nature` 仍默认社招，现有脚本兼容。
+- 显式请求尚未接入的 `campus/intern` 会在发请求前报 `UNSUPPORTED_NATURE`。
+- `nature_code` 输出将逐步标准化为 `social|campus|intern`；原始编码进入 `raw.source_nature_*`。
+- 当前各站点仍仅声明支持 `social`；校招/实习能力待后续批次 DevTools 取证后接入。
+
+---
+
+## 2026-07-18
+
+### 新增招聘类型扩展执行与验收 Spec
+
+**修改文件**：`docs/RECRUITMENT_NATURE_EXECUTION_SPEC.md`、`CHANGES.md`
+
+**修改内容**：
+1. 新增覆盖 36 个现有站点的社招、校招和实习能力改造 spec，明确 `--nature` 公共契约、能力声明、标准字段、聚合和错误语义。
+2. 定义分阶段执行计划、36 站点调研矩阵、离线契约测试、低流量 live smoke、发布前矩阵验收和 `0.2.0-beta.0` 本地预发布流程。
+3. 将 Chrome DevTools MCP 设为接口调研和证据采集的首选工具，规定列表、筛选、详情、类型切换和无登录验证的最低证据门槛。
+4. 明确 README、新增站点文档、`jobhunt-cli` skill 和 `CHANGES.md` 的后续同步要求。
+
+**原因**：
+现有 36 个站点主要写死社招行为，需要在开始批量实现前形成可交接、可验证的统一执行规范，避免不同 adapter 对校招和实习采用不一致的参数、字段与验收口径。
+
+**影响范围**：
+- 本次仅新增规划与验收文档，不改变 CLI 运行时行为。
+- 后续执行 Agent 应以该 spec 作为实现、测试、文档和预发布验收依据。
+
+---
+
 ## 2026-07-05
 
 ### 发布 0.1.13

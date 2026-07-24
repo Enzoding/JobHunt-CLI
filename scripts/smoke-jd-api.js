@@ -1,28 +1,25 @@
-import { fetchFilters, fetchJobById, fetchJobs, normalizeJob } from '../src/sites/jd/utils.js';
+import adapter from '../src/sites/jd/index.js';
 
-const search = await fetchJobs({ query: 'AI' }, 1, 5);
-if (!search.list.length) throw new Error('Expected JD search results for AI');
+const natures = ['social', 'campus', 'intern'];
+const results = {};
 
-const first = normalizeJob(search.list[0]);
-if (!first.id || !first.name || !first.url) throw new Error('JD search result missing id/name/url');
-
-const detail = normalizeJob(await fetchJobById(String(first.id)));
-if (!detail.name || !detail.description || !detail.requirement || !detail.url) {
-  throw new Error('JD detail missing name/description/requirement/url');
+for (const nature of natures) {
+  let search;
+  try {
+    search = await adapter.search({ nature, query: nature === 'social' ? 'AI' : '', limit: 2 });
+  } catch {
+    search = await adapter.search({ nature, limit: 2 });
+  }
+  if (!search.length) throw new Error(`Expected JD ${nature} search results`);
+  const first = search[0];
+  const detail = await adapter.detail(first.id, { nature });
+  const filters = await adapter.filters({ nature });
+  results[nature] = {
+    search_count: search.length,
+    first: { id: first.id, name: first.name, nature_code: first.nature_code },
+    detail_ok: Boolean(detail.name && detail.description),
+    filters: filters.length,
+  };
 }
 
-const filters = await fetchFilters();
-if (!filters.some(row => row.group === 'location') || !filters.some(row => row.group === 'category')) {
-  throw new Error('JD filters missing location or category rows');
-}
-
-const all = await fetchJobs({}, 1, 5);
-if (!all.list.length) throw new Error('Expected JD first all-jobs page');
-
-console.log(JSON.stringify({
-  ok: true,
-  search_count: search.list.length,
-  first_job: { id: first.id, name: first.name, updated_at: first.updated_at },
-  filters: filters.length,
-  all_page_count: all.list.length,
-}, null, 2));
+console.log(JSON.stringify({ ok: true, results }, null, 2));

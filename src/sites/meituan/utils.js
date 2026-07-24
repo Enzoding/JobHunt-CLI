@@ -1,4 +1,5 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, natureDisplayName, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'meituan-jobs';
 export const DOMAIN = 'zhaopin.meituan.com';
@@ -8,6 +9,13 @@ export const SOCIAL_URL = `${BASE_URL}/web/social`;
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 30;
+
+/** Verified via Chrome DevTools 2026-07-19: jobType 3/1/2 map to social/campus/intern. */
+export const NATURE_CHANNELS = {
+  social: { jobType: '3', referer: `${BASE_URL}/web/social`, pagePath: 'social' },
+  campus: { jobType: '1', referer: `${BASE_URL}/web/campus`, pagePath: 'campus' },
+  intern: { jobType: '2', referer: `${BASE_URL}/web/campus`, pagePath: 'campus' },
+};
 
 export const COLUMNS = [
   'id',
@@ -35,22 +43,34 @@ export const DETAIL_COLUMNS = [
   'url',
 ];
 
-const REQUEST_HEADERS = {
+const BASE_HEADERS = {
   Accept: 'application/json',
   'Content-Type': 'application/json',
-  Referer: `${BASE_URL}/web/social`,
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
   'x-requested-with': 'XMLHttpRequest',
 };
 
-const JOB_TYPE_SOCIAL = '3';
-
-const NATURE_MAP = {
+const SOURCE_NATURE_NAMES = {
   '3': '社招',
   '1': '校招',
   '2': '实习',
 };
+
+const JOB_TYPE_TO_NATURE = {
+  '3': 'social',
+  '1': 'campus',
+  '2': 'intern',
+};
+
+export function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
+}
+
+function channelHeaders(nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  return { ...BASE_HEADERS, Referer: channel.referer };
+}
 
 const CATEGORY_ALIASES = {
   技术: '11001',
@@ -184,18 +204,20 @@ async function readJsonResponse(response, endpoint) {
   return payload.data;
 }
 
-async function meituanPost(endpoint, body = {}) {
+async function meituanPost(endpoint, body = {}, nature = DEFAULT_NATURE) {
   const url = `${BASE_URL}${API_PREFIX}${endpoint}`;
   const response = await fetch(url, {
     method: 'POST',
-    headers: REQUEST_HEADERS,
+    headers: channelHeaders(nature),
     body: JSON.stringify(body),
   });
   return readJsonResponse(response, endpoint);
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/web/position/detail?jobUnionId=${id}`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  // Always include jobType so deep links stay on the correct recruitment channel.
+  return `${BASE_URL}/web/position/detail?jobUnionId=${id}&jobType=${channel.jobType}`;
 }
 
 function fieldText(value) {
@@ -204,7 +226,7 @@ function fieldText(value) {
   return String(value);
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, channelNature = DEFAULT_NATURE) {
   const cities = Array.isArray(job.cityList)
     ? job.cityList.map(c => c.name).filter(Boolean)
     : [];
@@ -214,15 +236,18 @@ export function normalizeJob(job) {
   const updatedAt = job.refreshTime
     ? new Date(job.refreshTime).toISOString().slice(0, 10)
     : '';
+  const sourceCode = fieldText(job.jobType);
+  const sourceName = SOURCE_NATURE_NAMES[sourceCode] || sourceCode;
+  const nature = JOB_TYPE_TO_NATURE[sourceCode] || channelNature;
   const visible = {
     id: fieldText(job.jobUnionId),
     name: fieldText(job.name),
-    url: jobUrl(fieldText(job.jobUnionId)),
+    url: jobUrl(fieldText(job.jobUnionId), nature),
     category_code: fieldText(job.jobFamily),
     category_name: fieldText(job.jobFamily),
-    nature_code: fieldText(job.jobType),
-    nature_name: NATURE_MAP[fieldText(job.jobType)] || fieldText(job.jobType),
-    location_codes: cities.join(','),
+    nature_code: nature,
+    nature_name: natureDisplayName(nature),
+    location_codes: Array.isArray(job.cityList) ? job.cityList.map(c => c.code).filter(Boolean).join(',') : '',
     location_names: cities.join(','),
     experience_code: fieldText(job.workYear),
     levels: '',
@@ -245,14 +270,17 @@ export function normalizeJob(job) {
       department: job.department,
       workYear: job.workYear,
       refreshTime: job.refreshTime,
+      source_nature_code: sourceCode,
+      source_nature_name: sourceName,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, { code: sourceCode, name: sourceName });
 }
 
 export function buildSearchBody(args, pageNo, pageSize) {
   const categoryCode = resolveCategory(args.category);
   const cityCode = resolveCity(args.location);
+  const channel = resolveNatureChannel(args.nature || DEFAULT_NATURE);
   return {
     page: { pageNo, pageSize },
     jobShareType: '1',
@@ -260,14 +288,15 @@ export function buildSearchBody(args, pageNo, pageSize) {
     cityList: cityCode ? [cityCode] : [],
     department: [],
     jfJgList: categoryCode ? [{ code: categoryCode, subCode: [] }] : [],
-    jobType: [{ code: JOB_TYPE_SOCIAL, subCode: [] }],
+    jobType: [{ code: channel.jobType, subCode: [] }],
     typeCode: [],
     specialCode: [],
   };
 }
 
 export async function fetchJobs(args, pageNo, pageSize) {
-  const data = await meituanPost('/job/getJobList', buildSearchBody(args, pageNo, pageSize));
+  const nature = args.nature || DEFAULT_NATURE;
+  const data = await meituanPost('/job/getJobList', buildSearchBody(args, pageNo, pageSize), nature);
   return {
     total: Number(data?.page?.totalCount || 0),
     pageNo: Number(data?.page?.pageNo || pageNo),
@@ -277,23 +306,25 @@ export async function fetchJobs(args, pageNo, pageSize) {
   };
 }
 
-export async function fetchJobDetail(jobUnionId) {
-  const data = await meituanPost('/job/getJobDetail', { jobUnionId, jobShareType: '1' });
+export async function fetchJobDetail(jobUnionId, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const data = await meituanPost('/job/getJobDetail', { jobUnionId, jobShareType: '1' }, nature);
   if (!data || !data.jobUnionId) {
     throw new EmptyResultError(`${SITE} detail`, `No Meituan job found for id ${jobUnionId}`);
   }
   return data;
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
   const [jfData, cityData] = await Promise.all([
     (async () => {
       const r = await fetch(`${BASE_URL}${API_PREFIX}/job/search/enum?enumType=JF`, {
-        headers: { ...REQUEST_HEADERS, 'Content-Type': undefined },
+        headers: { ...channelHeaders(nature), 'Content-Type': undefined },
       });
       return readJsonResponse(r, '/job/search/enum?enumType=JF');
     })(),
-    meituanPost('/city/search', { hotCity: true, keyword: '' }),
+    meituanPost('/city/search', { hotCity: true, keyword: '' }, nature),
   ]);
 
   const categoryRows = Array.isArray(jfData)
@@ -327,16 +358,7 @@ export async function fetchFilters() {
       }))
     : [];
 
-  const natureRows = Object.entries(NATURE_MAP).map(([code, name], index) => ({
-    group: 'nature',
-    parent: '',
-    code,
-    name,
-    en_name: '',
-    sort_id: index + 1,
-  }));
-
-  return [...categoryRows, ...cityRows, ...natureRows];
+  return [...categoryRows, ...cityRows];
 }
 
 export function assertNonEmpty(rows, command, hint) {

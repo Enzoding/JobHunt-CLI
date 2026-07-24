@@ -1,9 +1,18 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'xiaohongshu-jobs';
 export const DOMAIN = 'job.xiaohongshu.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/social/position`;
+export const CAMPUS_URL = `${BASE_URL}/campus/position`;
+export const INTERN_URL = `${BASE_URL}/intern/position`;
+
+export const NATURE_RECRUIT_TYPES = {
+  social: 'social',
+  campus: 'campus',
+  intern: 'intern',
+};
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 50;
@@ -30,14 +39,28 @@ export const DETAIL_COLUMNS = [
   'url',
 ];
 
-const REQUEST_HEADERS = {
-  Accept: 'application/json, text/plain, */*',
-  'Content-Type': 'application/json',
-  Origin: BASE_URL,
-  Referer: SOCIAL_URL,
-  'User-Agent':
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
-};
+const USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
+
+function listUrlForNature(nature = DEFAULT_NATURE) {
+  if (nature === 'campus') return CAMPUS_URL;
+  if (nature === 'intern') return INTERN_URL;
+  return SOCIAL_URL;
+}
+
+function requestHeaders(nature = DEFAULT_NATURE) {
+  return {
+    Accept: 'application/json, text/plain, */*',
+    'Content-Type': 'application/json',
+    Origin: BASE_URL,
+    Referer: listUrlForNature(nature),
+    'User-Agent': USER_AGENT,
+  };
+}
+
+function recruitTypeForNature(nature = DEFAULT_NATURE) {
+  return NATURE_RECRUIT_TYPES[nature] || NATURE_RECRUIT_TYPES[DEFAULT_NATURE];
+}
 
 const CATEGORY_ALIASES = {
   技术: 'tech',
@@ -137,30 +160,32 @@ async function readJsonResponse(response, endpoint) {
   return payload.data;
 }
 
-async function xhsPost(endpoint, body = {}) {
+async function xhsPost(endpoint, body = {}, nature = DEFAULT_NATURE) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'POST',
-    headers: REQUEST_HEADERS,
+    headers: requestHeaders(nature),
     body: JSON.stringify(body),
   });
   return readJsonResponse(response, endpoint);
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/social/position?positionId=${id}`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const segment = recruitTypeForNature(nature);
+  return `${BASE_URL}/${segment}/position?positionId=${id}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.positionId);
+  const recruitType = fieldText(job.recruitType) || recruitTypeForNature(nature);
   const visible = {
     id,
     job_no: id,
     name: fieldText(job.positionName),
-    url: jobUrl(id),
+    url: jobUrl(id, nature),
     category_code: fieldText(job.jobType),
     category_name: fieldText(job.jobType),
-    nature_code: 'social',
-    nature_name: '社招',
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.workplaceIds),
     location_names: fieldText(job.workplace),
     experience_code: '',
@@ -179,14 +204,19 @@ export function normalizeJob(job) {
       amount_in_need: job.amountInNeed,
       recruit_status: job.recruitStatus,
       labels: job.labels,
+      recruit_type: recruitType,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: recruitType,
+    name: recruitType,
+  });
 }
 
 export async function fetchJobs(args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
   const body = {
-    recruitType: 'social',
+    recruitType: recruitTypeForNature(nature),
     positionName: args.query || '',
     pageNum: page,
     pageSize: limit,
@@ -195,7 +225,7 @@ export async function fetchJobs(args, page, limit) {
   const city = resolveCity(args.location);
   if (category) body.jobType = category;
   if (city) body.workplace = city;
-  const data = await xhsPost('/websiterecruit/position/pageQueryPosition', body);
+  const data = await xhsPost('/websiterecruit/position/pageQueryPosition', body, nature);
   const list = Array.isArray(data?.list) ? data.list.slice(0, limit) : [];
   return {
     total: Number(data?.total || 0),
@@ -203,9 +233,10 @@ export async function fetchJobs(args, page, limit) {
   };
 }
 
-export async function fetchJobById(id) {
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
   for (let page = 1; page <= 20; page++) {
-    const result = await fetchJobs({ query: '' }, page, MAX_PAGE_SIZE);
+    const result = await fetchJobs({ ...args, query: '', nature }, page, MAX_PAGE_SIZE);
     const match = result.list.find(job => String(job.positionId) === String(id));
     if (match) return match;
     if (!result.list.length || page * MAX_PAGE_SIZE >= result.total) break;
@@ -213,11 +244,12 @@ export async function fetchJobById(id) {
   throw new EmptyResultError(`${SITE} detail`, `No Xiaohongshu job found for id ${id}`);
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
   const data = await xhsPost('/websiterecruit/common/aggEnumList', {
-    applyType: 'social',
+    applyType: recruitTypeForNature(nature),
     typeList: ['JobTypeEnum', 'PositionWorkplaceEnum'],
-  });
+  }, nature);
   const rows = [];
   const addRows = (group, list = []) => {
     for (const [index, item] of list.entries()) {
@@ -233,7 +265,6 @@ export async function fetchFilters() {
   };
   addRows('category', data.JobTypeEnum);
   addRows('location', data.PositionWorkplaceEnum);
-  rows.push({ group: 'nature', parent: '', code: 'social', name: '社招', en_name: 'Social', sort_id: 1 });
   return rows.filter(r => r.code || r.name);
 }
 

@@ -24,7 +24,7 @@
 
 ### 步骤
 
-1. 用 `navigate_page` 打开招聘官网社招页面。
+1. 用 `navigate_page` 打开招聘官网**社招**页面，完成基线抓包。
 2. 等待页面加载完成（`wait_for` 等待职位列表出现）。
 3. 用 `list_network_requests` 过滤 `fetch/xhr`，找出核心接口：
    - 职位列表接口（关键词：`list`、`search`、`getJob`）
@@ -32,6 +32,8 @@
    - 筛选项接口（关键词：`filter`、`enum`、`city`、`category`）
 4. 用 `get_network_request` 查看每个接口的完整 Request/Response。
 5. 点击一个职位后再次 `list_network_requests`，确认详情接口。
+6. **分别打开校招页、实习页（或页面上的类型切换）再抓一轮**，对比请求差异：URL/path、header（如 `website-path`）、body 字段（如 `jobType`/`recruitType`/`attrId`/`channel`）、Cookie、Referer。
+7. 若官网导航没有公开校招/实习入口，或入口仅为营销页且无列表 API，将该类型记为 `UNSUPPORTED_NO_PUBLIC_CHANNEL`（写入 `docs/RECRUITMENT_NATURES.md`），**不要猜测参数或回退到社招接口**。
 
 ### 重点记录
 
@@ -48,6 +50,7 @@
 | 总页数字段 | totalPage / pages / 需自己计算 |
 | 列表字段 | list / items / job_post_list 等 |
 | ID 字段 | 用于 detail 的稳定唯一标识 |
+| Nature 差异 | 社招/校招/实习的请求差异与标准类型映射 |
 
 ---
 
@@ -181,23 +184,35 @@ return {
 ## 五、index.js 结构
 
 ```js
+import { stampStandardNature } from '../../core/natures.js';
+
 export const xyzAdapter = {
   id: 'xyz',
   opencliSite: SITE,
   name: 'XYZ',
-  description: 'XYZ social recruitment',
+  description: 'XYZ recruitment (social/campus/intern as supported)',
+  supportedNatures: ['social', 'campus', 'intern'], // 仅声明已 DevTools 验证且 filters/search/detail/all 均可用的类型
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',                  // 告诉 agent 用哪个字段做 detail
   detailIdHint: '...',                  // 格式说明，如 "Numeric id, e.g. 12345"
-  async filters() { ... },
+  async filters(args = {}) { ... },     // args.nature 为单一标准类型
   async search(args = {}) { ... },
-  async detail(id) { ... },
+  async detail(id, args = {}) { ... },
   async all(args = {}) { ... },
 };
 export default xyzAdapter;
 ```
+
+### 招聘类型契约（必须）
+
+- 标准值：`social` / `campus` / `intern`；`--nature all` 只在 registry 聚合层展开，**不下传给 adapter**。
+- adapter 的 `filters/search/detail/all` 只接收单一已支持类型；用 `stampStandardNature(job, nature, { code, name })` 标准化输出，原始类型写入 `raw.source_nature_*`。
+- 只有 filters/search/detail/all 都稳定后才能把类型加入 `supportedNatures`。
+- 跨类型去重键使用 `nature_code:id`（不要只用裸 id）。
+- 能力结论同步更新 `docs/RECRUITMENT_NATURES.md`。
 
 ### all() 的标准循环模式
 
@@ -205,6 +220,7 @@ export default xyzAdapter;
 async all(args = {}) {
   const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE);
   const max = Math.max(0, Number(args.max || 0));
+  const nature = args.nature || 'social';
   const rows = [];
   const seen = new Set();
   let pageNo = 1;
@@ -216,10 +232,11 @@ async all(args = {}) {
     if (!result.list.length) break;
 
     for (const job of result.list) {
-      const jobId = job.<id字段>;
-      if (!jobId || seen.has(jobId)) continue;
-      seen.add(jobId);
-      rows.push(normalizeJob(job));
+      const normalized = normalizeJob(job, nature);
+      const key = `${normalized.nature_code}:${normalized.id}`;
+      if (!normalized.id || seen.has(key)) continue;
+      seen.add(key);
+      rows.push(normalized);
       if (max && rows.length >= max) break;
     }
 
@@ -368,18 +385,20 @@ const [jfData, cityData] = await Promise.all([
 新站点上线前，必须跑通以下命令并确认输出合理：
 
 ```bash
-# 1. 筛选项
-node bin/job.js <site> filters --format json
+# 1. 筛选项（对每个 supported nature）
+node bin/job.js <site> filters --nature social --format json
+node bin/job.js <site> filters --nature campus --format json   # 若已支持
 
 # 2. 搜索（含中文关键词 + category 筛选）
 node bin/job.js <site> search AI --limit 5
+node bin/job.js <site> search AI --nature campus --limit 5
 node bin/job.js <site> search AI --category <某类别> --limit 5
 
-# 3. 详情（从 search 结果取 id）
-node bin/job.js <site> detail <id> --format json
+# 3. 详情（从同 nature 的 search 结果取 id，并带上同一 --nature）
+node bin/job.js <site> detail <id> --nature campus --format json
 
 # 4. 批量（验证分页）
-node bin/job.js <site> all --max 20
+node bin/job.js <site> all --nature social --max 20
 
 # 5. smoke 脚本
 node scripts/smoke-<site>-api.js
@@ -388,7 +407,9 @@ node scripts/smoke-<site>-api.js
 验收重点：
 
 - `search` 和 `all` 返回的 `description` / `requirement` 非空（agent-ready）
-- `detail` 的 `id` 与 `search` 结果一致，URL 可访问
-- `filters` 包含 `category`、`city`/`location`、`nature` 三组
-- 空结果时有明确 error 提示，hint 包含排查建议
+- `detail` 的 `id` 与同渠道 `search` 结果一致，URL 指向正确招聘渠道
+- `nature_code` 为标准值；`raw.source_nature_*` 保留官网原始类型
+- `filters` 的标准 `nature` 行由核心层注入；站点返回 category/location 等
+- 空结果时有明确 error 提示，hint 包含排查建议；季节性空岗与 unsupported 要区分
 - `--max 0` 或不传 max 时不会无限循环（双重结束条件）
+- 显式请求未支持类型时报 `UNSUPPORTED_NATURE`，不发起猜测请求

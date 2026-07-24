@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, natureDisplayName, stampStandardNature } from '../../core/natures.js';
 import {
   coerceLimit,
   coercePage,
@@ -22,6 +23,34 @@ export const DETAIL_COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_na
 const CTOKEN = 'bigfish_ctoken_1a85b4a4ad';
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
 
+const BATCH_TYPE_BY_NATURE = {
+  campus: 'graduate',
+  intern: 'trainee',
+};
+
+export const NATURE_CHANNELS = {
+  social: {
+    channel: 'group_official_site',
+    searchPath: '/api/social/position/search',
+    categoryPath: '/api/social/category/list',
+    deptPath: '/api/social/category/listDept',
+  },
+  campus: {
+    channel: 'campus_group_official_site',
+    searchPath: '/api/campus/position/search',
+    categoryPath: '/api/social/category/list',
+    deptPath: '/api/social/category/listDept',
+    batchType: 'graduate',
+  },
+  intern: {
+    channel: 'campus_group_official_site',
+    searchPath: '/api/campus/position/search',
+    categoryPath: '/api/social/category/list',
+    deptPath: '/api/social/category/listDept',
+    batchType: 'trainee',
+  },
+};
+
 const REQUEST_HEADERS = {
   Accept: 'application/json, text/plain, */*',
   'Content-Type': 'application/json;charset=UTF-8',
@@ -32,6 +61,10 @@ const REQUEST_HEADERS = {
 
 function endpoint(path) {
   return `${API_BASE_URL}${path}?ctoken=${CTOKEN}`;
+}
+
+export function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
 }
 
 async function readJsonResponse(response, apiPath) {
@@ -101,12 +134,12 @@ function normalizeFilterRows(categories, departments, regions) {
       sort_id: index + 1,
     });
   }
-  rows.push({ group: 'nature', parent: '', code: 'social', name: '社招', en_name: 'Social', sort_id: 1 });
   return rows.filter(row => row.code || row.name);
 }
 
 async function resolveArgs(args = {}) {
-  const filters = await fetchFilters();
+  const nature = args.nature || DEFAULT_NATURE;
+  const filters = await fetchFilters({ nature });
   const resolveOne = (group, input) => {
     if (!input) return '';
     const match = filters.find(row => row.group === group && matchesAlias(input, [row.code, row.name, row.en_name]));
@@ -121,7 +154,8 @@ async function resolveArgs(args = {}) {
   };
 }
 
-function searchRequest(args, page, limit, resolved) {
+function searchRequest(args, page, limit, resolved, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
   return {
     key: args.query || '',
     regions: resolved.region || '',
@@ -131,7 +165,7 @@ function searchRequest(args, page, limit, resolved) {
     socialQrCode: '',
     pageIndex: page,
     pageSize: limit,
-    channel: 'group_official_site',
+    channel: channel.channel,
     language: 'zh',
   };
 }
@@ -149,25 +183,72 @@ function normalizeListPayload(payload, page, limit) {
   };
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/off-campus-position?positionId=${encodeURIComponent(id)}&lang=zh`;
+function matchesBatchType(job, nature) {
+  const expected = BATCH_TYPE_BY_NATURE[nature];
+  if (!expected) return true;
+  return fieldText(job.batchType) === expected;
 }
 
-export function normalizeJob(job) {
+async function scanCampusNatureJobs(args = {}, { page = 1, limit = DEFAULT_PAGE_SIZE, max = 0 } = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
+  const resolved = await resolveArgs(args);
+  const filtered = [];
+  const seen = new Set();
+  let apiPage = 1;
+  let totalPage = Infinity;
+  const target = max > 0 ? max : page * limit;
+
+  while (filtered.length < target && apiPage <= totalPage && apiPage <= 100) {
+    const payload = await antFetch(channel.searchPath, searchRequest(args, apiPage, MAX_PAGE_SIZE, resolved, nature));
+    const result = normalizeListPayload(payload, apiPage, MAX_PAGE_SIZE);
+    totalPage = result.totalPage || apiPage;
+    for (const job of result.list) {
+      const id = fieldText(job.id ?? job.positionId);
+      if (!id || seen.has(id) || !matchesBatchType(job, nature)) continue;
+      seen.add(id);
+      filtered.push(job);
+      if (max > 0 && filtered.length >= max) break;
+    }
+    if (!result.list.length || (max > 0 && filtered.length >= max)) break;
+    apiPage += 1;
+  }
+
+  const start = (page - 1) * limit;
+  const list = max > 0 ? filtered.slice(0, max) : filtered.slice(start, start + limit);
+  return {
+    total: filtered.length,
+    pageNo: page,
+    pageSize: limit,
+    totalPage: Math.ceil(filtered.length / limit) || 0,
+    list,
+  };
+}
+
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  if (nature === 'social') {
+    return `${BASE_URL}/off-campus-position?positionId=${encodeURIComponent(id)}&lang=zh`;
+  }
+  return `${BASE_URL}/campus-position?positionId=${encodeURIComponent(id)}&lang=zh`;
+}
+
+export function normalizeJob(job, channelNature = DEFAULT_NATURE) {
   const id = fieldText(job.id ?? job.positionId);
   const parts = splitDescription(pickFirst(job.description, job.jobDescription));
   const locations = job.workLocations || job.locations || job.locationNames || [];
   const categories = job.categories || job.categoryNames || [];
+  const sourceCode = fieldText(job.batchType || job.natureCode || channelNature);
+  const sourceName = fieldText(job.batchTypeName || job.natureName || natureDisplayName(channelNature));
   const visible = {
     id,
     code: fieldText(job.code ?? job.positionCode),
     job_no: fieldText(job.jobNo),
     name: fieldText(job.name ?? job.title),
-    url: jobUrl(id),
+    url: jobUrl(id, channelNature),
     category_code: fieldText(job.categoryCode ?? job.subCategoryCode),
     category_name: fieldText(categories.length ? categories : job.categoryName),
-    nature_code: 'social',
-    nature_name: fieldText(job.natureName || '社招'),
+    nature_code: channelNature,
+    nature_name: natureDisplayName(channelNature),
     location_codes: fieldText(job.regionCodes),
     location_names: fieldText(locations.length ? locations : job.workLocation ?? job.locationName),
     experience_code: fieldText(job.experience?.from || job.experience?.to ? `${job.experience?.from || ''}-${job.experience?.to || ''}` : job.experience),
@@ -185,37 +266,55 @@ export function normalizeJob(job) {
       id: job.id,
       code: job.code,
       publish_time: job.publishTime,
+      batch_type: job.batchType,
+      source_nature_code: sourceCode,
+      source_nature_name: sourceName,
     },
   });
-  return output;
+  return stampStandardNature(output, channelNature, { code: sourceCode, name: sourceName });
 }
 
 export async function fetchJobs(args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) {
+  const nature = args.nature || DEFAULT_NATURE;
+  if (nature === 'campus' || nature === 'intern') {
+    return scanCampusNatureJobs(args, { page, limit });
+  }
   const resolved = await resolveArgs(args);
-  const payload = await antFetch('/api/social/position/search', searchRequest(args, page, limit, resolved));
+  const channel = resolveNatureChannel(nature);
+  const payload = await antFetch(channel.searchPath, searchRequest(args, page, limit, resolved, nature));
   return normalizeListPayload(payload, page, limit);
 }
 
-export async function fetchJobById(id) {
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
   const payload = await antFetch('/api/position/getDetail', {
     id: Number(id) || id,
     language: 'zh',
-    channel: 'group_official_site',
+    channel: channel.channel,
   });
   const job = content(payload);
-  if (job?.id || job?.positionId) return job;
+  if ((job?.id || job?.positionId) && (nature === 'social' || matchesBatchType(job, nature))) return job;
 
-  const fallback = await fetchJobs({ query: String(id) }, 1, 10);
-  const match = fallback.list.find(item => fieldText(item.id ?? item.positionId) === String(id));
-  if (match) return match;
+  if (nature === 'campus' || nature === 'intern') {
+    const scanned = await scanCampusNatureJobs({ ...args, nature, query: String(id) }, { page: 1, limit: MAX_PAGE_SIZE, max: MAX_PAGE_SIZE });
+    const match = scanned.list.find(item => fieldText(item.id ?? item.positionId) === String(id));
+    if (match) return match;
+  } else {
+    const fallback = await fetchJobs({ ...args, query: String(id) }, 1, 10);
+    const match = fallback.list.find(item => fieldText(item.id ?? item.positionId) === String(id));
+    if (match) return match;
+  }
   throw new EmptyResultError(`${SITE} detail`, `No Ant Group job found for id ${id}`);
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
   const [categoryPayload, departmentPayload, regionPayload] = await Promise.all([
-    antFetch('/api/social/category/list', { channel: 'group_official_site', language: 'zh' }),
-    antFetch('/api/social/category/listDept', { channel: 'group_official_site', language: 'zh' }),
-    antFetch('/api/region/hot', { channel: 'group_official_site', language: 'zh' }),
+    antFetch(channel.categoryPath, { channel: channel.channel, language: 'zh' }),
+    antFetch(channel.deptPath, { channel: channel.channel, language: 'zh' }),
+    antFetch('/api/region/hot', { channel: channel.channel, language: 'zh' }),
   ]);
   return normalizeFilterRows(content(categoryPayload), content(departmentPayload), content(regionPayload));
 }

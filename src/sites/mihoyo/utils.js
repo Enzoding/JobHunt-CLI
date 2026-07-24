@@ -1,4 +1,5 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 import {
   coerceLimit,
   coercePage,
@@ -17,7 +18,17 @@ export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_
 export const DETAIL_COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'description', 'requirement', 'url'];
 
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
-const COMMON_BODY = { channelDetailIds: [1], hireType: 0 };
+
+/** social: hireType 0; campus: hireType 1 + jobNatures [1]; intern: hireType 1 + jobNatures [3] */
+export const NATURE_REQUEST_BODY = {
+  social: { channelDetailIds: [1], hireType: 0 },
+  campus: { channelDetailIds: [1], hireType: 1, jobNatures: [1] },
+  intern: { channelDetailIds: [1], hireType: 1, jobNatures: [3] },
+};
+
+function bodyForNature(nature = DEFAULT_NATURE) {
+  return NATURE_REQUEST_BODY[nature] || NATURE_REQUEST_BODY[DEFAULT_NATURE];
+}
 
 async function readJsonResponse(response, endpoint) {
   const text = await response.text();
@@ -75,7 +86,7 @@ function enumRows(group, items = []) {
 }
 
 async function resolveArgs(args = {}) {
-  const filters = await fetchFilters();
+  const filters = await fetchFilters(args);
   const resolveOne = (group, input) => {
     if (!input) return '';
     const match = filters.find(row => row.group === group && matchesAlias(input, [row.code, row.name]));
@@ -84,20 +95,18 @@ async function resolveArgs(args = {}) {
   return {
     category: resolveOne('category', args.category),
     location: resolveOne('location', args.location),
-    nature: resolveOne('nature', args.nature),
   };
 }
 
-function searchBody(args, page, limit, resolved) {
+function searchBody(args, page, limit, resolved, nature = DEFAULT_NATURE) {
   const body = {
-    ...COMMON_BODY,
+    ...bodyForNature(nature),
     pageNo: page,
     pageSize: limit,
   };
   if (args.query) body.jobName = args.query;
   if (resolved.category) body.competencyTypes = [Number(resolved.category) || resolved.category];
   if (resolved.location) body.addressIds = [Number(resolved.location) || resolved.location];
-  if (resolved.nature) body.jobNatures = [Number(resolved.nature) || resolved.nature];
   return body;
 }
 
@@ -105,7 +114,7 @@ export function jobUrl(id) {
   return `${BASE_URL}/#/position/${encodeURIComponent(id)}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.id);
   const addresses = job.addressDetailList || [];
   const visible = {
@@ -116,8 +125,8 @@ export function normalizeJob(job) {
     url: jobUrl(id),
     category_code: fieldText(job.competencyTypeId),
     category_name: fieldText(job.competencyType),
-    nature_code: fieldText(job.jobNatureId),
-    nature_name: fieldText(job.jobNature || job.hireTypeName),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: addresses.map(item => fieldText(item.addressId)).filter(Boolean).join(','),
     location_names: addresses.map(item => fieldText(item.addressDetail)).filter(Boolean).join(','),
     experience_code: fieldText(job.workYear),
@@ -135,14 +144,20 @@ export function normalizeJob(job) {
       id: job.id,
       code: job.code,
       hurry: job.hurry,
+      hire_type: job.hireType,
+      job_nature_id: job.jobNatureId,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(job.jobNatureId ?? job.hireType),
+    name: fieldText(job.jobNature || job.hireTypeName),
+  });
 }
 
 export async function fetchJobs(args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) {
+  const nature = args.nature || DEFAULT_NATURE;
   const resolved = await resolveArgs(args);
-  const data = await mihoyoFetch('/v1/job/list', searchBody(args, page, limit, resolved));
+  const data = await mihoyoFetch('/v1/job/list', searchBody(args, page, limit, resolved, nature));
   const list = Array.isArray(data?.list) ? data.list : [];
   const total = Number(data?.total ?? list.length);
   return {
@@ -154,21 +169,21 @@ export async function fetchJobs(args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) 
   };
 }
 
-export async function fetchJobById(id) {
-  const data = await mihoyoFetch('/v1/job/info', { ...COMMON_BODY, id: String(id) });
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const data = await mihoyoFetch('/v1/job/info', { ...bodyForNature(nature), id: String(id) });
   if (!data?.id) throw new EmptyResultError(`${SITE} detail`, `No miHoYo job found for id ${id}`);
   return data;
 }
 
-export async function fetchFilters() {
-  const [categories, natures, addresses] = await Promise.all([
-    mihoyoFetch('/v2/common/enum_list/get', { ...COMMON_BODY, key: 'CompetencyTypeEnum' }),
-    mihoyoFetch('/v2/common/enum_list/get', { ...COMMON_BODY, key: 'JobNatureEnum' }),
-    mihoyoFetch('/v2/common/enum_tree/get', { ...COMMON_BODY, key: 'JobAddressEnum' }),
+export async function fetchFilters(_args = {}) {
+  const baseBody = bodyForNature(DEFAULT_NATURE);
+  const [categories, addresses] = await Promise.all([
+    mihoyoFetch('/v2/common/enum_list/get', { ...baseBody, key: 'CompetencyTypeEnum' }),
+    mihoyoFetch('/v2/common/enum_tree/get', { ...baseBody, key: 'JobAddressEnum' }),
   ]);
   return [
     ...enumRows('category', categories),
-    ...enumRows('nature', natures),
     ...flattenAddressTree(addresses),
   ];
 }
