@@ -4,6 +4,42 @@
 
 ---
 
+## 2026-07-29
+
+### 简化 README
+
+**修改文件**：`README.md`
+
+**修改内容**：将 README 从 436 行缩减至约 120 行。保留快速开始、更新命令（`job update`）、核心命令语法、招聘类型、标准字段和代理说明；移除逐站点示例列表、逐站点 smoke 命令、OpenCLI 兼容说明和仅面向开发者的冗余内容。
+
+**原因**：原 README 内容层次不清，普通用户需要的关键信息被大量细节淹没；简化后首屏即可获得完整的使用路径。
+
+---
+
+### 新增 `job update` 命令：一键更新 CLI 与 AI agent skill
+
+**修改文件**：`src/core/update.js`（新建）、`src/cli.js`、`CHANGES.md`
+
+**修改内容**：
+
+1. 新建 `src/core/update.js`：封装两步更新逻辑：
+   - `updateCli()`：调用 `npm install -g jobhunt-cli@latest` 更新全局 CLI；若检测到本地 dev 运行模式（`process.argv[1]` 在 `process.cwd()` 内），跳过并给出提示而非报错。
+   - `updateSkill()`：调用 `npx -y skills add Enzoding/JobHunt-CLI --skill jobhunt-cli` 更新 AI agent skill。
+   - `runUpdate({ cli, skill })`：组合入口，根据 flag 决定执行哪些步骤，带步骤编号和 ✅ 提示。
+   - 子进程使用 `spawn(..., { stdio: 'inherit', shell: true })` 实时透传输出；非零退出码抛出 `JobHuntCliError`，走现有 `handleError` 流程。
+
+2. `src/cli.js`：
+   - 新增 `import { runUpdate } from './core/update.js'`。
+   - 在 `sites` 命令之后注册顶层命令 `update`，附带 `--cli-only`（只更新 CLI）和 `--skill-only`（只更新 skill）两个可选 flag；默认两步都执行。
+
+**原因**：用户和 AI agent 使用 `job update` 即可一键同步 CLI 与 skill，无需手动记忆两条命令。
+
+**影响范围**：
+- 新增命令 `job update`，不影响任何现有命令。
+- `src/core/update.js` 为纯新增文件。
+
+---
+
 ## 2026-07-24
 
 ### 发布准备与版本提升：`0.2.0` 准备合入主干
