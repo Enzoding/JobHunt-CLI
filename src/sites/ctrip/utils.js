@@ -2,19 +2,26 @@ import { CliError, EmptyResultError } from '../../core/errors.js';
 import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'ctrip-careers';
-export const DOMAIN = 'careers.ctrip.com';
+/** DevTools 2026-08-02: public careers site moved to job.ctrip.com (campus hash route). */
+export const DOMAIN = 'job.ctrip.com';
 export const BASE_URL = `https://${DOMAIN}`;
-export const SOCIAL_URL = `${BASE_URL}/index.html#/experienced/jobList`;
+export const SOCIAL_URL = `${BASE_URL}/#/experienced/jobList`;
+export const CAMPUS_URL = `${BASE_URL}/#/campus/jobList`;
 
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 100;
 
-/** DevTools/API 2026-07-19: OverseasCareersKind Regular=全职, Intern_Long_Term=实习. No campus kind in public filters. */
-export const NATURE_KINDS = {
-  social: 'Regular',
-  intern: 'Intern_Long_Term',
+/**
+ * DevTools 2026-08-02:
+ * - category 1 + kind Regular / Intern_Long_Term = social / intern
+ * - category 2 = campus (kind unused; may be seasonally empty)
+ */
+export const NATURE_CHANNELS = {
+  social: { category: 1, kind: 'Regular', listUrl: SOCIAL_URL },
+  intern: { category: 1, kind: 'Intern_Long_Term', listUrl: SOCIAL_URL },
+  campus: { category: 2, kind: '', listUrl: CAMPUS_URL },
 };
-export const SUPPORTED_NATURES = ['social', 'intern'];
+export const SUPPORTED_NATURES = ['social', 'campus', 'intern'];
 
 export const COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
@@ -24,7 +31,7 @@ const REQUEST_HEADERS = {
   'Content-Type': 'application/json;charset=UTF-8',
   Cookie: 'language=zh-CN',
   Origin: BASE_URL,
-  Referer: `${BASE_URL}/index.html`,
+  Referer: `${BASE_URL}/`,
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
 };
 
@@ -122,8 +129,8 @@ function resolveCity(input) {
   return CITY_ALIASES[normalizeAliasKey(value)] || CITY_ALIASES[normalizeCompactKey(value)] || value;
 }
 
-function kindForNature(nature = DEFAULT_NATURE) {
-  return NATURE_KINDS[nature] || NATURE_KINDS[DEFAULT_NATURE];
+function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
 }
 
 export function coerceLimit(value, fallback = DEFAULT_PAGE_SIZE, maximum = MAX_PAGE_SIZE) {
@@ -160,8 +167,9 @@ async function ctripPost(endpoint, body) {
   return readJsonResponse(response, endpoint);
 }
 
-export function jobUrl(code) {
-  return `${SOCIAL_URL}?fromId=${encodeURIComponent(code)}`;
+export function jobUrl(code, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  return `${channel.listUrl}?fromId=${encodeURIComponent(code)}`;
 }
 
 export function normalizeJob(job, nature = DEFAULT_NATURE) {
@@ -172,7 +180,7 @@ export function normalizeJob(job, nature = DEFAULT_NATURE) {
     code,
     job_no: code,
     name: fieldText(job.jobTitle),
-    url: jobUrl(code),
+    url: jobUrl(code, nature),
     category_code: fieldText(job.jobFamilyGroupCode),
     category_name: fieldText(job.jobFamilyGroupName),
     nature_code: nature,
@@ -208,17 +216,19 @@ export function normalizeJob(job, nature = DEFAULT_NATURE) {
 function conditionFromArgs(args = {}) {
   const category = resolveCategory(args.category);
   const nature = args.nature || DEFAULT_NATURE;
-  return {
+  const channel = resolveNatureChannel(nature);
+  const condition = {
     fromId: [],
     keyword: args.query || '',
-    kind: [kindForNature(nature)],
+    kind: channel.kind ? [channel.kind] : [],
     country: [],
     city: resolveCity(args.location) ? [resolveCity(args.location)] : [],
     bucode: [],
     jobFamilyCode: [],
     jobFamilyGroupCode: category ? [category] : [],
-    category: 1,
+    category: channel.category,
   };
+  return condition;
 }
 
 export async function fetchJobs(args, page, limit) {

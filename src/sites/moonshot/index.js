@@ -18,8 +18,8 @@ export const moonshotAdapter = {
   id: 'moonshot',
   opencliSite: SITE,
   name: 'Moonshot AI',
-  description: 'Moonshot AI social recruitment',
-  supportedNatures: ['social'],
+  description: 'Moonshot AI social and campus recruitment',
+  supportedNatures: ['social', 'campus'],
   defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
@@ -27,7 +27,7 @@ export const moonshotAdapter = {
   detailIdField: 'id',
   detailIdHint: 'Moka job id from search results.',
   async filters(args = {}) {
-    const rows = await fetchFilters();
+    const rows = await fetchFilters(args);
     assertNonEmpty(rows, 'moonshot filters', 'The Moonshot filter data returned no rows.');
     return rows;
   },
@@ -44,7 +44,7 @@ export const moonshotAdapter = {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job moonshot search`.');
     const nature = args.nature || 'social';
-    return normalizeJob(await fetchJobById(normalizedId), nature);
+    return normalizeJob(await fetchJobById(normalizedId, args), nature);
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE, MAX_PAGE_SIZE);

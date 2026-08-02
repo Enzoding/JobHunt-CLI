@@ -13,15 +13,35 @@ import {
 export const SITE = 'deepseek-jobs';
 export const BASE_URL = 'https://app.mokahr.com';
 export const ORG_ID = 'high-flyer';
-export const SITE_ID = '140576';
-export const SOCIAL_URL = `${BASE_URL}/social-recruitment/${ORG_ID}/${SITE_ID}`;
+
+/** DevTools 2026-08-02: social=140576; campus=4605 (may be empty / no init-data). */
+export const NATURE_CHANNELS = {
+  social: {
+    orgId: ORG_ID,
+    siteId: '140576',
+    site: 'social',
+    applyPath: `/social-recruitment/${ORG_ID}/140576`,
+  },
+  campus: {
+    orgId: ORG_ID,
+    siteId: '4605',
+    site: 'campus',
+    applyPath: `/campus-recruitment/${ORG_ID}/4605`,
+    allowMissingInitData: true,
+  },
+};
+
 export const DEFAULT_PAGE_SIZE = 15;
 export const MAX_PAGE_SIZE = 30;
 export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
 
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
-let sessionPromise;
+const mokaSessions = new Map();
+
+function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
+}
 
 function splitSetCookie(header) {
   if (!header) return [];
@@ -56,17 +76,22 @@ function decodeHtmlEntities(value) {
     .replace(/&gt;/g, '>');
 }
 
-function parseInitData(html) {
+function parseInitData(html, { allowMissing = false } = {}) {
   const match = html.match(/id=["']init-data["'][^>]*value=["']([^"']+)["']/);
-  if (!match) throw new CliError('DEEPSEEK_INIT_DATA', 'Could not find Moka init-data in DeepSeek page', 'The DeepSeek recruitment page structure may have changed.');
+  if (!match) {
+    if (allowMissing) return { aesIv: '' };
+    throw new CliError('DEEPSEEK_INIT_DATA', 'Could not find Moka init-data in DeepSeek page', 'The DeepSeek recruitment page structure may have changed.');
+  }
   return JSON.parse(decodeHtmlEntities(match[1]));
 }
 
-async function initializeSession() {
-  if (!sessionPromise) {
-    sessionPromise = (async () => {
+async function initializeSession(nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  if (!mokaSessions.has(channel.siteId)) {
+    mokaSessions.set(channel.siteId, (async () => {
+      const applyUrl = `${BASE_URL}${channel.applyPath}`;
       const jar = new Map();
-      let url = SOCIAL_URL;
+      let url = applyUrl;
       let response;
       let html = '';
 
@@ -81,29 +106,31 @@ async function initializeSession() {
         });
         mergeCookies(jar, response.headers);
         html = await response.text();
-
         if (!(response.status >= 300 && response.status < 400 && response.headers.get('location'))) break;
         url = new URL(response.headers.get('location'), url).toString();
       }
 
       if (!response?.ok) throw new CliError('DEEPSEEK_INIT_HTTP', `DeepSeek page request failed with HTTP ${response?.status}`, html.slice(0, 160));
-      const initData = parseInitData(html);
-      return { jar, initData };
-    })();
+      const initData = parseInitData(html, { allowMissing: Boolean(channel.allowMissingInitData) });
+      return { jar, initData, applyUrl, channel };
+    })());
   }
-  return sessionPromise;
+  return mokaSessions.get(channel.siteId);
 }
 
 function decryptPayload(payload, aesIv) {
   if (!payload?.data || !payload?.necromancer) return payload;
-  const decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(payload.necromancer, 'utf8'), Buffer.from(aesIv, 'utf8'));
+  const iv = Buffer.from(aesIv || '', 'utf8');
+  const key = Buffer.from(payload.necromancer, 'utf8');
+  const paddedIv = iv.length === 16 ? iv : Buffer.alloc(16, 0);
+  const decipher = crypto.createDecipheriv('aes-128-cbc', key, paddedIv);
   let decrypted = decipher.update(payload.data, 'base64', 'utf8');
   decrypted += decipher.final('utf8');
   return JSON.parse(decrypted);
 }
 
-async function mokaFetch(endpoint, body) {
-  const session = await initializeSession();
+async function mokaFetch(nature, endpoint, body) {
+  const session = await initializeSession(nature);
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'POST',
     headers: {
@@ -111,7 +138,7 @@ async function mokaFetch(endpoint, body) {
       'Content-Type': 'application/json',
       Cookie: cookieHeader(session.jar),
       Origin: BASE_URL,
-      Referer: `${SOCIAL_URL}#/jobs/`,
+      Referer: `${session.applyUrl}#/jobs/`,
       'User-Agent': USER_AGENT,
       'x-csrf-token': session.jar.get('csrfCk') || '',
     },
@@ -135,16 +162,16 @@ async function mokaFetch(endpoint, body) {
   return decrypted.data ?? decrypted;
 }
 
-function jobsRequest(offset, limit, needStat = true) {
+function jobsRequest(channel, offset, limit, needStat = true) {
   return {
-    orgId: ORG_ID,
-    siteId: SITE_ID,
+    orgId: channel.orgId,
+    siteId: channel.siteId,
     limit,
     offset,
     needStat,
     jobIdTopList: [],
     customFields: {},
-    site: 'social',
+    site: channel.site || 'social',
     locale: 'zh-CN',
   };
 }
@@ -206,13 +233,15 @@ function filterJob(job, args = {}) {
 }
 
 async function fetchAllMatching(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
   const pageSize = MAX_PAGE_SIZE;
   const rows = [];
   const seen = new Set();
   let offset = 0;
   let total = Infinity;
   while (offset < total) {
-    const data = await mokaFetch('/api/outer/ats-apply/website/jobs/v2', jobsRequest(offset, pageSize, offset === 0));
+    const data = await mokaFetch(nature, '/api/outer/ats-apply/website/jobs/v2', jobsRequest(channel, offset, pageSize, offset === 0));
     const jobs = Array.isArray(data.jobs) ? data.jobs : [];
     total = Number(data.jobStats?.total ?? data.total ?? jobs.length);
     for (const job of jobs) {
@@ -227,8 +256,9 @@ async function fetchAllMatching(args = {}) {
   return { total: rows.length, list: rows };
 }
 
-export function jobUrl(id) {
-  return `${SOCIAL_URL}#/job/${encodeURIComponent(id)}`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  return `${BASE_URL}${channel.applyPath}#/job/${encodeURIComponent(id)}`;
 }
 
 export function normalizeJob(job, nature = DEFAULT_NATURE) {
@@ -240,7 +270,7 @@ export function normalizeJob(job, nature = DEFAULT_NATURE) {
     code: fieldText(job.mjCode),
     job_no: fieldText(job.mjCode),
     name: fieldText(job.title),
-    url: jobUrl(id),
+    url: jobUrl(id, nature),
     category_code: fieldText(job.zhineng?.id),
     category_name: fieldText(job.zhineng?.name),
     nature_code: nature,
@@ -285,15 +315,16 @@ export async function fetchJobs(args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) 
   };
 }
 
-export async function fetchJobById(id) {
-  const data = await fetchAllMatching({});
+export async function fetchJobById(id, args = {}) {
+  const data = await fetchAllMatching(args);
   const job = data.list.find(item => fieldText(item.id) === String(id));
   if (!job) throw new EmptyResultError(`${SITE} detail`, `No DeepSeek job found for id ${id}`);
   return job;
 }
 
-export async function fetchFilters() {
-  const { initData } = await initializeSession();
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const { initData } = await initializeSession(nature);
   const rows = [];
   const addGroup = (group, items = []) => {
     for (const [index, item] of (Array.isArray(items) ? items : []).entries()) {
@@ -315,7 +346,7 @@ export async function fetchFilters() {
 
   if (!rows.some(row => row.group === 'location')) {
     const seen = new Set();
-    const { list } = await fetchAllMatching({});
+    const { list } = await fetchAllMatching(args);
     for (const job of list) {
       for (const location of jobLocations(job)) {
         const code = locationCode(location);

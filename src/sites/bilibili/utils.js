@@ -7,9 +7,39 @@ export const BASE_URL = `https://${DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/social/positions?isTrusted=true`;
 export const CAMPUS_URL = `${BASE_URL}/campus/positions?isTrusted=true`;
 
+/**
+ * Frontend nav (2026-08-02):
+ * - 应届生招聘 → campus/positions?type=3
+ * - 实习生招聘 → campus/positions?type=0
+ */
 export const NATURE_CHANNELS = {
-  social: { channel: 'social', listPath: '/api/srs/position/positionList', detailPath: '/api/srs/position/detail', pagePath: 'social', recruitType: 0 },
-  campus: { channel: 'campus', listPath: '/api/campus/position/positionList', detailPath: '/api/campus/position/detail', pagePath: 'campus', recruitType: 1 },
+  social: {
+    channel: 'social',
+    listPath: '/api/srs/position/positionList',
+    detailPath: '/api/srs/position/detail',
+    pagePath: 'social',
+    recruitType: 0,
+    workType: 3,
+    queryType: '',
+  },
+  campus: {
+    channel: 'campus',
+    listPath: '/api/campus/position/positionList',
+    detailPath: '/api/campus/position/detail',
+    pagePath: 'campus',
+    recruitType: 1,
+    workType: 3,
+    queryType: '3',
+  },
+  intern: {
+    channel: 'campus',
+    listPath: '/api/campus/position/positionList',
+    detailPath: '/api/campus/position/detail',
+    pagePath: 'campus',
+    recruitType: 1,
+    workType: 0,
+    queryType: '0',
+  },
 };
 
 export const DEFAULT_PAGE_SIZE = 10;
@@ -153,8 +183,9 @@ async function bilibiliFetch(endpoint, options = {}, nature = DEFAULT_NATURE) {
 }
 
 export function jobUrl(id, nature = DEFAULT_NATURE) {
-  const pagePath = resolveChannel(nature).pagePath;
-  return `${BASE_URL}/${pagePath}/positions/${id}?isTrusted=true`;
+  const channel = resolveChannel(nature);
+  const typeQuery = channel.queryType ? `?type=${channel.queryType}&isTrusted=true` : '?isTrusted=true';
+  return `${BASE_URL}/${channel.pagePath}/positions/${id}${typeQuery}`;
 }
 
 export function normalizeJob(job, nature = DEFAULT_NATURE) {
@@ -198,6 +229,7 @@ export async function fetchJobs(args, page, limit) {
   const nature = args.nature || DEFAULT_NATURE;
   const channel = resolveChannel(nature);
   const category = resolveCategory(args.category);
+  const workType = channel.workType ?? 3;
   const body = {
     pageSize: limit,
     pageNum: page,
@@ -205,10 +237,10 @@ export async function fetchJobs(args, page, limit) {
     postCode: category,
     postCodeList: category,
     workLocationList: args.location || '',
-    workTypeList: [3],
-    positionTypeList: '3',
+    workTypeList: [workType],
+    positionTypeList: String(workType),
   };
-  if (nature === 'campus') {
+  if (channel.channel === 'campus') {
     body.recruitType = channel.recruitType;
   }
   const data = await bilibiliFetch(channel.listPath, {
@@ -235,10 +267,14 @@ export async function fetchJobById(id, args = {}) {
 export async function fetchFilters(args = {}) {
   const nature = args.nature || DEFAULT_NATURE;
   const channel = resolveChannel(nature);
+  const workType = channel.workType ?? 3;
   const rows = [];
+  const cityPath = channel.channel === 'social'
+    ? `/api/srs/position/cityList?recruitType=${channel.recruitType}&positionTypeList=${workType}&workTypeList=${workType}&postCodeList=`
+    : `/api/campus/position/cityList?recruitType=${channel.recruitType}&positionTypeList=${workType}&workTypeList=${workType}&postCodeList=`;
   const [cities, tree] = await Promise.all([
-    bilibiliFetch(`/api/srs/position/cityList?recruitType=${channel.recruitType}&positionTypeList=3&workTypeList=3&postCodeList=`, {}, nature),
-    bilibiliFetch(`/api/campus/position/postCodeList?workTypeList=3&recruitType=${channel.recruitType}`, {}, nature),
+    bilibiliFetch(cityPath, {}, nature),
+    bilibiliFetch(`/api/campus/position/postCodeList?workTypeList=${workType}&recruitType=${channel.recruitType}`, {}, nature),
   ]);
   for (const [index, name] of (Array.isArray(cities) ? cities : []).entries()) {
     rows.push({ group: 'location', parent: '', code: name, name, en_name: '', sort_id: index + 1 });

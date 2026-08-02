@@ -1,5 +1,5 @@
-import { CONFIG, createFeishuSaasAdapter } from './utils.js';
+import { createZhipuAdapter } from './utils.js';
 
-export const zhipuAdapter = createFeishuSaasAdapter(CONFIG);
+export const zhipuAdapter = createZhipuAdapter();
 
 export default zhipuAdapter;

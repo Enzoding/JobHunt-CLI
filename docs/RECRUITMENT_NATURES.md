@@ -24,18 +24,18 @@
 | baidu | SUPPORTED | SUPPORTED | SUPPORTED | `talent.baidu.com` 列表 + SSR 详情 | DevTools：`recruitType` `SOCIAL/GRADUATE/INTERN` | 2026-07-19 |
 | jd | SUPPORTED | SUPPORTED | SUPPORTED | 社招 `zhaopin.jd.com`；校招/实习 `campus.jd.com` | DevTools：`POST /api/wx/position/page?type=present\|internship`；`pageIndex` 0-based | 2026-07-19 |
 | xiaohongshu | SUPPORTED | SUPPORTED | SUPPORTED | `job.xiaohongshu.com` `/social|/campus|/intern` | DevTools：`recruitType` + `applyType` 枚举 | 2026-07-19 |
-| bilibili | SUPPORTED | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | 社招 `/api/srs`；校招 `/api/campus/position/positionList` | DevTools：`X-Channel` social/campus；`recruitType: 1` 校招；无实习渠道 | 2026-07-19 |
-| netease | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | `/job-list.html`；`/campus.html` 为 404 | API：`workType` `0` 社招 / `1` 实习；校园页无公开列表 | 2026-07-19 |
-| ctrip | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | experienced jobList | API：`kind` `Regular`/`Intern_Long_Term`；filters 无校园 kind | 2026-07-19 |
+| bilibili | SUPPORTED | SUPPORTED | SUPPORTED | 社招 `/api/srs`；校招/实习同属 campus 渠道 | DevTools 2026-08-02：`type=3` 全职校招、`type=0` 实习；`recruitType` 均为 1 | 2026-08-02 |
+| netease | SUPPORTED | SUPPORTED | SUPPORTED | 社招/日常实习 `hr.163.com`；校招 `campus.163.com` | DevTools 2026-08-02：`getJobList?projectId=69`（互联网校招）；互娱/雷火外域暂未接入 | 2026-08-02 |
+| ctrip | SUPPORTED | SUPPORTED | SUPPORTED | `job.ctrip.com` experienced + campus | DevTools 2026-08-02：`getJobAd` `category=1` 社招/实习 + `category=2` 校招（可空岗） | 2026-08-02 |
 | huawei | SUPPORTED | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | 社招/校招 job-list | DevTools：`jobType` `SR/CR`；校招 `getCampusRecruitmentCategory`；无公开实习渠道 | 2026-07-19 |
 | dji | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | `we.dji.com` 社招/校园页 | DevTools：`schoolFlag` `N/Y`；社招当前可空（`NO_LIVE_JOBS`） | 2026-07-19 |
 | ant | SUPPORTED | SUPPORTED | SUPPORTED | 社招 `/api/social`；校招/实习 `/api/campus` | DevTools：`campus_group_official_site`；客户端 `batchType` graduate/trainee 过滤 | 2026-07-19 |
 | mihoyo | SUPPORTED | SUPPORTED | SUPPORTED | `jobs.mihoyo.com` ATS portal | DevTools：`hireType` `0` 社招；`1`+`jobNatures` `[1]`/`[3]` 校招/实习 | 2026-07-19 |
-| moonshot | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | UNSUPPORTED_NO_PUBLIC_CHANNEL | Moka 社招 `app.mokahr.com/apply/moonshot` | DevTools：仅 social site；无独立校招/实习 portal | 2026-07-19 |
-| deepseek | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | UNSUPPORTED_NO_PUBLIC_CHANNEL | Moka 社招 `social-recruitment/high-flyer` | DevTools：仅 social site；无公开校招/实习入口 | 2026-07-19 |
-| dewu | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | DevTools+API：`recruitment_id_list` `101` 社招 / `301` 实习；`/campus` 404 | 2026-07-19 |
-| minimax | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | 同上；另有 `102` 外包未映射 | 2026-07-19 |
-| zhipu | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | SUPPORTED | 仅 `/index`；无 `/campus` | DevTools：`portal_type=6`；`101`/`301` 过滤；校招入口不存在 | 2026-07-19 |
+| moonshot | SUPPORTED | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | Moka 社招 `148506`；校招 `campus-recruitment/moonshot/148507` | DevTools 2026-08-02：独立 campus siteId；页内混有实习岗暂整站标 campus | 2026-08-02 |
+| deepseek | SUPPORTED | SUPPORTED | UNSUPPORTED_NO_PUBLIC_CHANNEL | Moka 社招 `140576`；校招 `campus-recruitment/high-flyer/4605` | DevTools 2026-08-02：校招站可开但当前 `total=0`；microsite 可无 init-data（零 IV 兜底） | 2026-08-02 |
+| dewu | SUPPORTED | SUPPORTED | SUPPORTED | 社招/实习 `careers.dewu.com/index`；校招 `campus.dewu.com/578078` | DevTools 2026-08-02：`website-path=578078` + `recruitment_id_list=201` | 2026-08-02 |
+| minimax | SUPPORTED | SUPPORTED | SUPPORTED | 社招/实习 `.../index`；校招 `.../379481` | DevTools 2026-08-02：同域不同 `website-path`；`201` 校招正式 | 2026-08-02 |
+| zhipu | SUPPORTED | SUPPORTED | SUPPORTED | 社招/实习飞书；校招 Moka `zphz/148984` | DevTools 2026-08-02：双后端；校招 `jobs/v2` + `site=campus`，约 20 岗 | 2026-08-02 |
 | taotian | SUPPORTED | SUPPORTED | SUPPORTED | `/off-campus` + `/campus` | DevTools：`campus_group_official_site` + `categoryType=freshman\|internship`；实习可空 | 2026-07-19 |
 | taobao-shangou | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 逐站验证 API 成功；校招/实习当前可能空岗 | 2026-07-19 |
 | fliggy | SUPPORTED | SUPPORTED | SUPPORTED | 同上协议 | 逐站验证 API 成功；校招/实习当前可能空岗 | 2026-07-19 |
@@ -63,6 +63,7 @@
 | 试点站点多类型实现（xiaomi/meituan/kuaishou） | Done |
 | Alibaba CPO 15 站共享协议改造 | Done |
 | Feishu SaaS 3 站（social/intern） | Done |
+| Issue #13 缺口站补全（campus/intern） | Done（2026-08-02：除华为实习外） |
 | Phase 4 独立站 + Moka | Done |
 | 全矩阵 live smoke（支持渠道） | Done（2026-07-19：FAIL 0 / EMPTY 20 季节性空岗 / PASS 76） |
 | README / ADDING_SITE / skill | Done |
@@ -83,12 +84,12 @@
 
 ## Phase 3 取证摘要（Feishu SaaS：zhipu / minimax / dewu）
 
-验证日期：2026-07-19
+验证日期：2026-07-19；校招补全：2026-08-02
 
-- `/campus`、`/internship` 公开路径 404，无独立校招门户
-- 社招门户 `portal_type=6` 内通过 `recruitment_id_list` 区分：`101`=全职社招，`301`=实习
-- `supportedNatures: ['social','intern']`；显式 `--nature campus` → `UNSUPPORTED_NATURE`
-- 默认社招现仅返回 `101`，不再混入实习岗位
+- 社招门户 `portal_type=6` + `website-path=index`：`101`=全职社招，`301`=实习（保持不变）
+- 2026-08-02：得物/MiniMax 另有独立校招 `website-path`（`578078` / `379481`），校招正式码 `201`
+- 智谱校招不在飞书，而在 Moka `campus-recruitment/zphz/148984`（双后端）
+- 社招默认仍仅返回 `101`，不混入实习岗位
 
 ## 证据记录模板
 
