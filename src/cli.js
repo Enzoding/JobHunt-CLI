@@ -6,6 +6,7 @@ import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
 import { ALL_NATURE, NATURES } from './core/natures.js';
 import { initNetwork, setDebugMode, getNetworkInfo, formatNetworkError, detectProxyEnv } from './core/network.js';
+import { runUpdate } from './core/update.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
@@ -85,6 +86,17 @@ export async function run(argv = process.argv) {
           : site.supported_natures,
       }));
       return output(format === 'json' ? listSites() : sites, options, columns);
+    });
+
+  program.command('update')
+    .description('Update jobhunt-cli and the AI agent skill to the latest version')
+    .option('--cli-only', 'Only update the CLI package, skip skill update')
+    .option('--skill-only', 'Only update the AI agent skill, skip CLI update')
+    .action(async options => {
+      await runUpdate({
+        cli: !options.skillOnly,
+        skill: !options.cliOnly,
+      });
     });
 
   for (const siteInfo of listSites()) {
