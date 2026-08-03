@@ -6,6 +6,31 @@
 
 ## 2026-08-02
 
+### 补全 Issue #13：多站校招/实习公开渠道
+
+**修改文件**：
+- `src/sites/feishu-saas/utils.js`、`dewu/utils.js`、`minimax/utils.js`、`zhipu/{utils,index}.js`
+- `src/sites/ctrip/{utils,index}.js`、`bilibili/{utils,index}.js`、`netease/{utils,index}.js`
+- `src/sites/moonshot/{utils,index}.js`、`deepseek/{utils,index}.js`
+- `docs/RECRUITMENT_NATURES.md`、`CHANGES.md`
+
+**修改内容**：
+1. Feishu SaaS 支持按 nature 切换 `website-path` / 域名 / `recruitment_id_list`；得物接入 `578078`（201），MiniMax 接入 `379481`（201）。
+2. 智谱校招改为 Moka 双后端（社招/实习仍飞书，校招 `zphz/148984`）。
+3. 携程切到 `job.ctrip.com`，校招使用 `getJobAd category=2`。
+4. B 站实习：`workType/positionType=0`（前端「实习生招聘」）；`type=3` 仍为校招全职。
+5. 网易校招：`campus.163.com` project `69`；Moonshot/DeepSeek 增加独立 Moka campus siteId（DeepSeek 允许无 init-data + 零 IV）。
+6. 更新招聘类型矩阵证据日期与状态。
+
+**原因**：Issue #13 跟踪的多家公司已开放公开校招/实习入口，需在不猜测参数、不回退社招的前提下补齐 `supportedNatures`。
+
+**影响范围**：
+- 新增/扩展：`ctrip/dewu/minimax/zhipu/bilibili/netease/moonshot/deepseek` 的 campus 或 intern
+- 华为实习仍无独立公开入口，保持 unsupported
+- 空岗站点（如携程校招、DeepSeek 校招）按 `EMPTY_RESULT` / nature-matrix EMPTY 处理
+
+---
+
 ### 发布 `0.2.1`
 
 **修改文件**：`package.json`、`CHANGES.md`

@@ -16,16 +16,31 @@ export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_
 export const DETAIL_COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
 
 /**
- * Feishu SaaS portal_type=6 sites verified 2026-07-19 (zhipu/minimax/dewu):
- * - No public /campus or /internship portal (404).
- * - Child recruitment codes on the social portal: 101=全职(社招), 301=实习.
- * - Campus/应届 codes unavailable → campus stays unsupported unless a site proves otherwise.
+ * Default social-portal recruitment codes (website-path=index):
+ * - 101=全职社招, 301=社招实习
+ * Campus portals use a separate website-path with 201=校招正式 / 202=校招实习.
+ * Per-site `natureChannels` overrides domain / website-path / recruitmentIds.
  */
 export const NATURE_RECRUITMENT_IDS = {
   social: ['101'],
   intern: ['301'],
 };
 export const DEFAULT_SUPPORTED_NATURES = ['social', 'intern'];
+
+export function resolveNatureChannel(config, nature = DEFAULT_NATURE) {
+  const channels = config?.natureChannels;
+  if (channels?.[nature]) return channels[nature];
+
+  const websitePath = String(config?.path || '/index').replace(/^\//, '').split('/')[0] || 'index';
+  const mapped = config?.natureRecruitmentIds || NATURE_RECRUITMENT_IDS;
+  return {
+    domain: config.domain,
+    websitePath,
+    listPath: config.path || `/${websitePath}`,
+    recruitmentIds: mapped[nature] || mapped[DEFAULT_NATURE] || NATURE_RECRUITMENT_IDS.social,
+    jobUrlStyle: 'spread',
+  };
+}
 
 const SIGNER_CHUNK_URLS = [
   'https://lf-package-cn.feishucdn.com/obj/atsx-throne/hire-fe-prod/portal/saas-career/static/js/9341.e56ad4c3.js',
@@ -149,8 +164,10 @@ async function readJsonResponse(response, endpoint, siteName) {
   return payload.data;
 }
 
-async function feishuFetch(config, endpoint, { method = 'GET', body } = {}) {
-  const baseUrl = `https://${config.domain}`;
+async function feishuFetch(config, endpoint, { method = 'GET', body, nature = DEFAULT_NATURE } = {}) {
+  const channel = resolveNatureChannel(config, nature);
+  const baseUrl = `https://${channel.domain || config.domain}`;
+  const websitePath = channel.websitePath || 'index';
   const url = new URL(endpoint, baseUrl);
   const signer = await getSigner();
   const path = `${url.pathname}${url.search}`;
@@ -165,12 +182,12 @@ async function feishuFetch(config, endpoint, { method = 'GET', body } = {}) {
       Cookie: `locale=zh-CN; channel=saas-career; platform=pc; s_v_web_id=${webId}; device-id=${webId}`,
       Env: 'undefined',
       Origin: baseUrl,
-      Referer: `${baseUrl}/index`,
+      Referer: `${baseUrl}/${websitePath}`,
       'User-Agent': USER_AGENT,
       'X-Csrf-Token': 'undefined',
       'portal-channel': 'saas-career',
       'portal-platform': 'pc',
-      'website-path': 'index',
+      'website-path': websitePath,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -178,6 +195,8 @@ async function feishuFetch(config, endpoint, { method = 'GET', body } = {}) {
 }
 
 function recruitmentIdsForNature(nature = DEFAULT_NATURE, config = {}) {
+  const channel = resolveNatureChannel(config, nature);
+  if (Array.isArray(channel.recruitmentIds) && channel.recruitmentIds.length) return channel.recruitmentIds;
   const mapped = config.natureRecruitmentIds || NATURE_RECRUITMENT_IDS;
   return mapped[nature] || mapped[DEFAULT_NATURE] || NATURE_RECRUITMENT_IDS.social;
 }
@@ -285,13 +304,19 @@ function normalizeDescription(job) {
   return stripHtml(pickFirst(job.description, job.job_description, job.job_post_info?.description));
 }
 
-export function jobUrl(config, id) {
-  return `https://${config.domain}${config.path || '/index'}?spread=${encodeURIComponent(id)}`;
+export function jobUrl(config, id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(config, nature);
+  const domain = channel.domain || config.domain;
+  const listPath = channel.listPath || config.path || '/index';
+  if (channel.jobUrlStyle === 'detail') {
+    return `https://${domain}/${channel.websitePath}/position/${encodeURIComponent(id)}/detail`;
+  }
+  return `https://${domain}${listPath}?spread=${encodeURIComponent(id)}`;
 }
 
 export function normalizeFeishuJob(config, job, nature = DEFAULT_NATURE) {
   const info = job.job_post_info || {};
-  const category = job.job_category || info.job_category || {};
+  const category = job.job_category || info.job_category || job.job_function || info.job_function || {};
   const recruit = job.recruit_type || info.recruit_type || info.recruitment_type || {};
   const cities = job.city_list || info.city_list || [];
   const id = fieldText(job.id ?? info.id);
@@ -300,7 +325,7 @@ export function normalizeFeishuJob(config, job, nature = DEFAULT_NATURE) {
     code: fieldText(job.code ?? info.code),
     job_no: fieldText(job.job_no ?? info.job_no),
     name: fieldText(job.title ?? info.title ?? job.name),
-    url: jobUrl(config, id),
+    url: jobUrl(config, id, nature),
     category_code: fieldText(category.id ?? category.code),
     category_name: fieldText(category.name),
     nature_code: nature,
@@ -332,15 +357,17 @@ export function normalizeFeishuJob(config, job, nature = DEFAULT_NATURE) {
   });
 }
 
-export async function fetchFilters(config, _args = {}) {
-  const data = await feishuFetch(config, '/api/v1/config/job/filters/6');
+export async function fetchFilters(config, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const data = await feishuFetch(config, '/api/v1/config/job/filters/6', { nature });
   return toFilterRows(data);
 }
 
 export async function fetchJobs(config, args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
   const resolved = await resolveFilters(config, args);
   const body = searchBody(args, page, limit, resolved);
-  const data = await feishuFetch(config, searchEndpoint(body), { method: 'POST', body });
+  const data = await feishuFetch(config, searchEndpoint(body), { method: 'POST', body, nature });
   const list = data?.job_post_list || data?.list || [];
   const total = Number(data?.count ?? data?.total ?? list.length);
   return {
