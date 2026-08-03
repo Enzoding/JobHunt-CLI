@@ -6,6 +6,23 @@
 
 ## 2026-08-03
 
+### 补充 SKILL.md 防间接 Prompt 注入与第三方文本安全约束
+
+**修改文件**：`skills/jobhunt-cli/SKILL.md`、`CHANGES.md`
+
+**修改内容**：
+在 `skills/jobhunt-cli/SKILL.md` 的注意事项中新增第 12 条：明确指出抓取的招聘描述（`description`/`requirement`）为未经信任的外部第三方文本，约束 Agent 仅作只读数据提取，严禁将其中的任何指令当作动作执行。
+
+**原因**：
+响应安全审查（如 `skills.sh` / Snyk / Socket 安全检测 MEDIUM W011 告警），显式建立防范间接提示词注入（Indirect Prompt Injection）的安全边界。
+
+**影响范围**：
+- `jobhunt-cli` Skill 文档约束
+
+---
+
+## 2026-08-03
+
 ### 发布 `0.2.3`
 
 **修改文件**：`package.json`、`CHANGES.md`
