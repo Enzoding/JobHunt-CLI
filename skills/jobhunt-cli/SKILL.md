@@ -112,6 +112,20 @@ job <site> analyze [关键词] [--nature <类型>] [--category <类别>] [--loca
 - 报告包含地域/类别/部门/招聘类型/时间分布、高频技能词、任职要求关键词、岗位明细。
 - `--format json` 返回结构化数据，`summary` 中包含各维度聚合结果。
 
+### 3.5 跨公司对比拉取
+
+```bash
+job compare [关键词] --sites <site1,site2,...> [--nature <类型>] [--category <类别>] [--location <城市>] [--max <每站数量>] [--format json]
+```
+
+- `--sites` **必填**，逗号分隔站点 ID（先 `job sites --format json` 发现）。
+- 默认 `--nature social`，默认 `--max 30`（每站上限；`0` 表示该站不限量）。
+- 默认 `--format json`：按站分组返回 `{ query, nature, sites, results: [{ site, count, jobs, error }] }`。
+- CLI 只负责多站拉取合并；跨站解读/总结由 Agent 完成。
+- 某一站失败时写入该站 `error`，其余站照常返回；全部失败才报错退出。
+- 岗位含 `description` / `requirement`，默认不含 `raw`。
+- 启动时可能在 **stderr** 打印升级提示（`tip: jobhunt-cli ...`），**不要当作 JSON 解析**。可用 `JOBHUNT_NO_UPDATE_CHECK=1` 或 `--no-update-check` 关闭。
+
 ## 4. 输出格式
 
 通过 `--format` 或 `-f` 指定，通过 `--output` 或 `-o` 写入文件：
@@ -158,11 +172,10 @@ job <site> detail <id> --nature campus --format json
 ### 场景 B：跨公司对比同一类岗位
 
 ```bash
-job <site1> all <关键词> --nature campus --category <类别> --max 50 --format json --output site1.json
-job <site2> all <关键词> --nature campus --category <类别> --max 50 --format json --output site2.json
+job compare <关键词> --sites <site1,site2> --nature campus --category <类别> --max 30 --format json
 ```
 
-跨公司对比时，使用标准化字段名（`category_name`、`location_names`、`nature_code`、`description`、`requirement`）做对齐，不要使用 `category_code`（各站点编码体系不同）。
+用返回的 `results[].jobs` 做跨站对齐与总结。对齐时使用标准化字段名（`category_name`、`location_names`、`nature_code`、`description`、`requirement`），不要使用 `category_code`（各站点编码体系不同）。忽略 stderr 上的升级 `tip:` 行。
 
 ### 场景 C：批量导出交付给用户
 
@@ -204,7 +217,7 @@ job <site> search "目标岗位" --nature campus --limit 20 --format json
 3. **先确认招聘类型，再 `filters`，再用筛选参数**，避免跨渠道编码污染或空结果。
 4. **`detail` 必须带上与搜索相同的 `--nature`**；禁止 `detail --nature all`。
 5. **`--nature all` 先小规模预览**（如 `--max 9`）；`--max 0` 会拉取全量，耗时长。
-6. **跨公司对比用字段名对齐**，不要用编码对齐（编码体系不同）。
+6. **跨公司对比优先用 `job compare`**，再用标准化字段名对齐，不要用编码对齐（编码体系不同）。
 7. **`analyze` 的关键词和 `--category` 可自由组合**：关键词在全文匹配，`--category` 按类别过滤，两者是 AND 关系。
 8. **空结果时**区分：关键词过窄、筛选项错误、季节性无岗位（渠道已支持）、`UNSUPPORTED_NATURE`（未接入）。
 9. **不要硬编码站点列表、能力或 ID 格式**，始终通过 `job sites --format json` 动态发现。

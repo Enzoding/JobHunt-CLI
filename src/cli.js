@@ -1,18 +1,29 @@
 import { Command } from 'commander';
 import { createRequire } from 'module';
 import { analyzeJobs, analyzeCsv } from './core/analysis.js';
+import {
+  compareJobs,
+  flattenCompareRows,
+  renderCompareMarkdown,
+  DEFAULT_COMPARE_MAX,
+} from './core/compare.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
 import { JobHuntCliError } from './core/errors.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
 import { ALL_NATURE, NATURES } from './core/natures.js';
 import { initNetwork, setDebugMode, getNetworkInfo, formatNetworkError, detectProxyEnv } from './core/network.js';
 import { runUpdate } from './core/update.js';
+import { maybeNotifyUpdate } from './core/version-check.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
 
 const VALID_FORMATS = ['table', 'json', 'csv', 'md', 'markdown'];
 const NATURE_HELP = `${[...NATURES, ALL_NATURE].join('|')} (default: social; aliases: 社招/校招/实习/全部)`;
+const COMPARE_TABLE_COLUMNS = [
+  'site', 'id', 'name', 'category_name', 'nature_name',
+  'location_names', 'department_name', 'updated_at', 'url', 'error',
+];
 
 function addCommonOptions(command, defaultFormat = 'table') {
   return command
@@ -69,9 +80,10 @@ export async function run(argv = process.argv) {
   const program = new Command();
   program
     .name('job')
-    .description('JobHunt-CLI: search, export, and analyze public company recruitment jobs')
+    .description('JobHunt-CLI: search, export, compare, and analyze public company recruitment jobs')
     .version(version)
-    .option('--debug', 'Enable debug output (proxy status, request info)');
+    .option('--debug', 'Enable debug output (proxy status, request info)')
+    .option('--no-update-check', 'Skip the startup version update tip');
 
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
     .action(async options => {
@@ -98,6 +110,34 @@ export async function run(argv = process.argv) {
         skill: !options.cliOnly,
       });
     });
+
+  addCommonOptions(
+    program.command('compare')
+      .description('Fetch the same query across multiple sites for agent-side comparison')
+      .argument('[keyword]', 'Search keyword shared across sites')
+      .requiredOption('--sites <ids>', 'Comma-separated site ids, e.g. meituan,tencent,bytedance')
+      .option('--location <location>', 'City name or source code')
+      .option('--category <category>', 'Category name or source code')
+      .option('--nature <nature>', `Recruitment type: ${NATURE_HELP}`)
+      .option('--max <n>', `Maximum jobs per site; 0 means all matching jobs`, value => Number(value), DEFAULT_COMPARE_MAX),
+    'json',
+  ).action(async (keyword, options) => {
+    const result = await compareJobs({
+      query: keyword || '',
+      sites: options.sites,
+      location: options.location || '',
+      category: options.category || '',
+      nature: options.nature || '',
+      max: options.max,
+    });
+    const format = ensureFormat(options.format);
+    if (format === 'json') return output(result, options, []);
+    if (format === 'md') {
+      writeOutput(renderCompareMarkdown(result), options.output);
+      return;
+    }
+    return output(flattenCompareRows(result), options, COMPARE_TABLE_COLUMNS);
+  });
 
   for (const siteInfo of listSites()) {
     const site = getSite(siteInfo.id);
@@ -197,6 +237,7 @@ export async function run(argv = process.argv) {
         process.stderr.write(`[debug] proxy env detected (${detected.key}) but undici unavailable\n`);
       }
     }
+    await maybeNotifyUpdate({ argv, opts });
     await program.parseAsync(argv);
   } catch (error) {
     handleError(error);

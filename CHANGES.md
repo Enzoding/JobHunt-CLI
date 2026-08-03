@@ -6,6 +6,29 @@
 
 ## 2026-08-03
 
+### 新增启动版本提示与 `compare` 命令
+
+**修改文件**：
+- `src/core/version-check.js`（新）
+- `src/core/compare.js`（新）
+- `src/cli.js`、`index.js`
+- `test/version-check.test.js`、`test/compare.test.js`（新）
+- `skills/jobhunt-cli/SKILL.md`、`CHANGES.md`
+
+**修改内容**：
+1. CLI 启动时按 24h 本地缓存检查 npm registry 是否有新版本（约 2s 短超时）；有更新则 stderr 打印一行提示，失败静默。可用 `JOBHUNT_NO_UPDATE_CHECK` / `--no-update-check` 关闭；`update`/`--help`/`--version` 跳过。
+2. 新增顶层命令 `job compare [keyword] --sites a,b,c`：多站并发（默认 3）拉取合并，默认 JSON 按站分组；部分失败记入该站 `error`；岗位去掉 `raw`。
+3. Skill 场景 B 改为使用 `compare`，并注明 stderr 升级提示勿当 JSON 解析。
+
+**原因**：降低版本滞后感知成本；让 agent/脚本一次拿到多站同类型岗位数据，而不是多次 `all` 再手工合并。
+
+**影响范围**：
+- 人类与 agent 的 CLI 启动输出（stderr tip）
+- 新增 `compare` 命令与库导出
+- Skill 跨公司对比工作流
+
+---
+
 ### 发布 `0.2.2`
 
 **修改文件**：`package.json`、`CHANGES.md`
