@@ -82,8 +82,7 @@ export async function run(argv = process.argv) {
     .name('job')
     .description('JobHunt-CLI: search, export, compare, and analyze public company recruitment jobs')
     .version(version)
-    .option('--debug', 'Enable debug output (proxy status, request info)')
-    .option('--no-update-check', 'Skip the startup version update tip');
+    .option('--debug', 'Enable debug output (proxy status, request info)');
 
   addCommonOptions(program.command('sites').description('List supported recruitment sites'), 'table')
     .action(async options => {
@@ -237,7 +236,7 @@ export async function run(argv = process.argv) {
         process.stderr.write(`[debug] proxy env detected (${detected.key}) but undici unavailable\n`);
       }
     }
-    await maybeNotifyUpdate({ argv, opts });
+    await maybeNotifyUpdate({ argv });
     await program.parseAsync(argv);
   } catch (error) {
     handleError(error);

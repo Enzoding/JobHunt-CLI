@@ -40,11 +40,9 @@ export function getUpdateCheckCachePath(env = process.env, homedir = os.homedir(
   return path.join(root, 'update-check.json');
 }
 
-export function shouldSkipUpdateCheck(argv = process.argv, opts = {}, env = process.env) {
+export function shouldSkipUpdateCheck(argv = process.argv, env = process.env) {
   const flag = String(env.JOBHUNT_NO_UPDATE_CHECK || '').trim().toLowerCase();
   if (flag && flag !== '0' && flag !== 'false' && flag !== 'off' && flag !== 'no') return true;
-  // Commander maps --no-update-check onto opts.updateCheck === false
-  if (opts.updateCheck === false) return true;
 
   const args = argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) return true;
@@ -97,14 +95,13 @@ async function fetchLatestVersion(fetchImpl = globalThis.fetch) {
  */
 export async function maybeNotifyUpdate({
   argv = process.argv,
-  opts = {},
   env = process.env,
   now = Date.now(),
   fetchImpl = globalThis.fetch,
   cachePath = getUpdateCheckCachePath(env),
   current = currentVersion,
 } = {}) {
-  if (shouldSkipUpdateCheck(argv, opts, env)) return { skipped: true };
+  if (shouldSkipUpdateCheck(argv, env)) return { skipped: true };
 
   const cached = readCache(cachePath);
   const checkedAt = cached?.checkedAt ? Date.parse(cached.checkedAt) : NaN;

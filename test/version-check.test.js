@@ -24,16 +24,15 @@ describe('isNewerVersion', () => {
 });
 
 describe('shouldSkipUpdateCheck', () => {
-  it('skips help/version/update and env/flag opt-outs', () => {
+  it('skips help/version/update and env opt-out', () => {
     assert.equal(shouldSkipUpdateCheck(['node', 'job', '--help'], {}), true);
     assert.equal(shouldSkipUpdateCheck(['node', 'job', '-V'], {}), true);
     assert.equal(shouldSkipUpdateCheck(['node', 'job', 'update'], {}), true);
-    assert.equal(shouldSkipUpdateCheck(['node', 'job', 'sites'], { updateCheck: false }), true);
-    assert.equal(shouldSkipUpdateCheck(['node', 'job', 'sites'], {}, { JOBHUNT_NO_UPDATE_CHECK: '1' }), true);
+    assert.equal(shouldSkipUpdateCheck(['node', 'job', 'sites'], { JOBHUNT_NO_UPDATE_CHECK: '1' }), true);
   });
 
   it('runs for normal commands', () => {
-    assert.equal(shouldSkipUpdateCheck(['node', 'job', 'sites'], { updateCheck: true }, {}), false);
+    assert.equal(shouldSkipUpdateCheck(['node', 'job', 'sites'], {}), false);
   });
 });
 
@@ -58,7 +57,6 @@ describe('maybeNotifyUpdate', () => {
     try {
       const result = await maybeNotifyUpdate({
         argv: ['node', 'job', 'sites'],
-        opts: { updateCheck: true },
         env: {},
         now,
         cachePath,
@@ -88,7 +86,6 @@ describe('maybeNotifyUpdate', () => {
 
     const result = await maybeNotifyUpdate({
       argv: ['node', 'job', 'sites'],
-      opts: { updateCheck: true },
       env: {},
       now,
       cachePath,

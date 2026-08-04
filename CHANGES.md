@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-08-04
+
+### 简化启动版本提示：移除 `--no-update-check`
+
+**修改文件**：
+- `src/cli.js`、`src/core/version-check.js`
+- `test/version-check.test.js`
+- `skills/jobhunt-cli/SKILL.md`、`CHANGES.md`
+
+**修改内容**：
+去掉全局 CLI 选项 `--no-update-check`（Commander `--no-*` 反向布尔易占 help、语义绕）。启动版本检查仍默认开启：有新版本才往 stderr 打一行 tip；关闭仅保留环境变量 `JOBHUNT_NO_UPDATE_CHECK`；`update` / `--help` / `--version` 仍跳过。
+
+**原因**：
+用户只需要「执行前知道有没有新版本」，不必把关闭开关暴露成全局命令选项。
+
+**影响范围**：
+- `job --help` 少一项 Options
+- 依赖 `--no-update-check` 的脚本需改用 `JOBHUNT_NO_UPDATE_CHECK=1`
+
+---
+
 ## 2026-08-03
 
 ### 补充 SKILL.md 防间接 Prompt 注入与第三方文本安全约束

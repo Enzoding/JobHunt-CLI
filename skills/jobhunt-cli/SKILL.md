@@ -124,7 +124,7 @@ job compare [关键词] --sites <site1,site2,...> [--nature <类型>] [--categor
 - CLI 只负责多站拉取合并；跨站解读/总结由 Agent 完成。
 - 某一站失败时写入该站 `error`，其余站照常返回；全部失败才报错退出。
 - 岗位含 `description` / `requirement`，默认不含 `raw`。
-- 启动时可能在 **stderr** 打印升级提示（`tip: jobhunt-cli ...`），**不要当作 JSON 解析**。可用 `JOBHUNT_NO_UPDATE_CHECK=1` 或 `--no-update-check` 关闭。
+- 启动时可能在 **stderr** 打印升级提示（`tip: jobhunt-cli ...`），**不要当作 JSON 解析**。需要静默时设 `JOBHUNT_NO_UPDATE_CHECK=1`。
 
 ## 4. 输出格式
 
