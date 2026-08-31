@@ -9,6 +9,8 @@ import {
 } from './core/compare.js';
 import { formatOutput, writeOutput } from './core/formatters.js';
 import { JobHuntCliError } from './core/errors.js';
+import { ensureOutputContract, selectAnalyzeJson } from './core/output-contract.js';
+import { VIEWS, projectCompare, projectJob, projectJobs } from './core/projection.js';
 import { getJobDetail, getSite, listFilters, listSites, searchJobs, exportJobs } from './core/registry.js';
 import { ALL_NATURE, NATURES } from './core/natures.js';
 import { initNetwork, setDebugMode, getNetworkInfo, formatNetworkError, detectProxyEnv } from './core/network.js';
@@ -29,6 +31,21 @@ function addCommonOptions(command, defaultFormat = 'table') {
   return command
     .option('-f, --format <format>', `Output format: ${VALID_FORMATS.join(', ')}`, defaultFormat)
     .option('-o, --output <path>', 'Write output to a file instead of stdout');
+}
+
+function addViewOption(command) {
+  return command.option(
+    '--view <view>',
+    `JSON output view: ${VIEWS.join('|')} (omit for legacy output)`,
+  );
+}
+
+function resolveSiteDetailIdField(siteId) {
+  try {
+    return getSite(siteId).detailIdField || 'id';
+  } catch {
+    return 'id';
+  }
 }
 
 function normalizeFormat(format) {
@@ -110,7 +127,7 @@ export async function run(argv = process.argv) {
       });
     });
 
-  addCommonOptions(
+  addViewOption(addCommonOptions(
     program.command('compare')
       .description('Fetch the same query across multiple sites for agent-side comparison')
       .argument('[keyword]', 'Search keyword shared across sites')
@@ -120,7 +137,8 @@ export async function run(argv = process.argv) {
       .option('--nature <nature>', `Recruitment type: ${NATURE_HELP}`)
       .option('--max <n>', `Maximum jobs per site; 0 means all matching jobs`, value => Number(value), DEFAULT_COMPARE_MAX),
     'json',
-  ).action(async (keyword, options) => {
+  )).action(async (keyword, options) => {
+    const contract = ensureOutputContract(options);
     const result = await compareJobs({
       query: keyword || '',
       sites: options.sites,
@@ -130,7 +148,12 @@ export async function run(argv = process.argv) {
       max: options.max,
     });
     const format = ensureFormat(options.format);
-    if (format === 'json') return output(result, options, []);
+    if (format === 'json') {
+      const payload = contract.view
+        ? projectCompare(result, contract.view, { resolveDetailIdField: resolveSiteDetailIdField })
+        : result;
+      return output(payload, options, []);
+    }
     if (format === 'md') {
       writeOutput(renderCompareMarkdown(result), options.output);
       return;
@@ -157,7 +180,7 @@ export async function run(argv = process.argv) {
       return output(rows, options, columns);
     });
 
-    addCommonOptions(
+    addViewOption(addCommonOptions(
       siteCommand
         .command('search')
         .description(`Search ${site.name} jobs`)
@@ -168,18 +191,32 @@ export async function run(argv = process.argv) {
         .option('--page <n>', 'Page number', value => Number(value), 1)
         .option('--limit <n>', `Number of jobs to return, max ${site.maxPageSize}`, value => Number(value), undefined),
       'table',
-    ).action(async (query, options) => output(await searchJobs(site.id, commandArgs(query, options)), options, site.columns));
+    )).action(async (query, options) => {
+      const contract = ensureOutputContract(options);
+      const jobs = await searchJobs(site.id, commandArgs(query, options));
+      const value = contract.view
+        ? projectJobs(jobs, contract.view, { detailIdField: site.detailIdField || 'id' })
+        : jobs;
+      return output(value, options, site.columns);
+    });
 
-    addCommonOptions(
+    addViewOption(addCommonOptions(
       siteCommand
         .command('detail')
         .description(`Get one ${site.name} job detail`)
         .argument('<id>', 'Job id')
         .option('--nature <nature>', `Recruitment type (single channel only; supported: ${supportedHelp})`),
       'json',
-    ).action(async (id, options) => output(await getJobDetail(site.id, id, commandArgs('', options)), options, site.detailColumns));
+    )).action(async (id, options) => {
+      const contract = ensureOutputContract(options);
+      const job = await getJobDetail(site.id, id, commandArgs('', options));
+      const value = contract.view
+        ? projectJob(job, contract.view, { detailIdField: site.detailIdField || 'id' })
+        : job;
+      return output(value, options, site.detailColumns);
+    });
 
-    addCommonOptions(
+    addViewOption(addCommonOptions(
       siteCommand
         .command('all')
         .description(`Export all matching ${site.name} jobs`)
@@ -190,7 +227,14 @@ export async function run(argv = process.argv) {
         .option('--page-size <n>', `Page size, max ${site.maxPageSize}`, value => Number(value), site.maxPageSize)
         .option('--max <n>', 'Maximum jobs to return; 0 means all matching jobs', value => Number(value), 0),
       'json',
-    ).action(async (query, options) => output(await exportJobs(site.id, commandArgs(query, options)), options, site.detailColumns));
+    )).action(async (query, options) => {
+      const contract = ensureOutputContract(options);
+      const jobs = await exportJobs(site.id, commandArgs(query, options));
+      const value = contract.view
+        ? projectJobs(jobs, contract.view, { detailIdField: site.detailIdField || 'id' })
+        : jobs;
+      return output(value, options, site.detailColumns);
+    });
 
     addCommonOptions(
       siteCommand
@@ -200,12 +244,14 @@ export async function run(argv = process.argv) {
         .option('--category <category>', 'Category filter')
         .option('--location <location>', 'Location filter')
         .option('--nature <nature>', `Recruitment type: ${NATURE_HELP}`)
-        .option('--max <n>', 'Maximum jobs to inspect; 0 means all matching jobs', value => Number(value), 0),
+        .option('--max <n>', 'Maximum jobs to inspect; 0 means all matching jobs', value => Number(value), 0)
+        .option('--summary-only', 'JSON only: emit summary without source jobs'),
       'md',
     ).action(async (keyword, options) => {
+      const contract = ensureOutputContract(options);
       const result = await analyzeJobs(site.id, keyword || '', options);
       const format = ensureFormat(options.format);
-      if (format === 'json') return output({ summary: result.summary, jobs: result.rows }, options, []);
+      if (format === 'json') return output(selectAnalyzeJson(result, contract), options, []);
       if (format === 'csv') {
         writeOutput(analyzeCsv(result.rows), options.output);
         return;

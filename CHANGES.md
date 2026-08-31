@@ -4,6 +4,64 @@
 
 ---
 
+## 2026-08-31
+
+### 落地 PER-133：JSON 输出视图、analyze summary-only 与精简 Skill
+
+**修改文件**：
+- `src/core/projection.js`、`src/core/output-contract.js`、`src/cli.js`
+- `scripts/token-metrics.js`、`scripts/token-benchmark.js`、`scripts/workflow-metrics.js`
+- `test/fixtures/token/`、`test/projection.test.js`、`test/output-contract.test.js`、`test/cli-view.test.js`、`test/token-budget.test.js`、`test/skill-workflow.test.js`
+- `skills/jobhunt-cli/SKILL.md`、`skills/jobhunt-cli/references/`
+- `package.json`、`README.md`、`CHANGES.md`
+
+**修改内容**：
+- 新增 CLI `--view compact|full|debug`（仅 JSON）：search / detail / all / compare 在序列化前做字段投影；不传则保持 legacy。
+- compact 固定输出 `id` / `detail_id` / `name` 等发现字段，`detail_id` 按站点 `detailIdField` 解析并在缺失时回退 `id`。
+- full 去掉顶层 `raw`；debug 保留当前数据链路全部字段。compare 的 debug 不回源补 raw。
+- analyze 新增 `--summary-only`（仅 JSON），输出 `{ summary }`，内部仍按原范围抓取并计算。
+- 非法 view、view/summary-only 与非 JSON 组合在请求前以参数错误（exit 64）失败。
+- Agent Skill 改为精简入口 + 三份 references；推荐 compact / detail full / summary-only / 文件导出，不再要求每个任务先跑完整 sites 与 filters。
+- 增加离线 fixture、锁定 `gpt-tokenizer@4.0.0`（`o200k_base`，仅 devDependency）以及命令级 / 工作流 Token budget。
+
+**原因**：降低 Agent 完成招聘查询、对比和分析时的上下文消耗，同时保持搜索范围、排序和默认 CLI / 库契约不变。
+
+**影响范围**：
+- 默认 CLI JSON、registry / analyze / compare 库返回值不变
+- Agent 新工作流需显式传 `--view` / `--summary-only` 才会变瘦
+- 发布包新增 `skills/jobhunt-cli/references/`
+- 开发依赖新增 tokenizer，不进入运行时
+
+**任务级验收（fixture，非 LLM judge）**：
+1. 列表：compact 与 legacy 岗位 identity / 顺序一致，仅字段更少
+2. 对比：compare 顶层分组、count、部分失败 error 不变
+3. 任职要求：必须通过 3 条 `detail --view full` 取证，完整要求不因 compact 丢失
+4. 趋势：summary-only 的 summary 与 legacy JSON 内 summary 深相等
+5. 导出：`--view full --output` 不把岗位数组打到 stdout；文件内容等于 legacy 去掉 raw
+
+**实测 Token（`gpt-tokenizer@4.0.0` / `o200k_base`，离线 fixture）**：
+- search/all compact 加权：-75.9%（门槛 75%）
+- compare compact：-76.1%
+- analyze summary-only：-93.3%
+- 五条工作流 P50：-78.8%；职责工作流 4 次 CLI / 3 份 full JD
+- Skill 入口：3210 bytes，Token -71.3%
+
+---
+
+### 新增 PER-133 Agent Token 消耗优化实施规格
+
+**修改文件**：`docs/PER-133_AGENT_TOKEN_OPTIMIZATION_SPEC.md`、`CHANGES.md`
+
+**修改内容**：新增完整工程规格，定义 Agent Token 优化的目标与非目标、CLI `compact/full/debug` 输出视图、analyze summary-only 行为、Skill 渐进式工作流、兼容策略、离线 Token benchmark、测试矩阵、验收门槛、分阶段实施计划和 Definition of Done。
+
+**原因**：PER-133 要求在保持岗位搜索范围、排序和回答质量的前提下减少 Agent 上下文消耗，并建立可重复的测试验收标准。先固化实施契约可以避免后续仅优化 JSON 体积、破坏现有脚本或缺少语义质量验证。
+
+**影响范围**：
+- 仅新增实施文档，不改变当前 CLI、adapter、Skill 或库运行行为
+- 为后续 PER-133 开发、评审和发布验收提供统一依据
+
+---
+
 ## 2026-08-04
 
 ### 发布 `0.2.4`

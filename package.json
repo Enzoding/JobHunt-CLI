@@ -49,6 +49,7 @@
   "scripts": {
     "job": "node bin/job.js",
     "test": "node --test test/**/*.test.js",
+    "token-benchmark": "node scripts/token-benchmark.js",
     "smoke:nature-matrix": "node scripts/smoke-nature-matrix.js",
     "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
     "smoke:didi": "node scripts/smoke-didi-api.js",
@@ -102,5 +103,8 @@
   "license": "MIT",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
+  },
+  "devDependencies": {
+    "gpt-tokenizer": "4.0.0"
   }
 }
