@@ -6,6 +6,29 @@
 
 ## 2026-08-31
 
+### 修复 `job update` 命令失效并重构更新逻辑
+
+**修改文件**：`src/core/update.js`、`src/core/version-check.js`、`src/cli.js`、`CHANGES.md`
+
+**修改内容**：
+1. **修复全局安装误判**：旧 `isGlobalInstall()` 用 `process.argv[1].includes('node_modules')` 字符串匹配判断安装模式，但 macOS/Homebrew 的全局 bin 是 symlink，`process.argv[1]` 是调用路径（如 `/opt/homebrew/bin/jobhunt-cli`），不含 `node_modules`，导致真实全局安装被误判为 dev/local 模式，`npm install -g` 被跳过。新实现改为：realpath 解析调用路径 + `npm root -g` 前缀匹配为主判据，保留 `node_modules` 且不在 cwd 内作为兜底；`isGlobalInstall` 改为可注入参数的纯导出函数，便于测试。
+2. **修复误导性输出**：旧 `runUpdate` 在每个步骤后无条件打印 `✓ xxx updated`，而 `updateCli` 在 dev 模式直接 return，造成「skipping + ✓ updated」矛盾输出。新实现让每个步骤返回 `{ status: updated|simulated|noop|skipped, message, hint, warn }`，按状态输出 `✓ / ◻ / ℹ`，跳过时给出可执行的 hint，不再造假打勾。
+3. **先查最新版本再决定是否安装**：复用并导出 `version-check.js` 的 `fetchLatestVersion`；已是最新时输出 `Already up to date`，不执行 npm install。
+4. **安装后校验**：`npm install -g` 后通过 `npm ls -g jobhunt-cli --depth=0 --json` 解析实际安装版本并展示 `v0.2.3 → v0.2.5` 式的跳转；若与期望版本不一致（如 `npm link` 残留），输出 unlink 修复指引。
+5. **新增 `update --dry-run`**：预览各步骤将要执行的命令，不真正执行安装/装 skill。
+6. dev/local 跳过提示补充 `npm link` 场景的修复指引（先 `npm unlink jobhunt-cli -g`）。
+
+**原因**：用户实测 `jobhunt-cli update` 输出「Running in dev/local mode — skipping」与「✓ CLI updated」两行矛盾信息，全局版本 0.2.3 未升级，被迫手动 `npm install -g jobhunt-cli@latest`。
+
+**影响范围**：
+- `job update` 命令的行为与输出（参数 `--cli-only` / `--skill-only` 语义不变，新增 `--dry-run`）。
+- `version-check.js` 仅新增 `export`，行为不变。
+- 仅影响更新命令自身，不影响搜索/sites/导出等既有功能。
+
+---
+
+## 2026-08-31
+
 ### 发布 `0.2.5`
 
 **修改文件**：`package.json`、`CHANGES.md`
