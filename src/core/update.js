@@ -23,12 +23,12 @@ function isGlobalInstall() {
 }
 
 /**
- * Run a command as a child process, inheriting stdio so output streams live.
+ * Wait for an already-spawned child process, inheriting stdio so output streams live.
  * Resolves when the process exits with code 0; rejects on non-zero exit.
  */
-function runProcess(cmd, args, label) {
+function runProcess(spawnChild, label, hint) {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: 'inherit', shell: true });
+    const child = spawnChild();
     child.on('close', code => {
       if (code === 0) {
         resolve();
@@ -37,7 +37,7 @@ function runProcess(cmd, args, label) {
           new JobHuntCliError(
             'UPDATE_ERROR',
             `${label} exited with code ${code}`,
-            `Run manually: ${cmd} ${args.join(' ')}`,
+            hint,
             1,
           ),
         );
@@ -48,7 +48,7 @@ function runProcess(cmd, args, label) {
         new JobHuntCliError(
           'UPDATE_ERROR',
           `Failed to start ${label}: ${err.message}`,
-          `Ensure '${cmd}' is available in PATH`,
+          hint,
           1,
         ),
       );
@@ -67,17 +67,22 @@ async function updateCli() {
     );
     return;
   }
-  await runProcess('npm', ['install', '-g', `${PACKAGE_NAME}@latest`], 'npm install -g');
+  await runProcess(
+    () => spawn('npm', ['install', '-g', `${PACKAGE_NAME}@latest`], { stdio: 'inherit' }),
+    'npm install -g',
+    'Run manually: npm install -g jobhunt-cli@latest',
+  );
 }
 
 /**
  * Step 2: update the AI agent skill via npx.
  */
 async function updateSkill() {
+  const skillArgs = ['-y', 'skills', 'add', SKILL_REPO, '--skill', SKILL_NAME];
   await runProcess(
-    'npx',
-    ['-y', 'skills', 'add', SKILL_REPO, '--skill', SKILL_NAME],
+    () => spawn('npx', skillArgs, { stdio: 'inherit' }),
     'npx skills add',
+    'Run manually: npx ' + skillArgs.join(' '),
   );
 }
 
@@ -104,7 +109,7 @@ export async function runUpdate({ cli = true, skill = true } = {}) {
     const { label, fn } = steps[i];
     process.stdout.write(`\n[${i + 1}/${steps.length}] Updating ${label}…\n`);
     await fn();
-    process.stdout.write(`✓  ${label} updated\n`);
+    process.stdout.write('✓  ' + label + ' updated\n');
   }
 
   process.stdout.write(`\n✅ All done!\n`);
