@@ -92,9 +92,18 @@ job <site> all [query] [--nature <类型>] [--max <数量>] --format csv --outpu
 
 # 分析报告
 job <site> analyze [query] [--nature <类型>] [--max <数量>] --format md --output report.md
+
+# Agent 推荐：显式视图，不传则保持旧 JSON
+job meituan search AI --nature social --view compact --format json
+job meituan detail <detail_id> --nature social --view full --format json
+job compare AI --sites meituan,xiaomi --view compact --format json
+job meituan analyze AI --summary-only --format json
+job meituan all AI --view full --format json --output meituan-ai.json
 ```
 
 输出格式通过 `--format` 指定：`table`（终端预览）/ `json`（脚本/agent）/ `csv`（表格）/ `md`（报告）。
+
+JSON 可选 `--view compact|full|debug`（仅 JSON）：`compact` 用于岗位发现，不含完整 JD；`full` 用于详情和文件交付，不含 `raw`；`debug` 用于排错。不传 `--view` 时输出与旧版本完全一致。`analyze --summary-only` 只返回聚合 `summary`，不改变内部抓取范围。
 
 ## 标准岗位字段
 
@@ -127,8 +136,12 @@ job --debug bytedance filters               # 排查代理状态
 ```bash
 npm install
 node bin/job.js sites
+npm test             # 单元测试与离线 Token budget
+npm run token-benchmark  # 命令级 / 工作流 Token 报告
 npm run smoke        # 全站点 smoke 测试
 npm run smoke:cli    # CLI 端到端验证
 ```
+
+`gpt-tokenizer` 只用于离线 Token 测试（`o200k_base`），不进入运行时依赖。
 
 新增招聘网站见 [`docs/ADDING_SITE.md`](docs/ADDING_SITE.md)。
