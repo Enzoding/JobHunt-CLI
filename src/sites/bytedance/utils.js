@@ -1,9 +1,35 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, natureDisplayName, stampStandardNature } from '../../core/natures.js';
 
 export const SITE = 'bytedance-jobs';
 export const DOMAIN = 'jobs.bytedance.com';
 export const BASE_URL = `https://${DOMAIN}`;
 export const SOCIAL_URL = `${BASE_URL}/experienced/position`;
+
+/** Verified 2026-07-19: campus/intern share campus portal (portal_type=3); intern has no /internship path. */
+export const NATURE_CHANNELS = {
+  social: {
+    pagePath: 'experienced',
+    referer: `${BASE_URL}/experienced/position`,
+    portalType: 6,
+    recruitmentIds: [],
+    filtersPortalType: 6,
+  },
+  campus: {
+    pagePath: 'campus',
+    referer: `${BASE_URL}/campus/position`,
+    portalType: 3,
+    recruitmentIds: ['201'],
+    filtersPortalType: 3,
+  },
+  intern: {
+    pagePath: 'campus',
+    referer: `${BASE_URL}/campus/position`,
+    portalType: 3,
+    recruitmentIds: ['202'],
+    filtersPortalType: 3,
+  },
+};
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 200;
@@ -32,13 +58,30 @@ export const DETAIL_COLUMNS = [
   'url',
 ];
 
-const REQUEST_HEADERS = {
+const BASE_HEADERS = {
   Accept: 'application/json',
   'Content-Type': 'application/json',
-  Referer: `${SOCIAL_URL}`,
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
 };
+
+export function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
+}
+
+function channelHeaders(nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  const headers = {
+    ...BASE_HEADERS,
+    Referer: channel.referer,
+  };
+  if (channel.portalType === 3) {
+    headers['website-path'] = 'campus';
+    headers['portal-channel'] = 'campus';
+    headers.Cookie = 'locale=zh-CN; channel=campus; platform=pc';
+  }
+  return headers;
+}
 
 const CATEGORY_MAP = {
   '6704215862603155720': '研发',
@@ -216,12 +259,12 @@ async function readJsonResponse(response, endpoint) {
   return payload.data;
 }
 
-export async function bytedanceApi(endpoint, body = {}) {
+export async function bytedanceApi(endpoint, body = {}, nature = DEFAULT_NATURE, { method = 'POST' } = {}) {
   const url = `${BASE_URL}/api/v1${endpoint}`;
   const response = await fetch(url, {
-    method: 'POST',
-    headers: REQUEST_HEADERS,
-    body: JSON.stringify(body),
+    method,
+    headers: channelHeaders(nature),
+    body: method === 'GET' ? undefined : JSON.stringify(body),
   });
   return readJsonResponse(response, endpoint);
 }
@@ -252,11 +295,12 @@ export function coercePage(value) {
   return Math.floor(page);
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/experienced/position/${id}/detail`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  return `${BASE_URL}/${channel.pagePath}/position/${id}/detail`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, channelNature = DEFAULT_NATURE) {
   const cityInfo = job.city_info || {};
   const category = job.job_category || {};
   const recruitType = job.recruit_type || {};
@@ -267,16 +311,18 @@ export function normalizeJob(job) {
 
   const locationCodes = cityList.map(c => c.code).filter(Boolean).join(',');
   const locationNames = cityList.map(c => c.name || CITY_MAP[c.code] || c.code).filter(Boolean).join(',');
+  const sourceCode = fieldText(recruitType.id);
+  const sourceName = `${fieldText(parentType.name || '')}${parentType.name ? '-' : ''}${fieldText(recruitType.name)}`.replace(/^-/, '');
 
   const visible = {
     id: fieldText(job.id),
     code: fieldText(job.code),
     name: fieldText(job.title),
-    url: jobUrl(job.id),
+    url: jobUrl(job.id, channelNature),
     category_code: fieldText(category.id),
     category_name: CATEGORY_MAP[category.id] || fieldText(category.name),
-    nature_code: fieldText(recruitType.id),
-    nature_name: `${fieldText(parentType.name || '')}${parentType.name ? '-' : ''}${fieldText(recruitType.name)}`.replace(/^-/, ''),
+    nature_code: channelNature,
+    nature_name: natureDisplayName(channelNature),
     location_codes: locationCodes,
     location_names: locationNames,
     experience_code: '',
@@ -299,46 +345,67 @@ export function normalizeJob(job) {
       publish_time: job.publish_time,
       storefront_mode: job.storefront_mode,
       process_type: job.process_type,
+      source_nature_code: sourceCode,
+      source_nature_name: sourceName,
+      portal_type: resolveNatureChannel(channelNature).portalType,
     },
   });
-  return output;
+  return stampStandardNature(output, channelNature, { code: sourceCode, name: sourceName });
 }
 
 export function buildSearchBody(args, offset, limit) {
   const categoryId = resolveCategory(args.category);
   const cityCode = resolveCity(args.location);
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
   return {
     keyword: args.query || '',
     limit,
     offset,
     job_category_id_list: categoryId ? [categoryId] : [],
     city_code_list: cityCode ? [cityCode] : [],
+    recruitment_id_list: [...channel.recruitmentIds],
+    portal_type: channel.portalType,
     recruit_type: 1,
   };
 }
 
 export async function fetchJobs(args, offset, limit) {
-  const data = await bytedanceApi('/search/job/posts', buildSearchBody(args, offset, limit));
+  const nature = args.nature || DEFAULT_NATURE;
+  const data = await bytedanceApi('/search/job/posts', buildSearchBody(args, offset, limit), nature);
   return {
     total: Number(data?.count || 0),
     list: Array.isArray(data?.job_post_list) ? data.job_post_list : [],
   };
 }
 
-export async function fetchJobById(id) {
-  const searches = [id];
-  if (/^[A-Za-z]\d+[A-Za-z]?$/.test(id)) {
-    searches.push(id);
+export async function fetchJobDetail(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
+  const data = await bytedanceApi(
+    `/job/posts/${id}?portal_type=${channel.portalType}&with_recommend=false`,
+    {},
+    nature,
+    { method: 'GET' },
+  );
+  if (!data?.job_post_detail) {
+    throw new EmptyResultError(`${SITE} detail`, `No ByteDance job found for id ${id}`);
   }
+  return data.job_post_detail;
+}
+
+export async function fetchJobById(id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  try {
+    return await fetchJobDetail(id, args);
+  } catch (error) {
+    if (!(error instanceof EmptyResultError)) throw error;
+  }
+
+  const searches = [id];
+  if (/^[A-Za-z]\d+[A-Za-z]?$/.test(id)) searches.push(id);
   for (const keyword of searches) {
-    const data = await bytedanceApi('/search/job/posts', {
-      keyword,
-      limit: 50,
-      offset: 0,
-      job_category_id_list: [],
-      city_code_list: [],
-      recruit_type: 1,
-    });
+    const data = await bytedanceApi('/search/job/posts', buildSearchBody({ ...args, query: keyword }, 0, 50), nature);
     const list = Array.isArray(data?.job_post_list) ? data.job_post_list : [];
     const match = list.find(job => String(job.id) === String(id) || String(job.code) === String(id));
     if (match) return match;
@@ -346,20 +413,49 @@ export async function fetchJobById(id) {
   throw new EmptyResultError(`${SITE} detail`, `No ByteDance job found for id ${id}`);
 }
 
-export async function fetchFilters() {
-  const data = await bytedanceApi('/search/job/posts', {
-    keyword: '',
-    limit: MAX_PAGE_SIZE,
-    offset: 0,
-    job_category_id_list: [],
-    city_code_list: [],
-    recruit_type: 1,
-  });
-  const list = Array.isArray(data?.job_post_list) ? data.job_post_list : [];
+function rowsFromFilterData(data) {
+  const cityRows = Array.isArray(data?.city_list)
+    ? data.city_list.map((city, index) => ({
+        group: 'location',
+        parent: '',
+        code: city.code,
+        name: city.name,
+        en_name: city.en_name || '',
+        sort_id: index + 1,
+      }))
+    : [];
 
+  const categorySource = data?.job_function_list?.length ? data.job_function_list : data?.job_type_list;
+  const categoryRows = Array.isArray(categorySource)
+    ? categorySource.map((item, index) => ({
+        group: 'category',
+        parent: '',
+        code: fieldText(item.id),
+        name: fieldText(item.name),
+        en_name: fieldText(item.en_name),
+        sort_id: index + 1,
+      }))
+    : [];
+
+  return [...cityRows, ...categoryRows];
+}
+
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
+  const data = await bytedanceApi(
+    `/config/job/filters/${channel.filtersPortalType}`,
+    {},
+    nature,
+    { method: 'GET' },
+  );
+  const rows = rowsFromFilterData(data);
+  if (rows.length) return rows;
+
+  const fallback = await fetchJobs({ ...args, nature, query: '' }, 0, MAX_PAGE_SIZE);
   const categorySet = new Map();
   const citySet = new Map();
-  for (const job of list) {
+  for (const job of fallback.list) {
     const cat = job.job_category;
     if (cat?.id && !categorySet.has(cat.id)) {
       categorySet.set(cat.id, { name: cat.name, en_name: cat.en_name || '' });
@@ -369,42 +465,14 @@ export async function fetchFilters() {
       citySet.set(city.code, { name: city.name, en_name: city.en_name || '' });
     }
   }
-
-  for (const [id, info] of Object.entries(CATEGORY_MAP)) {
-    if (!categorySet.has(id)) {
-      const en = Object.entries(CATEGORY_ALIASES).find(([, v]) => v === id && /^[a-zA-Z]/.test(v));
-      categorySet.set(id, { name: info, en_name: '' });
-    }
-  }
-  for (const [code, name] of Object.entries(CITY_MAP)) {
-    if (!citySet.has(code)) {
-      citySet.set(code, { name, en_name: '' });
-    }
-  }
-
-  const categoryRows = [...categorySet.entries()].map(([code, info], index) => ({
-    group: 'category',
-    parent: '',
-    code,
-    name: info.name,
-    en_name: info.en_name,
-    sort_id: index + 1,
-  }));
-
-  const cityRows = [...citySet.entries()].map(([code, info], index) => ({
-    group: 'location',
-    parent: '',
-    code,
-    name: info.name,
-    en_name: info.en_name,
-    sort_id: index + 1,
-  }));
-
-  const natureRows = [
-    { group: 'nature', parent: '', code: '1', name: '社招', en_name: 'Experienced', sort_id: 1 },
+  return [
+    ...[...citySet.entries()].map(([code, info], index) => ({
+      group: 'location', parent: '', code, name: info.name, en_name: info.en_name, sort_id: index + 1,
+    })),
+    ...[...categorySet.entries()].map(([code, info], index) => ({
+      group: 'category', parent: '', code, name: info.name, en_name: info.en_name, sort_id: index + 1,
+    })),
   ];
-
-  return [...cityRows, ...categoryRows, ...natureRows];
 }
 
 export function assertNonEmpty(rows, command, hint) {

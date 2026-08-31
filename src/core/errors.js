@@ -23,8 +23,8 @@ export class EmptyResultError extends JobHuntCliError {
 }
 
 export class ArgumentError extends JobHuntCliError {
-  constructor(message, help = '') {
-    super('ARGUMENT_ERROR', message, help, 64);
+  constructor(message, help = '', code = 'ARGUMENT_ERROR') {
+    super(code, message, help, 64);
     this.name = 'ArgumentError';
   }
 }

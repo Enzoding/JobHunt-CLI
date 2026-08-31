@@ -1,19 +1,25 @@
-import {
-  fetchFilters,
-  fetchJobDetail,
-  fetchJobs,
-  normalizeJob,
-} from '../src/sites/didi/utils.js';
+import adapter from '../src/sites/didi/index.js';
 
-const filters = await fetchFilters();
-const search = await fetchJobs({ query: 'AI', category: '产品' }, 1, 5);
-const first = search.list[0];
-const detail = first ? await fetchJobDetail(first.jdId, first) : null;
+const natures = ['social', 'campus', 'intern'];
+const results = {};
 
-console.log(JSON.stringify({
-  ok: Boolean(filters.length && first && detail),
-  filters: filters.length,
-  search_total: search.total,
-  search_count: search.list.length,
-  first: first ? normalizeJob(detail) : null,
-}, null, 2));
+for (const nature of natures) {
+  let search;
+  try {
+    search = await adapter.search({ nature, query: nature === 'social' ? 'AI' : '', limit: 2 });
+  } catch {
+    search = await adapter.search({ nature, limit: 2 });
+  }
+  if (!search.length) throw new Error(`Expected Didi ${nature} search results`);
+  const first = search[0];
+  const detail = await adapter.detail(first.id, { nature });
+  const filters = await adapter.filters({ nature });
+  results[nature] = {
+    search_count: search.length,
+    first: { id: first.id, name: first.name, nature_code: first.nature_code },
+    detail_ok: Boolean(detail.name),
+    filters: filters.length,
+  };
+}
+
+console.log(JSON.stringify({ ok: true, results }, null, 2));

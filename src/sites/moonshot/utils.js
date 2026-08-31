@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 import {
   coerceLimit,
   coercePage,
@@ -12,16 +13,37 @@ import {
 export const SITE = 'moonshot-jobs';
 export const BASE_URL = 'https://app.mokahr.com';
 export const ORG_ID = 'moonshot';
-export const SITE_ID = '148506';
 export const SOURCE_TOKEN = '7bec6769f2bfa471e5c9ce21b6b1096b';
-export const APPLY_URL = `${BASE_URL}/apply/${ORG_ID}/${SITE_ID}?sourceToken=${SOURCE_TOKEN}`;
+
+/** DevTools 2026-08-02: social=148506, campus=148507 (Kimi校园招聘). */
+export const NATURE_CHANNELS = {
+  social: {
+    orgId: ORG_ID,
+    siteId: '148506',
+    site: 'social',
+    applyPath: `/apply/${ORG_ID}/148506?sourceToken=${SOURCE_TOKEN}`,
+    sourceToken: SOURCE_TOKEN,
+  },
+  campus: {
+    orgId: ORG_ID,
+    siteId: '148507',
+    site: 'campus',
+    applyPath: `/campus-recruitment/${ORG_ID}/148507`,
+    allowPartialInitData: true,
+  },
+};
+
 export const DEFAULT_PAGE_SIZE = 15;
 export const MAX_PAGE_SIZE = 30;
 export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'code', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
 
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
-let sessionPromise;
+const mokaSessions = new Map();
+
+function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
+}
 
 function splitSetCookie(header) {
   if (!header) return [];
@@ -56,24 +78,49 @@ function decodeHtmlEntities(value) {
     .replace(/&gt;/g, '>');
 }
 
-function parseInitData(html) {
+function parseInitData(html, { allowPartial = false } = {}) {
   const match = html.match(/id=["']init-data["'][^>]*value=["']([^"']+)["']/);
-  if (!match) throw new CliError('MOONSHOT_INIT_DATA', 'Could not find Moka init-data in Moonshot page', 'The Moonshot recruitment page structure may have changed.');
-  return JSON.parse(decodeHtmlEntities(match[1]));
+  if (!match) {
+    if (allowPartial) return { aesIv: '' };
+    throw new CliError('MOONSHOT_INIT_DATA', 'Could not find Moka init-data in Moonshot page', 'The Moonshot recruitment page structure may have changed.');
+  }
+  const raw = decodeHtmlEntities(match[1]);
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    // Campus microsite init-data can embed unescaped quotes in webSettings; fall back to aesIv extraction.
+    if (!allowPartial) throw error;
+    const ivMatch = raw.match(/"aesIv"\s*:\s*"([^"]*)"/);
+    const groupMatch = raw.match(/"jobsGroupedBy(\w+)"\s*:\s*(\[[\s\S]*?\])\s*(,|})/g) || [];
+    const initData = { aesIv: ivMatch?.[1] || '' };
+    for (const chunk of groupMatch) {
+      const name = chunk.match(/"jobsGroupedBy(\w+)"/)?.[1];
+      const json = chunk.match(/:\s*(\[[\s\S]*?\])\s*(,|})/)?.[1];
+      if (!name || !json) continue;
+      try {
+        initData[`jobsGroupedBy${name}`] = JSON.parse(json);
+      } catch {
+        // ignore unparsable groups
+      }
+    }
+    return initData;
+  }
 }
 
-async function initializeSession() {
-  if (!sessionPromise) {
-    sessionPromise = (async () => {
+async function initializeSession(nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  if (!mokaSessions.has(channel.siteId)) {
+    mokaSessions.set(channel.siteId, (async () => {
+      const applyUrl = `${BASE_URL}${channel.applyPath}`;
       const jar = new Map();
-      const first = await fetch(`${APPLY_URL}#/jobs/`, {
+      const first = await fetch(`${applyUrl}#/jobs/`, {
         redirect: 'manual',
         headers: { Accept: 'text/html', 'User-Agent': USER_AGENT },
       });
       mergeCookies(jar, first.headers);
       let response = first;
       if (first.status >= 300 && first.status < 400 && first.headers.get('location')) {
-        const location = new URL(first.headers.get('location'), APPLY_URL).toString();
+        const location = new URL(first.headers.get('location'), applyUrl).toString();
         response = await fetch(location, {
           headers: {
             Accept: 'text/html',
@@ -85,23 +132,40 @@ async function initializeSession() {
       }
       const html = await response.text();
       if (!response.ok) throw new CliError('MOONSHOT_INIT_HTTP', `Moonshot page request failed with HTTP ${response.status}`, html.slice(0, 160));
-      const initData = parseInitData(html);
-      return { jar, initData };
-    })();
+      let initData = parseInitData(html, { allowPartial: Boolean(channel.allowPartialInitData) });
+      // Campus microsite often omits aesIv; reuse social portal IV (same org, verified 2026-08-02).
+      if (!initData.aesIv && nature === 'campus') {
+        const socialSession = await initializeSession('social');
+        initData = { ...initData, aesIv: socialSession.initData.aesIv || '' };
+      }
+      return { jar, initData, applyUrl, channel };
+    })());
   }
-  return sessionPromise;
+  return mokaSessions.get(channel.siteId);
 }
 
-function decryptPayload(payload, aesIv) {
-  if (!payload?.data || !payload?.necromancer) return payload;
-  const decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(payload.necromancer, 'utf8'), Buffer.from(aesIv, 'utf8'));
+function decryptWithIv(payload, aesIv) {
+  const iv = Buffer.from(aesIv || '', 'utf8');
+  const key = Buffer.from(payload.necromancer, 'utf8');
+  const paddedIv = iv.length === 16 ? iv : Buffer.alloc(16, 0);
+  const decipher = crypto.createDecipheriv('aes-128-cbc', key, paddedIv);
   let decrypted = decipher.update(payload.data, 'base64', 'utf8');
   decrypted += decipher.final('utf8');
   return JSON.parse(decrypted);
 }
 
-async function mokaFetch(endpoint, body) {
-  const session = await initializeSession();
+function decryptPayload(payload, aesIv) {
+  if (!payload?.data || !payload?.necromancer) return payload;
+  try {
+    return decryptWithIv(payload, aesIv);
+  } catch (error) {
+    if (!aesIv) throw error;
+    return decryptWithIv(payload, '');
+  }
+}
+
+async function mokaFetch(nature, endpoint, body) {
+  const session = await initializeSession(nature);
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'POST',
     headers: {
@@ -109,7 +173,7 @@ async function mokaFetch(endpoint, body) {
       'Content-Type': 'application/json',
       Cookie: cookieHeader(session.jar),
       Origin: BASE_URL,
-      Referer: `${APPLY_URL}#/jobs/`,
+      Referer: `${session.applyUrl}#/jobs/`,
       'User-Agent': USER_AGENT,
       'x-csrf-token': session.jar.get('csrfCk') || '',
     },
@@ -133,19 +197,20 @@ async function mokaFetch(endpoint, body) {
   return decrypted.data ?? decrypted;
 }
 
-function jobsRequest(offset, limit, needStat = true) {
-  return {
-    orgId: ORG_ID,
-    siteId: SITE_ID,
+function jobsRequest(channel, offset, limit, needStat = true) {
+  const body = {
+    orgId: channel.orgId,
+    siteId: channel.siteId,
     limit,
     offset,
     needStat,
     jobIdTopList: [],
     customFields: {},
-    site: 'social',
-    sourceToken: SOURCE_TOKEN,
+    site: channel.site || 'social',
     locale: 'zh-CN',
   };
+  if (channel.sourceToken) body.sourceToken = channel.sourceToken;
+  return body;
 }
 
 function jobLocations(job) {
@@ -168,18 +233,19 @@ function filterJob(job, args = {}) {
   if (args.query && !jobText(job).toLowerCase().includes(String(args.query).toLowerCase())) return false;
   if (args.category && !matchesAlias(args.category, [job.zhineng?.id, job.zhineng?.name, job.department?.id, job.department?.name])) return false;
   if (args.location && !jobLocations(job).some(location => matchesAlias(args.location, [location.labelCityId, location.cityId, location.label, location.city, location.name]))) return false;
-  if (args.nature && !matchesAlias(args.nature, [job.commitment])) return false;
   return true;
 }
 
 async function fetchAllMatching(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
   const pageSize = MAX_PAGE_SIZE;
   const rows = [];
   const seen = new Set();
   let offset = 0;
   let total = Infinity;
   while (offset < total) {
-    const data = await mokaFetch('/api/outer/ats-apply/website/jobs/v2', jobsRequest(offset, pageSize, offset === 0));
+    const data = await mokaFetch(nature, '/api/outer/ats-apply/website/jobs/v2', jobsRequest(channel, offset, pageSize, offset === 0));
     const jobs = Array.isArray(data.jobs) ? data.jobs : [];
     total = Number(data.jobStats?.total ?? data.total ?? jobs.length);
     for (const job of jobs) {
@@ -194,11 +260,12 @@ async function fetchAllMatching(args = {}) {
   return { total: rows.length, list: rows };
 }
 
-export function jobUrl(id) {
-  return `${APPLY_URL}#/job/${encodeURIComponent(id)}`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  return `${BASE_URL}${channel.applyPath}#/job/${encodeURIComponent(id)}`;
 }
 
-export function normalizeJob(job) {
+export function normalizeJob(job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.id);
   const locations = jobLocations(job);
   const visible = {
@@ -206,11 +273,11 @@ export function normalizeJob(job) {
     code: fieldText(job.mjCode),
     job_no: fieldText(job.mjCode),
     name: fieldText(job.title),
-    url: jobUrl(id),
+    url: jobUrl(id, nature),
     category_code: fieldText(job.zhineng?.id),
     category_name: fieldText(job.zhineng?.name),
-    nature_code: fieldText(job.commitment),
-    nature_name: fieldText(job.commitment),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: locations.map(location => fieldText(location.labelCityId ?? location.cityId ?? location.id)).filter(Boolean).join(','),
     location_names: locations.map(location => fieldText(location.label ?? location.city ?? location.name)).filter(Boolean).join(','),
     experience_code: fieldText(job.experience),
@@ -228,9 +295,13 @@ export function normalizeJob(job) {
       id: job.id,
       mj_code: job.mjCode,
       published_at: job.publishedAt,
+      commitment: job.commitment,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(job.commitment),
+    name: fieldText(job.commitment),
+  });
 }
 
 export async function fetchJobs(args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) {
@@ -246,15 +317,16 @@ export async function fetchJobs(args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) 
   };
 }
 
-export async function fetchJobById(id) {
-  const data = await fetchAllMatching({});
+export async function fetchJobById(id, args = {}) {
+  const data = await fetchAllMatching(args);
   const job = data.list.find(item => fieldText(item.id) === String(id));
   if (!job) throw new EmptyResultError(`${SITE} detail`, `No Moonshot job found for id ${id}`);
   return job;
 }
 
-export async function fetchFilters() {
-  const { initData } = await initializeSession();
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const { initData } = await initializeSession(nature);
   const rows = [];
   const addGroup = (group, items = []) => {
     for (const [index, item] of (Array.isArray(items) ? items : []).entries()) {
@@ -273,9 +345,6 @@ export async function fetchFilters() {
   addGroup('department', initData.jobsGroupedByDepartment);
   addGroup('experience', initData.jobsGroupedByExperience);
   addGroup('education', initData.jobsGroupedByEducation);
-  for (const [index, name] of ['全职', '兼职', '实习', '其他'].entries()) {
-    rows.push({ group: 'nature', parent: '', code: name, name, en_name: '', sort_id: index + 1 });
-  }
   return rows.filter(row => row.code || row.name);
 }
 

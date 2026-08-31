@@ -18,8 +18,21 @@ import mihoyoAdapter from '../sites/mihoyo/index.js';
 import minimaxAdapter from '../sites/minimax/index.js';
 import moonshotAdapter from '../sites/moonshot/index.js';
 import zhipuAdapter from '../sites/zhipu/index.js';
+import deepseekAdapter from '../sites/deepseek/index.js';
 import { ALIBABA_CPO_ADAPTERS } from '../sites/alibaba-cpo/index.js';
-import { ArgumentError } from './errors.js';
+import { ApiError, ArgumentError } from './errors.js';
+import {
+  ALL_NATURE,
+  buildNatureFilterRows,
+  jobDedupeKey,
+  mergeFilterRows,
+  nextNatureQuota,
+  normalizeNature,
+  resolveSupportedNatures,
+  siteDefaultNature,
+  siteSupportedNatures,
+  stampStandardNature,
+} from './natures.js';
 
 const adapters = new Map([
   [didiAdapter.id, didiAdapter],
@@ -62,11 +75,120 @@ const adapters = new Map([
   [moonshotAdapter.opencliSite, moonshotAdapter],
   [zhipuAdapter.id, zhipuAdapter],
   [zhipuAdapter.opencliSite, zhipuAdapter],
+  [deepseekAdapter.id, deepseekAdapter],
+  [deepseekAdapter.opencliSite, deepseekAdapter],
   ...ALIBABA_CPO_ADAPTERS.flatMap(adapter => [
     [adapter.id, adapter],
     [adapter.opencliSite, adapter],
   ]),
 ]);
+
+function wrapNatureError(error, siteId, nature) {
+  if (!error || error.natureContextAttached) return error;
+  const prefix = `[${siteId}/${nature}] `;
+  if (error instanceof ApiError || error instanceof ArgumentError) {
+    error.message = error.message.startsWith(prefix) ? error.message : `${prefix}${error.message}`;
+    error.natureContextAttached = true;
+    error.siteId = siteId;
+    error.nature = nature;
+    return error;
+  }
+  const wrapped = new ApiError(
+    error.code || 'NATURE_CHANNEL_ERROR',
+    `${prefix}${error.message || String(error)}`,
+    error.help || '',
+  );
+  wrapped.cause = error;
+  wrapped.siteId = siteId;
+  wrapped.nature = nature;
+  wrapped.natureContextAttached = true;
+  return wrapped;
+}
+
+function normalizeFetchedJobs(jobs, channelNature) {
+  return (jobs || []).map(job => {
+    if (job?.nature_code === 'social' || job?.nature_code === 'campus' || job?.nature_code === 'intern') {
+      if (job?.raw?.source_nature_code !== undefined || job?.raw?.source_nature_name !== undefined) {
+        return job;
+      }
+      return stampStandardNature(job, job.nature_code);
+    }
+    return stampStandardNature(job, channelNature);
+  });
+}
+
+async function fetchJobsForNature(site, nature, args, mode) {
+  const natureArgs = { ...args, nature };
+  try {
+    if (mode === 'search') {
+      return normalizeFetchedJobs(await site.search(natureArgs), nature);
+    }
+    return normalizeFetchedJobs(await site.all(natureArgs), nature);
+  } catch (error) {
+    throw wrapNatureError(error, site.id, nature);
+  }
+}
+
+/**
+ * Sequentially aggregate jobs across natures with a global limit/max.
+ * Does not concurrently request channels.
+ */
+export async function aggregateJobs(site, natures, args = {}, mode = 'search') {
+  const globalLimit = mode === 'search'
+    ? (args.limit === undefined || args.limit === null || args.limit === '' ? null : Math.max(0, Number(args.limit)))
+    : (args.max === undefined || args.max === null || args.max === '' ? 0 : Math.max(0, Number(args.max)));
+
+  const unlimited = mode === 'search' ? globalLimit === null : globalLimit === 0;
+  let remaining = unlimited ? Infinity : globalLimit;
+  const rows = [];
+  const seen = new Set();
+
+  for (let index = 0; index < natures.length; index += 1) {
+    if (!unlimited && remaining <= 0) break;
+
+    const nature = natures[index];
+    const naturesLeft = natures.length - index;
+    const quota = unlimited ? null : nextNatureQuota(remaining, naturesLeft);
+
+    const natureArgs = { ...args, nature };
+    if (mode === 'search') {
+      if (quota !== null) natureArgs.limit = quota;
+    } else if (quota !== null) {
+      natureArgs.max = quota;
+    } else {
+      natureArgs.max = 0;
+    }
+
+    const batch = await fetchJobsForNature(site, nature, natureArgs, mode);
+    for (const job of batch) {
+      const key = jobDedupeKey(job);
+      if (!job.id || seen.has(key)) continue;
+      seen.add(key);
+      rows.push(job);
+      if (!unlimited) {
+        remaining -= 1;
+        if (remaining <= 0) break;
+      }
+    }
+  }
+
+  return rows;
+}
+
+export async function aggregateFilters(site, natures) {
+  const rowsByNature = [];
+  for (const nature of natures) {
+    try {
+      const rows = await site.filters({ nature });
+      rowsByNature.push([nature, rows]);
+    } catch (error) {
+      throw wrapNatureError(error, site.id, nature);
+    }
+  }
+
+  const merged = mergeFilterRows(rowsByNature);
+  return [...buildNatureFilterRows(siteSupportedNatures(site)), ...merged];
+}
 
 export function listSites() {
   return [...new Set([...adapters.values()])].map(site => ({
@@ -77,29 +199,66 @@ export function listSites() {
     max_page_size: site.maxPageSize,
     detail_id_field: site.detailIdField || 'id',
     detail_id_hint: site.detailIdHint || '',
+    supported_natures: siteSupportedNatures(site),
+    default_nature: siteDefaultNature(site),
   }));
 }
 
 export function getSite(siteId) {
   const site = adapters.get(String(siteId || '').trim());
   if (!site) {
-    throw new ArgumentError(`Unknown site: ${siteId}`, `Run \`jobs sites\` to list supported recruitment sites.`);
+    throw new ArgumentError(`Unknown site: ${siteId}`, `Run \`job sites\` to list supported recruitment sites.`);
   }
   return site;
 }
 
-export async function searchJobs(siteId, args) {
-  return getSite(siteId).search(args);
+export async function searchJobs(siteId, args = {}) {
+  const site = getSite(siteId);
+  const requested = normalizeNature(args.nature);
+  const natures = resolveSupportedNatures(site, requested, { allowAll: true });
+  if (natures.length === 1 && requested !== ALL_NATURE) {
+    return fetchJobsForNature(site, natures[0], args, 'search');
+  }
+  return aggregateJobs(site, natures, args, 'search');
 }
 
-export async function getJobDetail(siteId, id) {
-  return getSite(siteId).detail(id);
+export async function getJobDetail(siteId, id, args = {}) {
+  const site = getSite(siteId);
+  const requested = normalizeNature(args.nature);
+  if (requested === ALL_NATURE) {
+    resolveSupportedNatures(site, ALL_NATURE, { allowAll: false });
+  }
+  const [nature] = resolveSupportedNatures(site, requested, { allowAll: false });
+  try {
+    const job = await site.detail(id, { ...args, nature });
+    return normalizeFetchedJobs([job], nature)[0];
+  } catch (error) {
+    throw wrapNatureError(error, site.id, nature);
+  }
 }
 
-export async function exportJobs(siteId, args) {
-  return getSite(siteId).all(args);
+export async function exportJobs(siteId, args = {}) {
+  const site = getSite(siteId);
+  const requested = normalizeNature(args.nature);
+  const natures = resolveSupportedNatures(site, requested, { allowAll: true });
+  if (natures.length === 1 && requested !== ALL_NATURE) {
+    return fetchJobsForNature(site, natures[0], args, 'all');
+  }
+  return aggregateJobs(site, natures, args, 'all');
 }
 
-export async function listFilters(siteId) {
-  return getSite(siteId).filters();
+export async function listFilters(siteId, args = {}) {
+  const site = getSite(siteId);
+  const requested = normalizeNature(args.nature);
+  const natures = resolveSupportedNatures(site, requested, { allowAll: true });
+  if (natures.length === 1 && requested !== ALL_NATURE) {
+    try {
+      const rows = await site.filters({ ...args, nature: natures[0] });
+      const withoutVendorNature = (rows || []).filter(row => row?.group !== 'nature');
+      return [...buildNatureFilterRows(natures), ...withoutVendorNature];
+    } catch (error) {
+      throw wrapNatureError(error, site.id, natures[0]);
+    }
+  }
+  return aggregateFilters(site, natures);
 }

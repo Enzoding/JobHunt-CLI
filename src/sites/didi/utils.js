@@ -1,4 +1,14 @@
+import crypto from 'node:crypto';
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, natureDisplayName, stampStandardNature } from '../../core/natures.js';
+import {
+  coerceLimit as sharedCoerceLimit,
+  coercePage as sharedCoercePage,
+  fieldText as sharedFieldText,
+  matchesAlias,
+  stripHtml,
+  toDateText,
+} from '../shared.js';
 
 export const SITE = 'didi-jobs';
 export const DOMAIN = 'talent.didiglobal.com';
@@ -8,6 +18,28 @@ export const SOCIAL_URL = `${BASE_URL}/social/list/1`;
 
 export const DEFAULT_PAGE_SIZE = 16;
 export const MAX_PAGE_SIZE = 16;
+
+export const NATURE_CHANNELS = {
+  social: {
+    backend: 'social',
+    referer: SOCIAL_URL,
+    jobPath: `${BASE_URL}/social/p`,
+  },
+  campus: {
+    backend: 'moka',
+    baseUrl: 'https://campus.didiglobal.com',
+    orgId: 'didiglobal',
+    siteId: '96064',
+    applyPath: '/campus_apply/didiglobal/96064',
+  },
+  intern: {
+    backend: 'moka',
+    baseUrl: 'https://app.mokahr.com',
+    orgId: 'didiglobal',
+    siteId: '6222',
+    applyPath: '/apply/didiglobal/6222',
+  },
+};
 
 export const COLUMNS = [
   'id',
@@ -35,13 +67,15 @@ export const DETAIL_COLUMNS = [
   'url',
 ];
 
-const REQUEST_HEADERS = {
+const SOCIAL_HEADERS = {
   Accept: 'application/json, text/plain, */*',
   Referer: SOCIAL_URL,
   token: '',
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
 };
+
+const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
 
 const CATEGORY_MAP = {
   1: '技术',
@@ -110,19 +144,7 @@ const CATEGORY_ALIASES = {
   procurement: 20,
 };
 
-const NATURE_MAP = {
-  1: '社会招聘',
-};
-
-const NATURE_ALIASES = {
-  社招: 1,
-  社会招聘: 1,
-  社会: 1,
-  social: 1,
-  fulltime: 1,
-  'full-time': 1,
-  全职: 1,
-};
+const mokaSessions = new Map();
 
 function normalizeAliasKey(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -139,9 +161,7 @@ function cleanParams(params) {
 }
 
 function fieldText(value) {
-  if (Array.isArray(value)) return value.filter(Boolean).join(',');
-  if (value === undefined || value === null) return '';
-  return String(value);
+  return sharedFieldText(value);
 }
 
 function stripJobNo(name, jobNo) {
@@ -154,6 +174,10 @@ function categoryCodeFromName(name) {
   const text = fieldText(name);
   const entry = Object.entries(CATEGORY_MAP).find(([, categoryName]) => categoryName === text);
   return entry ? entry[0] : '';
+}
+
+export function resolveNatureChannel(nature = DEFAULT_NATURE) {
+  return NATURE_CHANNELS[nature] || NATURE_CHANNELS[DEFAULT_NATURE];
 }
 
 async function readJsonResponse(response, endpoint) {
@@ -191,8 +215,188 @@ export async function didiApi(endpoint, params = {}) {
   for (const [key, value] of Object.entries(query)) {
     url.searchParams.set(key, value);
   }
-  const response = await fetch(url, { headers: REQUEST_HEADERS });
+  const response = await fetch(url, { headers: SOCIAL_HEADERS });
   return readJsonResponse(response, endpoint);
+}
+
+function splitSetCookie(header) {
+  if (!header) return [];
+  return header.split(/,(?=[^;,]+=)/g);
+}
+
+function getSetCookies(headers) {
+  if (typeof headers.getSetCookie === 'function') return headers.getSetCookie();
+  return splitSetCookie(headers.get('set-cookie'));
+}
+
+function mergeCookies(jar, headers) {
+  for (const cookie of getSetCookies(headers)) {
+    const [pair] = cookie.split(';');
+    const index = pair.indexOf('=');
+    if (index > 0) jar.set(pair.slice(0, index).trim(), pair.slice(index + 1).trim());
+  }
+}
+
+function cookieHeader(jar) {
+  return [...jar.entries()].map(([key, value]) => `${key}=${value}`).join('; ');
+}
+
+function decodeHtmlEntities(value) {
+  return fieldText(value)
+    .replace(/&quot;/g, '"')
+    .replace(/&#34;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+function parseInitData(html) {
+  const match = html.match(/id=["']init-data["'][^>]*value=["']([^"']+)["']/);
+  if (!match) {
+    throw new CliError('DIDI_MOKA_INIT_DATA', 'Could not find Moka init-data in Didi page', 'The Didi recruitment page structure may have changed.');
+  }
+  return JSON.parse(decodeHtmlEntities(match[1]));
+}
+
+function decryptPayload(payload, aesIv) {
+  if (!payload?.data || !payload?.necromancer) return payload;
+  const decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(payload.necromancer, 'utf8'), Buffer.from(aesIv, 'utf8'));
+  let decrypted = decipher.update(payload.data, 'base64', 'utf8');
+  decrypted += decipher.final('utf8');
+  return JSON.parse(decrypted);
+}
+
+async function initializeMokaSession(nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  if (channel.backend !== 'moka') {
+    throw new CliError('DIDI_NATURE', `Not a Moka channel: ${nature}`);
+  }
+  if (!mokaSessions.has(channel.siteId)) {
+    mokaSessions.set(channel.siteId, (async () => {
+      const applyUrl = `${channel.baseUrl}${channel.applyPath}`;
+      const jar = new Map();
+      const first = await fetch(`${applyUrl}#/jobs/`, {
+        redirect: 'manual',
+        headers: { Accept: 'text/html', 'User-Agent': USER_AGENT },
+      });
+      mergeCookies(jar, first.headers);
+      let response = first;
+      if (first.status >= 300 && first.status < 400 && first.headers.get('location')) {
+        const location = new URL(first.headers.get('location'), applyUrl).toString();
+        response = await fetch(location, {
+          headers: {
+            Accept: 'text/html',
+            Cookie: cookieHeader(jar),
+            'User-Agent': USER_AGENT,
+          },
+        });
+        mergeCookies(jar, response.headers);
+      }
+      const html = await response.text();
+      if (!response.ok) {
+        throw new CliError('DIDI_MOKA_INIT_HTTP', `Didi Moka page request failed with HTTP ${response.status}`, html.slice(0, 160));
+      }
+      const initData = parseInitData(html);
+      return { channel, jar, initData, applyUrl };
+    })());
+  }
+  return mokaSessions.get(channel.siteId);
+}
+
+async function mokaFetch(nature, endpoint, body) {
+  const session = await initializeMokaSession(nature);
+  const response = await fetch(`${session.channel.baseUrl}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
+      Cookie: cookieHeader(session.jar),
+      Origin: session.channel.baseUrl,
+      Referer: `${session.applyUrl}#/jobs/`,
+      'User-Agent': USER_AGENT,
+      'x-csrf-token': session.jar.get('csrfCk') || '',
+    },
+    body: JSON.stringify(body),
+  });
+  mergeCookies(session.jar, response.headers);
+  const text = await response.text();
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    throw new CliError('DIDI_MOKA_BAD_RESPONSE', `Didi Moka returned non-JSON data for ${endpoint}`, `HTTP ${response.status}: ${text.slice(0, 160)}`);
+  }
+  if (!response.ok) {
+    throw new CliError('DIDI_MOKA_HTTP', `Didi Moka API request failed with HTTP ${response.status}`, payload.msg || response.statusText);
+  }
+  const decrypted = decryptPayload(payload, session.initData.aesIv);
+  if (decrypted.success === false || Number(decrypted.code || 0) !== 0) {
+    throw new CliError('DIDI_MOKA_API', 'Didi Moka API rejected the request', decrypted.msg || 'The recruitment API rejected the request.');
+  }
+  return decrypted.data ?? decrypted;
+}
+
+function mokaJobsRequest(channel, offset, limit, needStat = true) {
+  return {
+    orgId: channel.orgId,
+    siteId: channel.siteId,
+    limit,
+    offset,
+    needStat,
+    jobIdTopList: [],
+    customFields: {},
+    site: 'social',
+    locale: 'zh-CN',
+  };
+}
+
+function mokaJobLocations(job) {
+  return Array.isArray(job.locations) ? job.locations : [];
+}
+
+function mokaJobText(job) {
+  return [
+    job.title,
+    job.mjCode,
+    job.department?.name,
+    job.zhineng?.name,
+    job.commitment,
+    stripHtml(job.jobDescription),
+    ...mokaJobLocations(job).map(location => location.label || location.city || location.name),
+  ].join(' ');
+}
+
+function filterMokaJob(job, args = {}) {
+  if (args.query && !mokaJobText(job).toLowerCase().includes(String(args.query).toLowerCase())) return false;
+  if (args.category && !matchesAlias(args.category, [job.zhineng?.id, job.zhineng?.name, job.department?.id, job.department?.name])) return false;
+  if (args.location && !mokaJobLocations(job).some(location => matchesAlias(args.location, [location.labelCityId, location.cityId, location.label, location.city, location.name]))) return false;
+  return true;
+}
+
+async function fetchAllMokaJobs(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const channel = resolveNatureChannel(nature);
+  const pageSize = MAX_PAGE_SIZE;
+  const rows = [];
+  const seen = new Set();
+  let offset = 0;
+  let total = Infinity;
+  while (offset < total) {
+    const data = await mokaFetch(nature, '/api/outer/ats-apply/website/jobs/v2', mokaJobsRequest(channel, offset, pageSize, offset === 0));
+    const jobs = Array.isArray(data.jobs) ? data.jobs : [];
+    total = Number(data.jobStats?.total ?? data.total ?? jobs.length);
+    for (const job of jobs) {
+      const id = fieldText(job.id);
+      if (!id || seen.has(id) || !filterMokaJob(job, args)) continue;
+      seen.add(id);
+      rows.push(job);
+    }
+    if (jobs.length < pageSize) break;
+    offset += pageSize;
+  }
+  return { total: rows.length, list: rows };
 }
 
 export function resolveCategory(input) {
@@ -219,44 +423,82 @@ export function resolveLocation(input) {
   return value;
 }
 
-export function resolveNature(input) {
-  if (!input) return 1;
-  const value = String(input).trim();
-  if (NATURE_MAP[value]) return value;
-  return NATURE_ALIASES[normalizeAliasKey(value)] || NATURE_ALIASES[normalizeCompactKey(value)] || value;
-}
-
 export function coerceLimit(value, fallback = DEFAULT_PAGE_SIZE, maximum = MAX_PAGE_SIZE) {
-  const number = Number(value || fallback);
-  if (!Number.isFinite(number) || number < 1) return fallback;
-  return Math.min(Math.floor(number), maximum);
+  return sharedCoerceLimit(value, fallback, maximum);
 }
 
 export function coercePage(value) {
-  const page = Number(value || 1);
-  if (!Number.isFinite(page) || page < 1) return 1;
-  return Math.floor(page);
+  return sharedCoercePage(value);
 }
 
-export function jobUrl(id) {
-  return `${BASE_URL}/social/p/${id}`;
+export function jobUrl(id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(nature);
+  if (channel.backend === 'moka') {
+    return `${channel.baseUrl}${channel.applyPath}#/job/${encodeURIComponent(id)}`;
+  }
+  return `${channel.jobPath}/${id}`;
 }
 
-export function normalizeJob(job) {
+function normalizeMokaJob(job, channelNature = DEFAULT_NATURE) {
+  const id = fieldText(job.id);
+  const locations = mokaJobLocations(job);
+  const sourceCode = fieldText(job.commitment);
+  const sourceName = fieldText(job.commitment || natureDisplayName(channelNature));
+  const visible = {
+    id,
+    code: fieldText(job.mjCode),
+    job_no: fieldText(job.mjCode),
+    name: fieldText(job.title),
+    url: jobUrl(id, channelNature),
+    category_code: fieldText(job.zhineng?.id),
+    category_name: fieldText(job.zhineng?.name),
+    nature_code: channelNature,
+    nature_name: natureDisplayName(channelNature),
+    location_codes: locations.map(location => fieldText(location.labelCityId ?? location.cityId ?? location.id)).filter(Boolean).join(','),
+    location_names: locations.map(location => fieldText(location.label ?? location.city ?? location.name)).filter(Boolean).join(','),
+    experience_code: fieldText(job.experience),
+    levels: fieldText(job.levels),
+    department_code: fieldText(job.department?.id),
+    department_name: fieldText(job.department?.name),
+    updated_at: toDateText(job.updatedAt ?? job.publishedAt),
+    description: stripHtml(job.jobDescription),
+    requirement: '',
+  };
+  const output = { ...visible };
+  Object.defineProperty(output, 'raw', {
+    enumerable: true,
+    value: {
+      id: job.id,
+      mj_code: job.mjCode,
+      commitment: job.commitment,
+      published_at: job.publishedAt,
+      source_nature_code: sourceCode,
+      source_nature_name: sourceName,
+    },
+  });
+  return stampStandardNature(output, channelNature, { code: sourceCode, name: sourceName });
+}
+
+export function normalizeJob(job, channelNature = DEFAULT_NATURE) {
+  if (resolveNatureChannel(channelNature).backend === 'moka') {
+    return normalizeMokaJob(job, channelNature);
+  }
+
   const id = job.jdId || job.id || '';
   const categoryCode = Number.isFinite(Number(job.jobType)) ? fieldText(job.jobType) : categoryCodeFromName(job.jobType);
   const categoryName = CATEGORY_MAP[job.jobType] || fieldText(job.jobTypeName || job.jobType);
-  const natureCode = fieldText(job.recruitType || 1);
+  const sourceCode = fieldText(job.recruitType || 1);
+  const sourceName = fieldText(job.recruitTypeName || '社会招聘');
   const jobNo = fieldText(job.jdNo);
   const visible = {
     id,
     job_no: jobNo,
     name: stripJobNo(job.jobName, jobNo),
-    url: jobUrl(id),
+    url: jobUrl(id, channelNature),
     category_code: categoryCode,
     category_name: categoryName,
-    nature_code: natureCode,
-    nature_name: NATURE_MAP[natureCode] || fieldText(natureCode),
+    nature_code: channelNature,
+    nature_name: natureDisplayName(channelNature),
     location_codes: fieldText(job.workArea),
     location_names: fieldText(job.workArea),
     experience_code: '',
@@ -281,16 +523,18 @@ export function normalizeJob(job) {
       deptName: job.deptName,
       refreshTime: job.refreshTime,
       publishTime: job.publishTime,
+      source_nature_code: sourceCode,
+      source_nature_name: sourceName,
     },
   });
-  return output;
+  return stampStandardNature(output, channelNature, { code: sourceCode, name: sourceName });
 }
 
 export function buildSearchParams(args, page, size) {
   return {
     page,
     size,
-    recruitType: resolveNature(args.nature),
+    recruitType: 1,
     jobName: args.query,
     workArea: resolveLocation(args.location),
     jobType: resolveCategory(args.category),
@@ -298,6 +542,19 @@ export function buildSearchParams(args, page, size) {
 }
 
 export async function fetchJobs(args, page, size) {
+  const nature = args.nature || DEFAULT_NATURE;
+  if (resolveNatureChannel(nature).backend === 'moka') {
+    const data = await fetchAllMokaJobs(args);
+    const start = (page - 1) * size;
+    const list = data.list.slice(start, start + size);
+    return {
+      total: data.total,
+      page,
+      size,
+      list,
+    };
+  }
+
   const data = await didiApi('/job/front/list', buildSearchParams(args, page, size));
   return {
     total: Number(data?.total || 0),
@@ -307,7 +564,15 @@ export async function fetchJobs(args, page, size) {
   };
 }
 
-export async function fetchJobDetail(id, listJob = {}) {
+export async function fetchJobDetail(id, listJob = {}, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  if (resolveNatureChannel(nature).backend === 'moka') {
+    const data = await fetchAllMokaJobs({ ...args, nature });
+    const job = data.list.find(item => fieldText(item.id) === String(id));
+    if (!job) throw new EmptyResultError(`${SITE} detail`, `No Didi job found for id ${id}`);
+    return job;
+  }
+
   const data = await didiApi(`/job/front/view/${id}`);
   if (!data || !data.jobName) {
     throw new EmptyResultError(`${SITE} detail`, `No Didi job found for id ${id}`);
@@ -323,16 +588,38 @@ export async function fetchJobDetail(id, listJob = {}) {
   };
 }
 
-export async function enrichJobsWithDetails(jobs) {
+export async function enrichJobsWithDetails(jobs, args = {}) {
   const rows = [];
   for (const job of jobs) {
     const id = job.jdId || job.id;
-    rows.push(await fetchJobDetail(id, job));
+    rows.push(await fetchJobDetail(id, job, args));
   }
   return rows;
 }
 
-export async function fetchFilters() {
+export async function fetchFilters(args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  if (resolveNatureChannel(nature).backend === 'moka') {
+    const { initData } = await initializeMokaSession(nature);
+    const rows = [];
+    const addGroup = (group, items = []) => {
+      for (const [index, item] of (Array.isArray(items) ? items : []).entries()) {
+        rows.push({
+          group,
+          parent: '',
+          code: fieldText(item.id ?? item.labelCityId ?? item.code ?? item.value),
+          name: fieldText(item.label ?? item.name),
+          en_name: '',
+          sort_id: index + 1,
+        });
+      }
+    };
+    addGroup('location', initData.jobsGroupedByLocation);
+    addGroup('category', initData.jobsGroupedByZhineng);
+    addGroup('department', initData.jobsGroupedByDepartment);
+    return rows.filter(row => row.code || row.name);
+  }
+
   const [locations, categories] = await Promise.all([
     didiApi('/job/job_locations'),
     didiApi('/job/jdpublish/confirm/listJdTypes'),
@@ -357,15 +644,7 @@ export async function fetchFilters() {
         sort_id: item.code,
       }))
     : [];
-  const natureRows = Object.entries(NATURE_MAP).map(([code, name], index) => ({
-    group: 'nature',
-    parent: '',
-    code,
-    name,
-    en_name: 'Social',
-    sort_id: index + 1,
-  }));
-  return [...locationRows, ...categoryRows, ...natureRows];
+  return [...locationRows, ...categoryRows];
 }
 
 export function assertNonEmpty(rows, command, hint) {

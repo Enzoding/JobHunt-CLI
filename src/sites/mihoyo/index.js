@@ -18,13 +18,15 @@ export const mihoyoAdapter = {
   id: 'mihoyo',
   opencliSite: SITE,
   name: 'miHoYo',
-  description: 'miHoYo social recruitment',
+  description: 'miHoYo social, campus, and intern recruitment',
+  supportedNatures: ['social', 'campus', 'intern'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'Numeric id from search results, e.g. 8612',
-  async filters() {
+  async filters(args = {}) {
     const rows = await fetchFilters();
     assertNonEmpty(rows, 'mihoyo filters', 'The miHoYo filter endpoints returned no data.');
     return rows;
@@ -32,19 +34,22 @@ export const mihoyoAdapter = {
   async search(args = {}) {
     const page = coercePage(args.page);
     const limit = coerceLimit(args.limit, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
+    const nature = args.nature || 'social';
     const result = await fetchJobs(args, page, limit);
-    const rows = result.list.map(normalizeJob);
+    const rows = result.list.map(job => normalizeJob(job, nature));
     assertNonEmpty(rows, 'mihoyo search', 'Try a different keyword or inspect filters with `job mihoyo filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job mihoyo search`.');
-    return normalizeJob(await fetchJobById(normalizedId));
+    const nature = args.nature || 'social';
+    return normalizeJob(await fetchJobById(normalizedId, args), nature);
   },
   async all(args = {}) {
     const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE, MAX_PAGE_SIZE);
     const max = Math.max(0, Number(args.max || 0));
+    const nature = args.nature || 'social';
     const rows = [];
     const seen = new Set();
     let page = 1;
@@ -54,9 +59,10 @@ export const mihoyoAdapter = {
       totalPage = result.totalPage || page;
       if (!result.list.length) break;
       for (const job of result.list) {
-        const normalized = normalizeJob(job);
-        if (!normalized.id || seen.has(normalized.id)) continue;
-        seen.add(normalized.id);
+        const normalized = normalizeJob(job, nature);
+        const key = `${normalized.nature_code}:${normalized.id}`;
+        if (!normalized.id || seen.has(key)) continue;
+        seen.add(key);
         rows.push(normalized);
         if (max && rows.length >= max) break;
       }

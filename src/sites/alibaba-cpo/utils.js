@@ -1,4 +1,5 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 import {
   coerceLimit,
   coercePage,
@@ -13,6 +14,9 @@ import {
 export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 10;
 export const DEFAULT_CHANNEL = 'group_official_site';
+/** Verified via Chrome DevTools on Alibaba CPO campus pages (2026-07-19). Prefer this over HTML brand-specific campus map values. */
+export const DEFAULT_CAMPUS_CHANNEL = 'campus_group_official_site';
+export const DEFAULT_SUPPORTED_NATURES = ['social', 'campus', 'intern'];
 
 export const COLUMNS = [
   'id',
@@ -42,143 +46,175 @@ export const DETAIL_COLUMNS = [
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36';
 const sessionCache = new Map();
 
+function cpoSite({ id, opencliSite, name, description, baseUrl, listUrl, channel = DEFAULT_CHANNEL }) {
+  return {
+    id,
+    opencliSite,
+    name,
+    description,
+    baseUrl,
+    listUrl,
+    campusListUrl: `${baseUrl}/campus/position-list?lang=zh`,
+    channel,
+    campusChannel: DEFAULT_CAMPUS_CHANNEL,
+    supportedNatures: DEFAULT_SUPPORTED_NATURES,
+    defaultNature: DEFAULT_NATURE,
+  };
+}
+
 export const ALIBABA_CPO_SITE_CONFIGS = [
-  {
+  cpoSite({
     id: 'taotian',
     opencliSite: 'taotian-jobs',
     name: 'Taotian Group',
-    description: 'Taotian Group social recruitment',
+    description: 'Taotian Group recruitment (social/campus/intern)',
     baseUrl: 'https://talent.taotian.com',
     listUrl: 'https://talent.taotian.com/off-campus/position-list?lang=zh&search=',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'taobao-shangou',
     opencliSite: 'taobao-shangou-jobs',
     name: 'Taobao Shangou',
-    description: 'Taobao Shangou social recruitment',
+    description: 'Taobao Shangou recruitment (social/campus/intern)',
     baseUrl: 'https://talent.ele.me',
     listUrl: 'https://talent.ele.me/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'fliggy',
     opencliSite: 'fliggy-jobs',
     name: 'Fliggy',
-    description: 'Fliggy social recruitment',
+    description: 'Fliggy recruitment (social/campus/intern)',
     baseUrl: 'https://career.fliggy.com',
     listUrl: 'https://career.fliggy.com/off-campus/position-list',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'alibaba-intl',
     opencliSite: 'alibaba-intl-jobs',
     name: 'Alibaba International',
-    description: 'Alibaba International Digital Commerce social recruitment',
+    description: 'Alibaba International Digital Commerce recruitment (social/campus/intern)',
     baseUrl: 'https://aidc-jobs.alibaba.com',
     listUrl: 'https://aidc-jobs.alibaba.com/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'aliyun',
     opencliSite: 'aliyun-jobs',
     name: 'Alibaba Cloud',
-    description: 'Alibaba Cloud social recruitment',
+    description: 'Alibaba Cloud recruitment (social/campus/intern)',
     baseUrl: 'https://careers.aliyun.com',
     listUrl: 'https://careers.aliyun.com/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'tongyi',
     opencliSite: 'tongyi-jobs',
     name: 'Tongyi Lab',
-    description: 'Tongyi Lab social recruitment',
+    description: 'Tongyi Lab recruitment (social/campus/intern)',
     baseUrl: 'https://careers-tongyi.alibaba.com',
     listUrl: 'https://careers-tongyi.alibaba.com/off-campus/position-list?lang=zh&search=',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'dingtalk',
     opencliSite: 'dingtalk-jobs',
     name: 'DingTalk',
-    description: 'DingTalk social recruitment',
+    description: 'DingTalk recruitment (social/campus/intern)',
     baseUrl: 'https://talent.dingtalk.com',
     listUrl: 'https://talent.dingtalk.com/off-campus/position-list?lang=zh&search=',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'quark',
     opencliSite: 'quark-jobs',
     name: 'Qianwen Consumer Group',
-    description: 'Qianwen consumer group social recruitment',
+    description: 'Qianwen consumer group recruitment (social/campus/intern)',
     baseUrl: 'https://talent.quark.cn',
     listUrl: 'https://talent.quark.cn/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'thead',
     opencliSite: 'thead-jobs',
     name: 'T-Head',
-    description: 'T-Head social recruitment',
+    description: 'T-Head recruitment (social/campus/intern)',
     baseUrl: 'https://recruitment.t-head.cn',
     listUrl: 'https://recruitment.t-head.cn/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'amap',
     opencliSite: 'amap-jobs',
     name: 'Amap',
-    description: 'Amap social recruitment',
+    description: 'Amap recruitment (social/campus/intern)',
     baseUrl: 'https://talent.amap.com',
     listUrl: 'https://talent.amap.com/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'cainiao',
     opencliSite: 'cainiao-jobs',
     name: 'Cainiao',
-    description: 'Cainiao social recruitment',
+    description: 'Cainiao recruitment (social/campus/intern)',
     baseUrl: 'https://talent.cainiao.com',
     listUrl: 'https://talent.cainiao.com/social-recruitment',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'hujing',
     opencliSite: 'hujing-jobs',
     name: 'Hujing Entertainment',
-    description: 'Hujing entertainment social recruitment',
+    description: 'Hujing entertainment recruitment (social/campus/intern)',
     baseUrl: 'https://jobs.hujing-dme.com',
     listUrl: 'https://jobs.hujing-dme.com/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'freshippo',
     opencliSite: 'freshippo-jobs',
     name: 'Freshippo',
-    description: 'Freshippo social recruitment',
+    description: 'Freshippo recruitment (social/campus/intern)',
     baseUrl: 'https://hire.freshippo.com',
     listUrl: 'https://hire.freshippo.com/off-campus/position-list?lang=zh&search=',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'alihealth',
     opencliSite: 'alihealth-jobs',
     name: 'AliHealth',
-    description: 'AliHealth social recruitment',
+    description: 'AliHealth recruitment (social/campus/intern)',
     baseUrl: 'https://careers.alihealth.cn',
     listUrl: 'https://careers.alihealth.cn/off-campus/position-list?lang=zh&search=',
-    channel: DEFAULT_CHANNEL,
-  },
-  {
+  }),
+  cpoSite({
     id: 'lingxi',
     opencliSite: 'lingxi-jobs',
     name: 'Lingxi Games',
-    description: 'Lingxi Games social recruitment',
+    description: 'Lingxi Games recruitment (social/campus/intern)',
     baseUrl: 'https://talent.lingxigames.com',
     listUrl: 'https://talent.lingxigames.com/off-campus/position-list?lang=zh',
-    channel: DEFAULT_CHANNEL,
-  },
+  }),
 ];
+
+export function resolveNatureChannel(config, nature = DEFAULT_NATURE) {
+  if (nature === 'campus') {
+    return {
+      nature: 'campus',
+      channel: config.campusChannel || DEFAULT_CAMPUS_CHANNEL,
+      categoryType: 'freshman',
+      listUrl: config.campusListUrl || `${config.baseUrl}/campus/position-list?lang=zh`,
+      positionType: 'campus',
+      detailPath: '/campus/position-detail',
+    };
+  }
+  if (nature === 'intern') {
+    return {
+      nature: 'intern',
+      channel: config.campusChannel || DEFAULT_CAMPUS_CHANNEL,
+      categoryType: 'internship',
+      listUrl: config.campusListUrl || `${config.baseUrl}/campus/position-list?lang=zh`,
+      positionType: 'internship',
+      detailPath: '/campus/position-detail',
+    };
+  }
+  return {
+    nature: DEFAULT_NATURE,
+    channel: config.channel || DEFAULT_CHANNEL,
+    categoryType: '',
+    listUrl: config.listUrl,
+    positionType: 'social',
+    detailPath: '/off-campus/position-detail',
+  };
+}
 
 function getSetCookies(headers) {
   if (typeof headers.getSetCookie === 'function') return headers.getSetCookie();
@@ -201,11 +237,13 @@ function extractChannel(html) {
   return extractFirst(html, /channelCodeMap:\s*\{[\s\S]*?offCampus:\s*"([^"]+)"/);
 }
 
-async function loadSession(config, { refresh = false } = {}) {
-  const cached = sessionCache.get(config.id);
+async function loadSession(config, nature = DEFAULT_NATURE, { refresh = false } = {}) {
+  const route = resolveNatureChannel(config, nature);
+  const cacheKey = `${config.id}:${route.nature}`;
+  const cached = sessionCache.get(cacheKey);
   if (cached && !refresh) return cached;
 
-  const response = await fetch(config.listUrl, {
+  const response = await fetch(route.listUrl, {
     headers: {
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'User-Agent': USER_AGENT,
@@ -221,16 +259,21 @@ async function loadSession(config, { refresh = false } = {}) {
     throw new CliError('ALIBABA_CPO_TOKEN', `${config.name} recruitment page did not expose a CSRF token`, 'The Alibaba CPO page structure may have changed.');
   }
   const session = {
-    baseUrl: config.baseUrl || new URL(response.url || config.listUrl).origin,
+    baseUrl: config.baseUrl || new URL(response.url || route.listUrl).origin,
     token,
-    channel: config.channel || DEFAULT_CHANNEL,
+    channel: route.channel,
+    categoryType: route.categoryType,
+    listUrl: response.url || route.listUrl,
+    nature: route.nature,
+    positionType: route.positionType,
+    detailPath: route.detailPath,
     pageChannel: extractChannel(html),
     cookie: cookieHeader(getSetCookies(response.headers)),
   };
   if (!session.channel) {
-    throw new CliError('ALIBABA_CPO_CHANNEL', `${config.name} recruitment page did not expose an off-campus channel`, 'The Alibaba CPO page structure may have changed.');
+    throw new CliError('ALIBABA_CPO_CHANNEL', `${config.name} recruitment page did not expose a channel`, 'The Alibaba CPO page structure may have changed.');
   }
-  sessionCache.set(config.id, session);
+  sessionCache.set(cacheKey, session);
   return session;
 }
 
@@ -252,7 +295,8 @@ async function readJsonResponse(response, config, path) {
 }
 
 async function cpoPost(config, path, body = {}, options = {}) {
-  const session = await loadSession(config, options);
+  const nature = options.nature || DEFAULT_NATURE;
+  const session = await loadSession(config, nature, options);
   const url = new URL(path, session.baseUrl);
   url.searchParams.set('_csrf', session.token);
   const response = await fetch(url, {
@@ -261,7 +305,7 @@ async function cpoPost(config, path, body = {}, options = {}) {
       Accept: 'application/json, text/plain, */*',
       'Content-Type': 'application/json',
       Origin: session.baseUrl,
-      Referer: config.listUrl,
+      Referer: session.listUrl,
       'User-Agent': USER_AGENT,
       'X-XSRF-TOKEN': session.token,
       ...(session.cookie ? { Cookie: session.cookie } : {}),
@@ -308,13 +352,12 @@ function normalizeFilters(categories, locations) {
   const rows = [];
   walkCategories(categories, rows);
   rows.push(...normalizeLocationRows(locations));
-  rows.push({ group: 'nature', parent: '', code: 'social', name: '社招', en_name: 'Social', sort_id: 1 });
   return rows.filter(row => row.code || row.name);
 }
 
 async function resolveArgs(config, args = {}) {
   if (!args.category && !args.location) return { category: '', subCategory: '', region: '' };
-  const filters = await fetchFilters(config);
+  const filters = await fetchFilters(config, args);
   const resolveOne = (group, input) => {
     if (!input) return '';
     const text = String(input).trim();
@@ -343,7 +386,7 @@ async function resolveArgs(config, args = {}) {
 }
 
 function baseSearchRequest(session, args, page, limit, resolved) {
-  return {
+  const body = {
     channel: session.channel,
     language: 'zh',
     batchId: '',
@@ -358,6 +401,8 @@ function baseSearchRequest(session, args, page, limit, resolved) {
     shareId: '',
     myReferralShareCode: '',
   };
+  if (session.categoryType) body.categoryType = session.categoryType;
+  return body;
 }
 
 function listPayload(data, page, limit) {
@@ -374,8 +419,9 @@ function listPayload(data, page, limit) {
   };
 }
 
-export function jobUrl(config, id) {
-  return `${config.baseUrl}/off-campus/position-detail?positionId=${encodeURIComponent(id)}&positionType=social`;
+export function jobUrl(config, id, nature = DEFAULT_NATURE) {
+  const route = resolveNatureChannel(config, nature);
+  return `${config.baseUrl}${route.detailPath}?positionId=${encodeURIComponent(id)}&positionType=${encodeURIComponent(route.positionType)}`;
 }
 
 function experienceText(experience) {
@@ -389,20 +435,22 @@ function experienceText(experience) {
   return '';
 }
 
-export function normalizeJob(config, job) {
+export function normalizeJob(config, job, nature = DEFAULT_NATURE) {
   const id = fieldText(job.id ?? job.positionId);
   const categories = job.categories || job.categoryNames || [];
   const locations = job.workLocations || job.locations || job.locationNames || [];
+  const sourceNatureCode = fieldText(job.categoryType || job.positionType || nature);
+  const sourceNatureName = fieldText(job.categoryTypeName || job.positionTypeName || sourceNatureCode);
   const visible = {
     id,
     code: fieldText(job.code ?? job.positionCode),
     job_no: fieldText(job.jobNo ?? job.code ?? job.positionCode),
     name: stripHtml(job.name ?? job.title),
-    url: fieldText(job.positionUrl).startsWith('http') ? fieldText(job.positionUrl) : jobUrl(config, id),
+    url: fieldText(job.positionUrl).startsWith('http') ? fieldText(job.positionUrl) : jobUrl(config, id, nature),
     category_code: fieldText(job.categoryCode ?? job.subCategoryCode),
-    category_name: fieldText(categories.length ? categories : pickFirst(job.categoryName, job.categoryType)),
-    nature_code: 'social',
-    nature_name: '社招',
+    category_name: fieldText(categories.length ? categories : pickFirst(job.categoryName, job.category)),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: fieldText(job.regionCodes ?? job.locationIds),
     location_names: fieldText(locations.length ? locations : pickFirst(job.workLocation, job.locationName)),
     experience_code: experienceText(job.experience),
@@ -421,40 +469,52 @@ export function normalizeJob(config, job) {
       code: job.code,
       publish_time: job.publishTime,
       position_url: job.positionUrl,
+      category_type: job.categoryType,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: sourceNatureCode,
+    name: sourceNatureName,
+  });
 }
 
 export async function fetchJobs(config, args = {}, page = 1, limit = DEFAULT_PAGE_SIZE) {
+  const nature = args.nature || DEFAULT_NATURE;
   const [session, resolved] = await Promise.all([
-    loadSession(config),
+    loadSession(config, nature),
     resolveArgs(config, args),
   ]);
-  const data = await cpoPost(config, '/position/search', baseSearchRequest(session, args, page, limit, resolved));
+  const data = await cpoPost(
+    config,
+    '/position/search',
+    baseSearchRequest(session, args, page, limit, resolved),
+    { nature },
+  );
   return listPayload(data, page, limit);
 }
 
-export async function fetchJobById(config, id) {
-  const session = await loadSession(config);
+export async function fetchJobById(config, id, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const session = await loadSession(config, nature);
   const job = await cpoPost(config, '/position/detail', {
     id: Number(id) || id,
     channel: session.channel,
     language: 'zh',
-  });
+  }, { nature });
   if (job?.id || job?.positionId) return job;
 
-  const fallback = await fetchJobs(config, { query: String(id) }, 1, MAX_PAGE_SIZE);
+  const fallback = await fetchJobs(config, { ...args, query: String(id), nature }, 1, MAX_PAGE_SIZE);
   const match = fallback.list.find(item => fieldText(item.id ?? item.positionId) === String(id));
   if (match) return match;
   throw new EmptyResultError(`${config.id} detail`, `No ${config.name} job found for id ${id}`);
 }
 
-export async function fetchFilters(config) {
-  const session = await loadSession(config);
+export async function fetchFilters(config, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const session = await loadSession(config, nature);
   const [categories, locations] = await Promise.all([
-    cpoPost(config, '/category/list', { channel: session.channel, language: 'zh' }),
-    cpoPost(config, '/region/hot', { channel: session.channel, language: 'zh' }),
+    cpoPost(config, '/category/list', { channel: session.channel, language: 'zh' }, { nature }),
+    cpoPost(config, '/region/hot', { channel: session.channel, language: 'zh' }, { nature }),
   ]);
   return normalizeFilters(categories, locations);
 }

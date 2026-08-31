@@ -106,21 +106,24 @@ function markdownJobTable(rows) {
 
 function renderMarkdown(siteId, keyword, args, rows, summary) {
   const filterDesc = [
+    args.nature ? `招聘类型=${args.nature}` : '',
     args.category ? `类别=${args.category}` : '',
     args.location ? `地点=${args.location}` : '',
   ].filter(Boolean).join('，');
   const filterHint = filterDesc ? `（筛选条件：${filterDesc}）` : '';
+  const natureFlag = args.nature ? ` --nature ${args.nature}` : '';
 
   const skillTerms = summary.skillTerms.slice(0, 20);
   const reqTerms = summary.requirementTerms.slice(0, 20);
 
   let md = `# ${siteId} 「${keyword}」岗位分析报告
 
-数据来源：\`jobs ${siteId} all ${keyword || ''}${args.category ? ' --category ' + args.category : ''}${args.max ? ' --max ' + args.max : ''} --format json\`${filterHint}
+数据来源：\`job ${siteId} all ${keyword || ''}${args.category ? ' --category ' + args.category : ''}${args.location ? ' --location ' + args.location : ''}${natureFlag}${args.max ? ' --max ' + args.max : ''} --format json\`${filterHint}
 
 ## 概览
 
 - 匹配岗位总数：**${rows.length}**
+- 招聘类型分布：${distributionLine(summary.natures)}
 - 地域分布：${distributionLine(summary.locations)}
 - 类别分布：${distributionLine(summary.categories)}
 - 部门分布：${distributionLine(summary.departments)}
@@ -158,6 +161,7 @@ export async function analyzeJobs(siteId, keyword, args = {}) {
 
   const summary = {
     total: rows.length,
+    natures: countBy(rows, 'nature_name'),
     locations: countBy(rows, 'location_names'),
     categories: countBy(rows, 'category_name'),
     departments: countBy(rows, 'department_name'),

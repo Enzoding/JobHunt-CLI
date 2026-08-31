@@ -18,33 +18,38 @@ export const huaweiAdapter = {
   id: 'huawei',
   opencliSite: SITE,
   name: 'Huawei',
-  description: 'Huawei social recruitment',
+  description: 'Huawei social and campus recruitment',
+  supportedNatures: ['social', 'campus'],
+  defaultNature: 'social',
   columns: COLUMNS,
   detailColumns: DETAIL_COLUMNS,
   maxPageSize: MAX_PAGE_SIZE,
   detailIdField: 'id',
   detailIdHint: 'jobId from search results, e.g. 97792',
-  async filters() {
-    const rows = await fetchFilters();
+  async filters(args = {}) {
+    const rows = await fetchFilters(args);
     assertNonEmpty(rows, 'huawei filters', 'The Huawei filter endpoints returned no data.');
     return rows;
   },
   async search(args = {}) {
     const page = coercePage(args.page);
     const limit = coerceLimit(args.limit);
+    const nature = args.nature || 'social';
     const result = args.query ? { list: (await fetchAllJobs(args, MAX_PAGE_SIZE)).slice((page - 1) * limit, page * limit) } : await fetchJobs(args, page, limit);
-    const rows = result.list.map(normalizeJob);
+    const rows = result.list.map(job => normalizeJob(job, nature));
     assertNonEmpty(rows, 'huawei search', 'Try a different keyword or inspect filters with `job huawei filters`.');
     return rows;
   },
-  async detail(id) {
+  async detail(id, args = {}) {
     const normalizedId = String(id || '').trim();
     if (!normalizedId) throw new ArgumentError('Job id is required', 'Use an id returned by `job huawei search`.');
-    return normalizeJob(await fetchJobById(normalizedId));
+    const nature = args.nature || 'social';
+    return normalizeJob(await fetchJobById(normalizedId, args), nature);
   },
   async all(args = {}) {
     const max = Math.max(0, Number(args.max || 0));
-    const rows = (await fetchAllJobs(args, MAX_PAGE_SIZE)).map(normalizeJob);
+    const nature = args.nature || 'social';
+    const rows = (await fetchAllJobs(args, MAX_PAGE_SIZE)).map(job => normalizeJob(job, nature));
     const limited = max ? rows.slice(0, max) : rows;
     assertNonEmpty(limited, 'huawei all', 'Try fewer filters or inspect filters with `job huawei filters`.');
     return limited;

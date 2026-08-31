@@ -1,4 +1,5 @@
 import { CliError, EmptyResultError } from '../../core/errors.js';
+import { DEFAULT_NATURE, stampStandardNature } from '../../core/natures.js';
 import {
   coerceLimit,
   coercePage,
@@ -13,6 +14,33 @@ export const DEFAULT_PAGE_SIZE = 10;
 export const MAX_PAGE_SIZE = 100;
 export const COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'url'];
 export const DETAIL_COLUMNS = ['id', 'name', 'category_name', 'nature_name', 'location_names', 'department_name', 'updated_at', 'description', 'requirement', 'url'];
+
+/**
+ * Default social-portal recruitment codes (website-path=index):
+ * - 101=全职社招, 301=社招实习
+ * Campus portals use a separate website-path with 201=校招正式 / 202=校招实习.
+ * Per-site `natureChannels` overrides domain / website-path / recruitmentIds.
+ */
+export const NATURE_RECRUITMENT_IDS = {
+  social: ['101'],
+  intern: ['301'],
+};
+export const DEFAULT_SUPPORTED_NATURES = ['social', 'intern'];
+
+export function resolveNatureChannel(config, nature = DEFAULT_NATURE) {
+  const channels = config?.natureChannels;
+  if (channels?.[nature]) return channels[nature];
+
+  const websitePath = String(config?.path || '/index').replace(/^\//, '').split('/')[0] || 'index';
+  const mapped = config?.natureRecruitmentIds || NATURE_RECRUITMENT_IDS;
+  return {
+    domain: config.domain,
+    websitePath,
+    listPath: config.path || `/${websitePath}`,
+    recruitmentIds: mapped[nature] || mapped[DEFAULT_NATURE] || NATURE_RECRUITMENT_IDS.social,
+    jobUrlStyle: 'spread',
+  };
+}
 
 const SIGNER_CHUNK_URLS = [
   'https://lf-package-cn.feishucdn.com/obj/atsx-throne/hire-fe-prod/portal/saas-career/static/js/9341.e56ad4c3.js',
@@ -136,8 +164,10 @@ async function readJsonResponse(response, endpoint, siteName) {
   return payload.data;
 }
 
-async function feishuFetch(config, endpoint, { method = 'GET', body } = {}) {
-  const baseUrl = `https://${config.domain}`;
+async function feishuFetch(config, endpoint, { method = 'GET', body, nature = DEFAULT_NATURE } = {}) {
+  const channel = resolveNatureChannel(config, nature);
+  const baseUrl = `https://${channel.domain || config.domain}`;
+  const websitePath = channel.websitePath || 'index';
   const url = new URL(endpoint, baseUrl);
   const signer = await getSigner();
   const path = `${url.pathname}${url.search}`;
@@ -152,19 +182,30 @@ async function feishuFetch(config, endpoint, { method = 'GET', body } = {}) {
       Cookie: `locale=zh-CN; channel=saas-career; platform=pc; s_v_web_id=${webId}; device-id=${webId}`,
       Env: 'undefined',
       Origin: baseUrl,
-      Referer: `${baseUrl}/index`,
+      Referer: `${baseUrl}/${websitePath}`,
       'User-Agent': USER_AGENT,
       'X-Csrf-Token': 'undefined',
       'portal-channel': 'saas-career',
       'portal-platform': 'pc',
-      'website-path': 'index',
+      'website-path': websitePath,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
   return readJsonResponse(response, url.pathname, config.name);
 }
 
+function recruitmentIdsForNature(nature = DEFAULT_NATURE, config = {}) {
+  const channel = resolveNatureChannel(config, nature);
+  if (Array.isArray(channel.recruitmentIds) && channel.recruitmentIds.length) return channel.recruitmentIds;
+  const mapped = config.natureRecruitmentIds || NATURE_RECRUITMENT_IDS;
+  return mapped[nature] || mapped[DEFAULT_NATURE] || NATURE_RECRUITMENT_IDS.social;
+}
+
 function searchBody(args, page, limit, resolved = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const recruitmentIds = resolved.recruitmentIds?.length
+    ? resolved.recruitmentIds
+    : recruitmentIdsForNature(nature, resolved.config);
   return {
     keyword: args.query || '',
     limit,
@@ -173,7 +214,7 @@ function searchBody(args, page, limit, resolved = {}) {
     tag_id_list: [],
     location_code_list: resolved.location ? [resolved.location] : [],
     subject_id_list: [],
-    recruitment_id_list: resolved.nature ? [resolved.nature] : [],
+    recruitment_id_list: recruitmentIds,
     portal_type: 6,
     job_function_id_list: resolved.function ? [resolved.function] : [],
     storefront_id_list: [],
@@ -243,7 +284,7 @@ function toFilterRows(data) {
 }
 
 async function resolveFilters(config, args) {
-  const filters = await fetchFilters(config);
+  const filters = await fetchFilters(config, args);
   const resolveOne = (group, input) => {
     if (!input) return '';
     const match = filters.find(row => row.group === group && matchesAlias(input, filterCandidates(row)));
@@ -251,10 +292,11 @@ async function resolveFilters(config, args) {
   };
   const categoryMatch = resolveOne('category', args.category);
   return {
+    config,
     category: categoryMatch?.source === 'function' ? '' : categoryMatch?.code || '',
     function: categoryMatch?.source === 'function' ? categoryMatch.code : '',
     location: resolveOne('location', args.location)?.code || '',
-    nature: resolveOne('nature', args.nature)?.code || '',
+    recruitmentIds: recruitmentIdsForNature(args.nature || DEFAULT_NATURE, config),
   };
 }
 
@@ -262,14 +304,20 @@ function normalizeDescription(job) {
   return stripHtml(pickFirst(job.description, job.job_description, job.job_post_info?.description));
 }
 
-export function jobUrl(config, id) {
-  return `https://${config.domain}${config.path || '/index'}?spread=${encodeURIComponent(id)}`;
+export function jobUrl(config, id, nature = DEFAULT_NATURE) {
+  const channel = resolveNatureChannel(config, nature);
+  const domain = channel.domain || config.domain;
+  const listPath = channel.listPath || config.path || '/index';
+  if (channel.jobUrlStyle === 'detail') {
+    return `https://${domain}/${channel.websitePath}/position/${encodeURIComponent(id)}/detail`;
+  }
+  return `https://${domain}${listPath}?spread=${encodeURIComponent(id)}`;
 }
 
-export function normalizeFeishuJob(config, job) {
+export function normalizeFeishuJob(config, job, nature = DEFAULT_NATURE) {
   const info = job.job_post_info || {};
-  const category = job.job_category || info.job_category || {};
-  const nature = job.recruit_type || info.recruit_type || info.recruitment_type || {};
+  const category = job.job_category || info.job_category || job.job_function || info.job_function || {};
+  const recruit = job.recruit_type || info.recruit_type || info.recruitment_type || {};
   const cities = job.city_list || info.city_list || [];
   const id = fieldText(job.id ?? info.id);
   const visible = {
@@ -277,11 +325,11 @@ export function normalizeFeishuJob(config, job) {
     code: fieldText(job.code ?? info.code),
     job_no: fieldText(job.job_no ?? info.job_no),
     name: fieldText(job.title ?? info.title ?? job.name),
-    url: jobUrl(config, id),
+    url: jobUrl(config, id, nature),
     category_code: fieldText(category.id ?? category.code),
     category_name: fieldText(category.name),
-    nature_code: fieldText(nature.id ?? nature.code),
-    nature_name: fieldText(nature.name),
+    nature_code: nature,
+    nature_name: nature,
     location_codes: cities.map(city => fieldText(city.code ?? city.id)).filter(Boolean).join(','),
     location_names: cities.map(city => fieldText(city.name)).filter(Boolean).join(','),
     experience_code: fieldText(job.experience_code ?? info.experience_code),
@@ -299,20 +347,27 @@ export function normalizeFeishuJob(config, job) {
       id: job.id,
       title: job.title,
       publish_time: job.publish_time,
+      recruit_type_id: recruit.id ?? recruit.code,
+      recruit_type_name: recruit.name,
     },
   });
-  return output;
+  return stampStandardNature(output, nature, {
+    code: fieldText(recruit.id ?? recruit.code),
+    name: fieldText(recruit.name),
+  });
 }
 
-export async function fetchFilters(config) {
-  const data = await feishuFetch(config, '/api/v1/config/job/filters/6');
+export async function fetchFilters(config, args = {}) {
+  const nature = args.nature || DEFAULT_NATURE;
+  const data = await feishuFetch(config, '/api/v1/config/job/filters/6', { nature });
   return toFilterRows(data);
 }
 
 export async function fetchJobs(config, args, page, limit) {
+  const nature = args.nature || DEFAULT_NATURE;
   const resolved = await resolveFilters(config, args);
   const body = searchBody(args, page, limit, resolved);
-  const data = await feishuFetch(config, searchEndpoint(body), { method: 'POST', body });
+  const data = await feishuFetch(config, searchEndpoint(body), { method: 'POST', body, nature });
   const list = data?.job_post_list || data?.list || [];
   const total = Number(data?.count ?? data?.total ?? list.length);
   return {
@@ -324,11 +379,11 @@ export async function fetchJobs(config, args, page, limit) {
   };
 }
 
-export async function fetchJobById(config, id) {
+export async function fetchJobById(config, id, args = {}) {
   let page = 1;
   let totalPage = Infinity;
   while (page <= totalPage) {
-    const result = await fetchJobs(config, {}, page, MAX_PAGE_SIZE);
+    const result = await fetchJobs(config, args, page, MAX_PAGE_SIZE);
     totalPage = result.totalPage || page;
     const job = result.list.find(item => fieldText(item.id ?? item.job_post_info?.id) === String(id));
     if (job) return job;
@@ -344,13 +399,15 @@ export function createFeishuSaasAdapter(config) {
     opencliSite: config.opencliSite,
     name: config.name,
     description: config.description,
+    supportedNatures: config.supportedNatures || DEFAULT_SUPPORTED_NATURES,
+    defaultNature: config.defaultNature || DEFAULT_NATURE,
     columns: COLUMNS,
     detailColumns: DETAIL_COLUMNS,
     maxPageSize: MAX_PAGE_SIZE,
     detailIdField: 'id',
     detailIdHint: 'Feishu/Lark numeric job id from search results.',
-    async filters() {
-      const rows = await fetchFilters(config);
+    async filters(args = {}) {
+      const rows = await fetchFilters(config, args);
       assertNonEmpty(rows, `${config.id} filters`, `The ${config.name} filter endpoint returned no data.`);
       return rows;
     },
@@ -358,14 +415,14 @@ export function createFeishuSaasAdapter(config) {
       const page = coercePage(args.page);
       const limit = coerceLimit(args.limit, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
       const result = await fetchJobs(config, args, page, limit);
-      const rows = result.list.map(job => normalizeFeishuJob(config, job));
+      const rows = result.list.map(job => normalizeFeishuJob(config, job, args.nature || 'social'));
       assertNonEmpty(rows, `${config.id} search`, `Try a different keyword or inspect filters with \`job ${config.id} filters\`.`);
       return rows;
     },
-    async detail(id) {
+    async detail(id, args = {}) {
       const normalizedId = String(id || '').trim();
       if (!normalizedId) throw new CliError('ARGUMENT_ERROR', 'Job id is required', `Use an id returned by \`job ${config.id} search\`.`);
-      return normalizeFeishuJob(config, await fetchJobById(config, normalizedId));
+      return normalizeFeishuJob(config, await fetchJobById(config, normalizedId, args), args.nature || 'social');
     },
     async all(args = {}) {
       const pageSize = coerceLimit(args.pageSize ?? args['page-size'], MAX_PAGE_SIZE, MAX_PAGE_SIZE);
@@ -374,14 +431,16 @@ export function createFeishuSaasAdapter(config) {
       const seen = new Set();
       let page = 1;
       let totalPage = Infinity;
+      const nature = args.nature || 'social';
       while (page <= totalPage && (!max || rows.length < max)) {
         const result = await fetchJobs(config, args, page, pageSize);
         totalPage = result.totalPage || page;
         if (!result.list.length) break;
         for (const job of result.list) {
-          const normalized = normalizeFeishuJob(config, job);
-          if (!normalized.id || seen.has(normalized.id)) continue;
-          seen.add(normalized.id);
+          const normalized = normalizeFeishuJob(config, job, nature);
+          const key = `${normalized.nature_code}:${normalized.id}`;
+          if (!normalized.id || seen.has(key)) continue;
+          seen.add(key);
           rows.push(normalized);
           if (max && rows.length >= max) break;
         }

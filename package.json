@@ -1,7 +1,7 @@
 {
   "name": "jobhunt-cli",
-  "version": "0.1.11",
-  "description": "Search, export, and analyze public company recruitment jobs.",
+  "version": "0.2.5",
+  "description": "Search, export, and analyze public company recruitment jobs across social, campus, and intern channels.",
   "homepage": "https://github.com/Enzoding/JobHunt-CLI#readme",
   "repository": {
     "type": "git",
@@ -48,17 +48,20 @@
   },
   "scripts": {
     "job": "node bin/job.js",
+    "test": "node --test test/**/*.test.js",
+    "token-benchmark": "node scripts/token-benchmark.js",
+    "smoke:nature-matrix": "node scripts/smoke-nature-matrix.js",
     "smoke:kuaishou": "node scripts/smoke-kuaishou-api.js",
     "smoke:didi": "node scripts/smoke-didi-api.js",
     "smoke:bytedance": "node scripts/smoke-bytedance-api.js",
-    "smoke:meituan": "node scripts/smoke-meituan-api.js",
+    "smoke:meituan": "node scripts/smoke-meituan-api.js && node scripts/smoke-meituan-url.js",
     "smoke:xiaomi": "node scripts/smoke-xiaomi-api.js",
     "smoke:tencent": "node scripts/smoke-tencent-api.js",
     "smoke:baidu": "node scripts/smoke-baidu-api.js",
-    "smoke:jd": "node scripts/smoke-jd-api.js",
+    "smoke:jd": "node scripts/smoke-jd-api.js && node scripts/smoke-jd-url.js",
     "smoke:xiaohongshu": "node scripts/smoke-xiaohongshu-api.js",
     "smoke:bilibili": "node scripts/smoke-bilibili-api.js",
-    "smoke:netease": "node scripts/smoke-netease-api.js",
+    "smoke:netease": "node scripts/smoke-netease-api.js && node scripts/smoke-netease-url.js",
     "smoke:ctrip": "node scripts/smoke-ctrip-api.js",
     "smoke:huawei": "node scripts/smoke-huawei-api.js",
     "smoke:dji": "node scripts/smoke-dji-api.js",
@@ -68,8 +71,9 @@
     "smoke:minimax": "node scripts/smoke-minimax-api.js",
     "smoke:moonshot": "node scripts/smoke-moonshot-api.js",
     "smoke:zhipu": "node scripts/smoke-zhipu-api.js",
+    "smoke:deepseek": "node scripts/smoke-deepseek-api.js",
     "smoke:alibaba-cpo": "node scripts/smoke-alibaba-cpo-api.js",
-    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan && npm run smoke:xiaomi && npm run smoke:tencent && npm run smoke:baidu && npm run smoke:jd && npm run smoke:xiaohongshu && npm run smoke:bilibili && npm run smoke:netease && npm run smoke:ctrip && npm run smoke:huawei && npm run smoke:dji && npm run smoke:ant && npm run smoke:dewu && npm run smoke:mihoyo && npm run smoke:minimax && npm run smoke:moonshot && npm run smoke:zhipu && npm run smoke:alibaba-cpo",
+    "smoke": "npm run smoke:kuaishou && npm run smoke:didi && npm run smoke:bytedance && npm run smoke:meituan && npm run smoke:xiaomi && npm run smoke:tencent && npm run smoke:baidu && npm run smoke:jd && npm run smoke:xiaohongshu && npm run smoke:bilibili && npm run smoke:netease && npm run smoke:ctrip && npm run smoke:huawei && npm run smoke:dji && npm run smoke:ant && npm run smoke:dewu && npm run smoke:mihoyo && npm run smoke:minimax && npm run smoke:moonshot && npm run smoke:zhipu && npm run smoke:deepseek && npm run smoke:alibaba-cpo",
     "smoke:cli": "node bin/job.js xiaomi search AI --limit 1 --format json"
   },
   "keywords": [
@@ -91,6 +95,7 @@
     "alibaba",
     "aliyun",
     "cainiao",
+    "deepseek",
     "jobs",
     "recruitment",
     "job-search"
@@ -98,5 +103,8 @@
   "license": "MIT",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
+  },
+  "devDependencies": {
+    "gpt-tokenizer": "4.0.0"
   }
 }
