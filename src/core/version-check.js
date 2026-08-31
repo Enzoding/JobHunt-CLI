@@ -69,7 +69,7 @@ function writeCache(cachePath, data) {
   }
 }
 
-async function fetchLatestVersion(fetchImpl = globalThis.fetch) {
+export async function fetchLatestVersion(fetchImpl = globalThis.fetch) {
   if (typeof fetchImpl !== 'function') return null;
 
   const controller = new AbortController();

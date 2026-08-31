@@ -57,6 +57,15 @@ job update
 ```bash
 job update --cli-only    # 只更新 CLI
 job update --skill-only  # 只更新 Skill
+job update --dry-run     # 预览将执行的命令，不真正安装
+```
+
+已是最新版本时会提示 `Already up to date`，不会重复执行 `npm install -g`。从源码/本地目录运行时会跳过全局安装，并给出手动升级命令。
+
+存量 `0.2.5` 及更早版本的 `job update` 无法正确检测 Homebrew 等 symlink 全局安装。升级到 `0.2.6` 需先手动执行一次：
+
+```bash
+npm install -g jobhunt-cli@latest
 ```
 
 查看当前版本：

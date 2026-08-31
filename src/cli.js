@@ -120,10 +120,12 @@ export async function run(argv = process.argv) {
     .description('Update jobhunt-cli and the AI agent skill to the latest version')
     .option('--cli-only', 'Only update the CLI package, skip skill update')
     .option('--skill-only', 'Only update the AI agent skill, skip CLI update')
+    .option('--dry-run', 'Preview what would be updated without executing anything')
     .action(async options => {
       await runUpdate({
         cli: !options.skillOnly,
         skill: !options.cliOnly,
+        dryRun: !!options.dryRun,
       });
     });
 

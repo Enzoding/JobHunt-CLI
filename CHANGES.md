@@ -6,6 +6,44 @@
 
 ## 2026-08-31
 
+### 发布 `0.2.6`
+
+**修改文件**：`package.json`、`CHANGES.md`、`README.md`
+
+**修改内容**：将版本从 `0.2.5` 提升至 `0.2.6`，发布 `job update` 全局安装检测修复与更新逻辑重构。
+
+**原因**：`0.2.5` 已在 npm 发布；本次是面向用户的 patch 级 bugfix，必须升版本才能 `npm publish`。存量 `0.2.5` 及更早的 `job update` 本身是坏的，用户需先手动 `npm install -g jobhunt-cli@latest` 一次才能用上修好的命令。
+
+**影响范围**：
+- npm 包 `jobhunt-cli@0.2.6`
+
+---
+
+### 修复 `job update` 命令失效并重构更新逻辑
+
+**修改文件**：`src/core/update.js`、`src/core/version-check.js`、`src/cli.js`、`test/update.test.js`、`README.md`、`CHANGES.md`
+
+**修改内容**：
+1. **修复全局安装误判**：旧 `isGlobalInstall()` 用 `process.argv[1].includes('node_modules')` 字符串匹配判断安装模式，但 macOS/Homebrew 的全局 bin 是 symlink，`process.argv[1]` 是调用路径（如 `/opt/homebrew/bin/jobhunt-cli`），不含 `node_modules`，导致真实全局安装被误判为 dev/local 模式，`npm install -g` 被跳过。新实现改为：realpath 解析调用路径 + `npm root -g` 前缀匹配为主判据，保留 `node_modules` 且不在 cwd 内作为兜底；`isGlobalInstall` 改为可注入 `binPath` / `cwd` / `globalRoot` / `realpath` 的纯导出函数。
+2. **修复误导性输出**：旧 `runUpdate` 在每个步骤后无条件打印 `✓ xxx updated`，而 `updateCli` 在 dev 模式直接 return，造成「skipping + ✓ updated」矛盾输出。新实现让每个步骤返回 `{ status: updated|simulated|noop|skipped, message, hint, warn }`，按状态输出 `✓ / ◻ / ℹ`，跳过时给出可执行的 hint，不再造假打勾；`--dry-run` 结束语改为 `Dry-run complete`。
+3. **先查最新版本再决定是否安装**：复用并导出 `version-check.js` 的 `fetchLatestVersion`；已是最新时输出 `Already up to date`，不执行 npm install。
+4. **安装后校验**：`npm install -g` 后通过 `npm ls -g jobhunt-cli --depth=0 --json` 解析实际安装版本并展示 `v0.2.3 → v0.2.6` 式的跳转；`npm ls` 因 peer/extraneous 非 0 退出时仍从 stdout / `error.stdout` 解析 JSON。若与期望版本不一致（如 `npm link` 残留），输出 unlink 修复指引。
+5. **新增 `update --dry-run`**：预览各步骤将要执行的命令，不真正执行安装/装 skill。
+6. **子进程不再走 shell**：`spawn`/`execFile` 使用 argv 数组，Windows 下解析为 `npm.cmd` / `npx.cmd`；registry 版本经 `safeNpmInstallSpec` 白名单后再传给 `npm install -g`。
+7. 新增 `test/update.test.js` 覆盖全局检测、`npm ls` JSON 解析、install spec 白名单，以及源码目录 dry-run 不打假勾。
+8. dev/local 跳过提示补充 `npm link` 场景的修复指引（先 `npm unlink jobhunt-cli -g`）。
+
+**原因**：用户实测 `jobhunt-cli update` 输出「Running in dev/local mode — skipping」与「✓ CLI updated」两行矛盾信息，全局版本 0.2.3 未升级，被迫手动 `npm install -g jobhunt-cli@latest`。
+
+**影响范围**：
+- `job update` 命令的行为与输出（参数 `--cli-only` / `--skill-only` 语义不变，新增 `--dry-run`）。
+- `version-check.js` 仅新增 `export`，行为不变。
+- 仅影响更新命令自身，不影响搜索/sites/导出等既有功能。
+
+---
+
+## 2026-08-31
+
 ### 发布 `0.2.5`
 
 **修改文件**：`package.json`、`CHANGES.md`
@@ -522,6 +560,23 @@ npm registry 上 `jobhunt-cli` 最新版本已是 `0.1.12`，DeepSeek adapter �
 - `job sites` 新增 `deepseek` 站点，总站点数从 35 个增加到 36 个。
 - 新站点支持 `filters`、`search`、`detail`、`all`、`analyze` 等现有 CLI 子命令。
 - DeepSeek adapter 依赖 Moka 页面中的 `init-data`、`aesIv` 和 `/api/outer/ats-apply/website/jobs/v2` 接口；若 Moka 页面结构、加密字段或接口请求参数变化，需要同步更新 `src/sites/deepseek/utils.js`。
+
+---
+
+## 2026-05-30
+
+### 修复 Meituan 岗位详情链接 404 问题
+
+**修改文件**：`src/sites/meituan/utils.js`
+
+**修改内容**：
+1. 更新 `jobUrl` 函数，将岗位详情的 URL 格式从旧版的 `https://zhaopin.meituan.com/web/social/position/${id}` 修改为目前官方真实使用的 `https://zhaopin.meituan.com/web/position/detail?highlightType=social&jobUnionId=${id}`。
+
+**原因**：
+美团招聘官网旧版 `/web/social/position/${id}` 路径在前端 SPA 路由中已被废弃，导致进入后页面展示失效/404；而新的带有 `jobUnionId` 的参数化链接能正常稳定地加载并展示社招职位详情。
+
+**影响范围**：
+- 仅影响 Meituan 站点返回的岗位 URL 属性，不改变列表拉取或命令行正常运行。
 
 ---
 
