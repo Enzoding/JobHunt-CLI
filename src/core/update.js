@@ -15,8 +15,43 @@ const SKILL_NAME = 'jobhunt-cli';
 
 const execFileP = promisify(execFile);
 
+// Allow `0.2.6`, `0.2.6-beta.0`, `0.2.6+build`, or the literal tag `latest`.
+const NPM_INSTALL_SPEC_RE = /^(latest|\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.]+)*)$/;
+
 // `npm root -g` is slow-ish (~tens of ms) and stable within one run; cache it.
 let npmGlobalRootCache = null;
+
+function npmBin(name) {
+  return process.platform === 'win32' ? `${name}.cmd` : name;
+}
+
+function stdoutText(value) {
+  if (value == null) return '';
+  return Buffer.isBuffer(value) ? value.toString('utf8') : String(value);
+}
+
+/**
+ * Pick a safe npm install spec from a registry version string.
+ * Unknown / malformed values fall back to `latest` so they are never interpolated
+ * as a shell fragment.
+ */
+export function safeNpmInstallSpec(latest) {
+  return typeof latest === 'string' && NPM_INSTALL_SPEC_RE.test(latest) ? latest : 'latest';
+}
+
+/**
+ * Parse `npm ls -g <pkg> --json` stdout. npm often exits 1 when the global
+ * tree has peer/extraneous issues, while still printing valid JSON.
+ */
+export function parseNpmLsGlobalVersion(stdout) {
+  const text = stdoutText(stdout).trim();
+  if (!text) return null;
+  try {
+    return JSON.parse(text)?.dependencies?.[PACKAGE_NAME]?.version ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Resolve the global npm node_modules directory (`npm root -g`).
@@ -25,7 +60,7 @@ let npmGlobalRootCache = null;
 async function getNpmGlobalRoot() {
   if (npmGlobalRootCache !== null) return npmGlobalRootCache;
   try {
-    const { stdout } = await execFileP('npm', ['root', '-g'], { timeout: 5000 });
+    const { stdout } = await execFileP(npmBin('npm'), ['root', '-g'], { timeout: 5000 });
     npmGlobalRootCache = stdout.trim() || null;
   } catch {
     npmGlobalRootCache = null;
@@ -48,18 +83,20 @@ async function getNpmGlobalRoot() {
  * @param {string} [opts.binPath]  Invoked script path (defaults to process.argv[1])
  * @param {string} [opts.cwd]      Working directory (defaults to process.cwd())
  * @param {string|null} [opts.globalRoot]  npm global root (defaults to null → fallback only)
+ * @param {(p: string) => string} [opts.realpath]  Path resolver (defaults to fs.realpathSync)
  * @returns {boolean}
  */
 export function isGlobalInstall({
   binPath = process.argv[1] || '',
   cwd = process.cwd(),
   globalRoot = null,
+  realpath = fs.realpathSync,
 } = {}) {
   if (!binPath) return false;
 
   let real;
   try {
-    real = fs.realpathSync(binPath);
+    real = realpath(binPath);
   } catch {
     real = binPath;
   }
@@ -83,23 +120,25 @@ export function isGlobalInstall({
 async function getInstalledGlobalVersion() {
   try {
     const { stdout } = await execFileP(
-      'npm',
+      npmBin('npm'),
       ['ls', '-g', PACKAGE_NAME, '--depth=0', '--json'],
       { timeout: 10000 },
     );
-    return stdout ? JSON.parse(stdout)?.dependencies?.[PACKAGE_NAME]?.version ?? null : null;
-  } catch {
-    return null;
+    return parseNpmLsGlobalVersion(stdout);
+  } catch (err) {
+    return parseNpmLsGlobalVersion(err?.stdout);
   }
 }
 
 /**
  * Run a command as a child process, inheriting stdio so output streams live.
  * Resolves when the process exits with code 0; rejects on non-zero exit.
+ * Uses argv arrays without a shell so registry-sourced versions cannot inject.
  */
 function runProcess(cmd, args, label) {
+  const bin = npmBin(cmd);
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: 'inherit', shell: true });
+    const child = spawn(bin, args, { stdio: 'inherit' });
     child.on('close', code => {
       if (code === 0) {
         resolve();
@@ -150,8 +189,9 @@ async function updateCli({ dryRun = false } = {}) {
     return { status: 'noop', message: `Already up to date (v${currentVersion}).` };
   }
 
-  const target = latest ? `v${latest}` : 'latest';
-  const command = `npm install -g ${PACKAGE_NAME}@${latest || 'latest'}`;
+  const spec = safeNpmInstallSpec(latest);
+  const target = spec === 'latest' ? 'latest' : `v${spec}`;
+  const command = `npm install -g ${PACKAGE_NAME}@${spec}`;
 
   if (dryRun) {
     return {
@@ -160,15 +200,15 @@ async function updateCli({ dryRun = false } = {}) {
     };
   }
 
-  await runProcess('npm', ['install', '-g', `${PACKAGE_NAME}@${latest || 'latest'}`], 'npm install -g');
+  await runProcess('npm', ['install', '-g', `${PACKAGE_NAME}@${spec}`], 'npm install -g');
 
   const installed = await getInstalledGlobalVersion();
   return {
     status: 'updated',
     message: installed ? `v${currentVersion} → v${installed}` : command,
     warn:
-      installed && latest && installed !== latest
-        ? `Installed v${installed}, expected v${latest}. If '${PACKAGE_NAME}' still runs the old ` +
+      installed && spec !== 'latest' && installed !== spec
+        ? `Installed v${installed}, expected v${spec}. If '${PACKAGE_NAME}' still runs the old ` +
           `version, it may be linked to a local source (npm link). Fix: npm unlink ${PACKAGE_NAME} -g, then reinstall.`
         : null,
   };
@@ -220,7 +260,6 @@ export async function runUpdate({ cli = true, skill = true, dryRun = false } = {
       applied = true;
       process.stdout.write(`✓  ${label} updated: ${message}\n`);
     } else if (status === 'simulated') {
-      applied = true;
       process.stdout.write(`◻  ${label} (dry-run): ${message}\n`);
     } else if (status === 'noop') {
       process.stdout.write(`ℹ  ${label}: ${message}\n`);
@@ -235,5 +274,9 @@ export async function runUpdate({ cli = true, skill = true, dryRun = false } = {
     if (warn) process.stdout.write(`  ⚠  ${warn}\n`);
   }
 
-  process.stdout.write(applied ? '\n✅ Done.\n' : '\nℹ No changes applied.\n');
+  if (dryRun) {
+    process.stdout.write('\n◻ Dry-run complete.\n');
+  } else {
+    process.stdout.write(applied ? '\n✅ Done.\n' : '\nℹ No changes applied.\n');
+  }
 }
