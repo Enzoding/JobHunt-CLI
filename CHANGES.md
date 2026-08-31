@@ -6,6 +6,19 @@
 
 ## 2026-08-31
 
+### 发布 `0.2.5`
+
+**修改文件**：`package.json`、`CHANGES.md`
+
+**修改内容**：将版本从 `0.2.4` 提升至 `0.2.5`，发布 PER-133 Agent Token 消耗优化（包含 `--view compact|full|debug`、analyze `--summary-only`、精简 Agent Skill 及渐进式参考手册）。
+
+**原因**：合并 PER-133 功能分支并发布 npm 包。
+
+**影响范围**：
+- npm 包 `jobhunt-cli@0.2.5`
+
+---
+
 ### 落地 PER-133：JSON 输出视图、analyze summary-only 与精简 Skill
 
 **修改文件**：
