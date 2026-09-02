@@ -154,13 +154,12 @@ body {
   }
 }
 
-.logo-mark {
+.logo-img {
   display: block;
-  width: 1.25rem;
   height: 1.25rem;
-  background-color: currentColor;
-  -webkit-mask: var(--logo-src) center / contain no-repeat;
-  mask: var(--logo-src) center / contain no-repeat;
+  width: auto;
+  max-width: 4.5rem;
+  object-fit: contain;
 }
 
 /* Subtle background glow & mesh */

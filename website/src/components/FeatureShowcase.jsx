@@ -27,14 +27,10 @@ job <site> search <keyword> [options]
     codeSnippet: `// 跨公司多站点聚合对比
 job compare <keyword> --sites <site1,site2,...>
 
-// 输出多站点岗位对照表
-┌──────────┬────────────────────────┬────────┬────────────┐
-│ 站点     │ 岗位名称               │ 地点   │ 调取指令   │
-├──────────┼────────────────────────┼────────┼────────────┤
-│ meituan  │ 资深前端架构师         │ 北京   │ job mt jd  │
-│ xiaomi   │ 前端开发专家 (Web)     │ 武汉   │ job xm jd  │
-│ bytedance│ 前端工程专家 (抖音)    │ 杭州   │ job bd jd  │
-└──────────┴────────────────────────┴────────┴────────────┘`,
+// 使用搜索结果里的岗位 ID 查看完整 JD
+job meituan detail <job-id> --format json
+job xiaomi detail <job-id> --format json
+job bytedance detail <job-id> --format json`,
   },
   {
     id: 'agent-native',
