@@ -48,6 +48,9 @@
   },
   "scripts": {
     "job": "node bin/job.js",
+    "web:dev": "npm --prefix website run dev",
+    "web:build": "npm --prefix website run build",
+    "web:preview": "npm --prefix website run preview",
     "test": "node --test test/**/*.test.js",
     "token-benchmark": "node scripts/token-benchmark.js",
     "smoke:nature-matrix": "node scripts/smoke-nature-matrix.js",

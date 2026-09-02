@@ -1,0 +1,187 @@
+@import 'tailwindcss';
+@import '@appica/ui-react/styles.css';
+
+@source '../node_modules/@appica/ui-react/dist';
+
+:root,
+.light {
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+  --radius: 0.5rem;
+  --foreground: oklch(0.18 0.01 75);
+  --foreground-muted: oklch(0.42 0.012 75);
+  --foreground-subtle: oklch(0.58 0.01 75);
+  --foreground-strong: oklch(0.12 0.01 75);
+  --foreground-emphasis: oklch(0.10 0.01 75);
+  --foreground-intense: oklch(0.08 0.01 75);
+  --background: oklch(0.99 0.002 80);
+  --background-subtle: oklch(0.965 0.005 80);
+  --border: oklch(0.88 0.006 80);
+  --border-muted: oklch(0.92 0.004 80);
+  --primary: oklch(0.18 0.01 75);
+  --primary-foreground: oklch(0.99 0.002 80);
+}
+
+.dark {
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+  --radius: 0.5rem;
+  --foreground: oklch(0.96 0.004 80);
+  --foreground-muted: oklch(0.68 0.01 80);
+  --foreground-subtle: oklch(0.52 0.01 80);
+  --foreground-strong: oklch(0.98 0.002 80);
+  --foreground-emphasis: oklch(1 0 0);
+  --foreground-intense: oklch(1 0 0);
+  --background: oklch(0.12 0.01 75);
+  --background-subtle: oklch(0.16 0.01 75);
+  --border: oklch(0.24 0.01 75);
+  --border-muted: oklch(0.20 0.01 75);
+  --primary: oklch(0.96 0.004 80);
+  --primary-foreground: oklch(0.12 0.01 75);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: 0.75rem;
+  z-index: 50;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease-out;
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.page-shell {
+  width: min(100% - 2rem, 74rem);
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    width: min(100% - 3rem, 74rem);
+  }
+}
+
+.hero-title {
+  font-size: clamp(2.25rem, 5.5vw, 4.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
+/* Mask fade for clean edge transitions */
+.mask-fade-x {
+  mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+}
+
+.marquee {
+  --marquee-duration: 48s;
+  overflow: hidden;
+}
+
+.marquee-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll var(--marquee-duration) linear infinite;
+}
+
+.marquee-track-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll-reverse var(--marquee-duration) linear infinite;
+}
+
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track,
+.marquee:hover .marquee-track-reverse,
+.marquee:focus-within .marquee-track-reverse {
+  animation-play-state: paused;
+}
+
+.marquee-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-inline: 0.625rem;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-scroll-reverse {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.logo-img {
+  display: block;
+  height: 1.25rem;
+  width: auto;
+  max-width: 4.5rem;
+  object-fit: contain;
+}
+
+/* Subtle background glow & mesh */
+.hero-glow {
+  background: radial-gradient(circle at 50% 0%, oklch(0.5 0.05 240 / 0.08) 0%, transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .marquee-track-reverse {
+    animation: none;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+    row-gap: 0.75rem;
+  }
+
+  .marquee-duplicate {
+    display: none;
+  }
+
+  .marquee-viewport {
+    overflow: visible;
+  }
+}
