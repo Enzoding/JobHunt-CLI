@@ -4,10 +4,10 @@ import { CopyButton } from '@appica/ui-react/copy-button';
 const FEATURES = [
   {
     id: 'unified',
-    title: '统一搜索 · 抹平各招聘官网差异',
+    title: '统一搜索 · 抹平官网差异',
     badge: '统一数据契约',
     description:
-      '无论目标是美团、字节还是腾讯，统一使用相同参数。通过 `--nature` 在社招、校招、实习之间无缝切换，再也不用手动去 30 多个网站挨个找筛选器。',
+      '一条命令覆盖各家官网。通过 `--nature` 自由切换社招、校招与实习，无需记忆各站点繁琐的筛选规则。',
     command: 'job meituan search "算法" --nature social --category 技术类 --limit 5',
     codeSnippet: `// 统一的 CLI 命令格式
 job <site> search <keyword> [options]
@@ -19,10 +19,10 @@ job <site> search <keyword> [options]
   },
   {
     id: 'compare',
-    title: '跨司横向对比 · 一屏决策目标岗位',
+    title: '跨司对比 · 一屏决策目标',
     badge: '横向对比分析',
     description:
-      '传统找工作需要在几十个浏览器标签页来回跳转。`job compare` 把多家公司的在招职位拉到同一个结构化视图中，快速比对职责要求、Base 地点与发布时间。',
+      '一屏对比多家公司的在招岗位。直观比对职责要求、Base 地点与发布时间，告别多标签页来回切换。',
     command: 'job compare "前端" --sites meituan,xiaomi,bytedance --nature social',
     codeSnippet: `// 跨公司多站点聚合对比
 job compare <keyword> --sites <site1,site2,...>
@@ -38,10 +38,10 @@ job compare <keyword> --sites <site1,site2,...>
   },
   {
     id: 'agent-native',
-    title: 'Agent 原生 · 上下文 Token 极致压缩',
-    badge: 'LLM Context-First',
+    title: 'Agent 原生 · 上下文 Token 压缩',
+    badge: 'LLM 优化',
     description:
-      '专为 Codex、Claude Code、OpenClaw 等 AI Agent 优化。`--view compact` 模式智能剥离冗余 DOM 与无用文本，单条岗位仅消耗约 80 Token，比直接抓网页节省 75%+ 上下文。',
+      '紧凑 JSON 输出，专为 LLM 上下文优化。`--view compact` 智能剥离冗余信息，单岗位仅需约 80 Token，节省 75%+ 上下文。',
     command: 'job aliyun search "Agent" --format json --view compact',
     codeSnippet: `// 紧凑 JSON 输出，专为 LLM 上下文设计
 {
@@ -60,7 +60,7 @@ export function FeatureShowcase() {
   const active = FEATURES.find((f) => f.id === selectedFeature) || FEATURES[0];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Feature Selector Tabs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {FEATURES.map((feature) => {
@@ -96,9 +96,9 @@ export function FeatureShowcase() {
       </div>
 
       {/* Detail Showcase Panel */}
-      <div className="rounded-xl border border-border bg-background-subtle p-5 sm:p-7 shadow-lg">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          <div className="lg:col-span-5 space-y-4">
+      <div className="rounded-xl border border-border bg-background-subtle p-5 sm:p-6 shadow-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-5 space-y-3.5">
             <span className="text-xs font-mono text-foreground-muted font-medium uppercase tracking-wider">
               {active.badge}
             </span>
@@ -109,9 +109,9 @@ export function FeatureShowcase() {
               {active.description}
             </p>
 
-            <div className="pt-2">
+            <div className="pt-1">
               <div className="text-xs font-mono text-foreground-subtle mb-1.5 font-medium">
-                推荐执行命令:
+                执行示例:
               </div>
               <div className="flex items-center gap-2 p-2.5 rounded-lg border border-border bg-background text-xs font-mono text-foreground">
                 <code className="flex-1 truncate">{active.command}</code>

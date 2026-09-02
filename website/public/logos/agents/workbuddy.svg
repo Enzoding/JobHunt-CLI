@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="WorkBuddy">
-  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="6" fill="none" stroke="#111111" stroke-width="1.5"/>
-  <text x="16" y="20.5" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#111111">WB</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path fill="#000" d="M12 2a3 3 0 0 0-3 3v1H6a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3h-3V5a3 3 0 0 0-3-3zm0 1.8c.7 0 1.2.5 1.2 1.2V6h-2.4V5c0-.7.5-1.2 1.2-1.2zM6 7.8h12c.7 0 1.2.5 1.2 1.2v7c0 .7-.5 1.2-1.2 1.2H6c-.7 0-1.2-.5-1.2-1.2V9c0-.7.5-1.2 1.2-1.2zm2.5 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-5.5 4.5a3.5 3.5 0 0 0 4 0 .6.6 0 0 1 .7 1 4.7 4.7 0 0 1-5.4 0 .6.6 0 0 1 .7-1z"/>
 </svg>

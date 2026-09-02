@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Claude Code">
-  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="6" fill="none" stroke="#111111" stroke-width="1.5"/>
-  <text x="16" y="20.5" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#111111">CC</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path fill="#000" d="M10.8 2h2.4v6.2l4.4-4.4 1.7 1.7-4.4 4.4H21v2.4h-6.2l4.4 4.4-1.7 1.7-4.4-4.4V22h-2.4v-6.2l-4.4 4.4-1.7-1.7 4.4-4.4H3V11.8h6.2L4.8 7.4l1.7-1.7 4.4 4.4V2z"/>
 </svg>

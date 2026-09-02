@@ -4,18 +4,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@appica/ui-react/tabs'
 
 const INSTALL_OPTIONS = [
   {
-    value: 'skill',
-    label: 'Agent Skill (推荐)',
-    command: 'npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli',
-    badge: '零配置 · 即装即用',
-    hint: '直接为 Codex、Claude Code、OpenClaw、Hermes 等 Agent 赋予 30+ 招聘官网查询能力。',
-  },
-  {
     value: 'cli',
-    label: '全局 CLI 安装',
+    label: 'CLI 安装 (推荐)',
     command: 'npm install -g jobhunt-cli',
     badge: 'Node.js >= 21',
-    hint: '安装后全局获得 `job` 命令，支持终端表格输出、多格式导出与自动化工作流。',
+    hint: '全局安装 job 命令，开箱即用，支持终端交互、多司对比与多格式导出。',
+  },
+  {
+    value: 'skill',
+    label: 'Agent Skill',
+    command: 'npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli',
+    badge: '零配置 · 即装即用',
+    hint: '为 Codex、Claude Code、OpenClaw 等 Agent 添加招聘官网查询能力。',
   },
 ];
 
@@ -44,7 +44,7 @@ function CommandBlock({ command }) {
 export function InstallCommand() {
   return (
     <div className="w-full">
-      <Tabs defaultValue="skill" variant="line" size="sm" className="w-full">
+      <Tabs defaultValue="cli" variant="line" size="sm" className="w-full">
         <TabsList className="border-b border-border/80 w-full justify-start gap-2">
           {INSTALL_OPTIONS.map((option) => (
             <TabsTrigger key={option.value} value={option.value} className="text-xs sm:text-sm font-medium">
@@ -53,9 +53,9 @@ export function InstallCommand() {
           ))}
         </TabsList>
         {INSTALL_OPTIONS.map((option) => (
-          <TabsContent key={option.value} value={option.value} className="pt-3.5 space-y-2.5">
+          <TabsContent key={option.value} value={option.value} className="pt-3.5 space-y-2">
             <CommandBlock command={option.command} />
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs text-foreground-muted">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-foreground-muted">
               <p className="m-0 leading-relaxed">{option.hint}</p>
               <span className="shrink-0 text-[11px] font-mono text-foreground-subtle self-start sm:self-auto">
                 {option.badge}

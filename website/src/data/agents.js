@@ -1,7 +1,9 @@
 export const agents = [
-  { id: 'codex', name: 'Codex', initials: 'CDX' },
-  { id: 'claude-code', name: 'Claude Code', initials: 'CC' },
-  { id: 'openclaw', name: 'OpenClaw', initials: 'OC' },
-  { id: 'hermes', name: 'Hermes', initials: 'HM' },
-  { id: 'workbuddy', name: 'WorkBuddy', initials: 'WB' },
+  { id: 'codex', name: 'Codex' },
+  { id: 'claude-code', name: 'Claude Code' },
+  { id: 'openclaw', name: 'OpenClaw' },
+  { id: 'hermes', name: 'Hermes' },
+  { id: 'workbuddy', name: 'WorkBuddy' },
+  { id: 'cursor', name: 'Cursor' },
+  { id: 'windsurf', name: 'Windsurf' },
 ];

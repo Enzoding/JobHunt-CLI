@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="OpenClaw">
-  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="6" fill="none" stroke="#111111" stroke-width="1.5"/>
-  <text x="16" y="20.5" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#111111">OC</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path fill="#000" d="M12 2a10 10 0 0 0-10 10c0 3.82 2.15 7.14 5.31 8.82l1.7-2.27A7.2 7.2 0 0 1 4.8 12c0-3.98 3.22-7.2 7.2-7.2 2.5 0 4.7 1.28 5.98 3.23l2.25-1.69C18.42 3.78 15.42 2 12 2zm6.5 7a3.5 3.5 0 0 0-3.5 3.5c0 .32.06.63.15.93l-3.36 3.36a2.5 2.5 0 0 0 0 3.53 2.5 2.5 0 0 0 3.53 0l3.36-3.36c.3.09.61.15.93.15a3.5 3.5 0 0 0 3.5-3.5 3.5 3.5 0 0 0-4.61-3.31l-1.6 1.6 1.41 1.41 1.6-1.6a1.5 1.5 0 0 1 2.12 2.12l-1.6 1.6 1.41 1.41 1.6-1.6a1.5 1.5 0 0 1 2.12 2.12 1.5 1.5 0 0 1-2.12 0l-3.36-3.36a3.5 3.5 0 0 0-4.48-4.48z"/>
 </svg>

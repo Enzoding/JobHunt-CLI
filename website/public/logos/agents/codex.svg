@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Codex">
-  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="6" fill="none" stroke="#111111" stroke-width="1.5"/>
-  <text x="16" y="20.5" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#111111">CDX</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path fill="#000" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-3.2 6.3l4.2 3.7-4.2 3.7 1.2 1.3 5.7-5-5.7-5-1.2 1.3zm6.2 8.7h5v-1.8h-5V17z"/>
 </svg>
