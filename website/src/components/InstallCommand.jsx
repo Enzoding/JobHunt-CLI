@@ -1,35 +1,39 @@
+import React from 'react';
 import { CopyButton } from '@appica/ui-react/copy-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@appica/ui-react/tabs';
 
 const INSTALL_OPTIONS = [
   {
     value: 'skill',
-    label: '安装 Agent Skill',
+    label: 'Agent Skill (推荐)',
     command: 'npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli',
-    hint: '让 Codex、Claude Code 等 Agent 直接调用同一套招聘查询命令。',
+    badge: '零配置 · 即装即用',
+    hint: '直接为 Codex、Claude Code、OpenClaw、Hermes 等 Agent 赋予 30+ 招聘官网查询能力。',
   },
   {
     value: 'cli',
-    label: '安装 CLI',
+    label: '全局 CLI 安装',
     command: 'npm install -g jobhunt-cli',
-    hint: '需要 Node.js 21 或更高版本。安装后即可使用 job 命令。',
+    badge: 'Node.js >= 21',
+    hint: '安装后全局获得 `job` 命令，支持终端表格输出、多格式导出与自动化工作流。',
   },
 ];
 
 function CommandBlock({ command }) {
   return (
-    <div className="border-border bg-background-subtle relative overflow-hidden rounded-md border">
-      <div className="flex items-start gap-3 px-4 py-3 pe-12">
-        <code className="text-foreground min-w-0 flex-1 font-mono text-[13px] leading-6 break-all">
+    <div className="border border-border bg-background-subtle relative overflow-hidden rounded-lg shadow-xs group transition-colors hover:border-foreground/40">
+      <div className="flex items-center gap-3 px-4 py-3.5 pe-12">
+        <span className="text-foreground-muted select-none font-mono text-xs">$</span>
+        <code className="text-foreground min-w-0 flex-1 font-mono text-xs sm:text-[13px] leading-6 break-all font-medium">
           {command}
         </code>
       </div>
       <div className="absolute inset-e-2 top-1/2 -translate-y-1/2">
         <CopyButton
           value={command}
-          variant="ghost"
+          variant="outline"
           size="icon-sm"
-          label="复制命令"
+          label="一键复制安装命令"
           copiedLabel="已复制"
         />
       </div>
@@ -39,20 +43,27 @@ function CommandBlock({ command }) {
 
 export function InstallCommand() {
   return (
-    <Tabs defaultValue="skill" variant="line" size="sm" className="w-full">
-      <TabsList>
+    <div className="w-full">
+      <Tabs defaultValue="skill" variant="line" size="sm" className="w-full">
+        <TabsList className="border-b border-border/80 w-full justify-start gap-2">
+          {INSTALL_OPTIONS.map((option) => (
+            <TabsTrigger key={option.value} value={option.value} className="text-xs sm:text-sm font-medium">
+              {option.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
         {INSTALL_OPTIONS.map((option) => (
-          <TabsTrigger key={option.value} value={option.value}>
-            {option.label}
-          </TabsTrigger>
+          <TabsContent key={option.value} value={option.value} className="pt-3.5 space-y-2.5">
+            <CommandBlock command={option.command} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs text-foreground-muted">
+              <p className="m-0 leading-relaxed">{option.hint}</p>
+              <span className="shrink-0 text-[11px] font-mono text-foreground-subtle self-start sm:self-auto">
+                {option.badge}
+              </span>
+            </div>
+          </TabsContent>
         ))}
-      </TabsList>
-      {INSTALL_OPTIONS.map((option) => (
-        <TabsContent key={option.value} value={option.value} className="pt-4">
-          <CommandBlock command={option.command} />
-          <p className="text-foreground-muted mt-3 text-sm leading-6">{option.hint}</p>
-        </TabsContent>
-      ))}
-    </Tabs>
+      </Tabs>
+    </div>
   );
 }
