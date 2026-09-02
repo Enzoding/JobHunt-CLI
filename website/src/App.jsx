@@ -141,7 +141,7 @@ export default function App() {
               </h2>
             </div>
             <p className="text-foreground-muted text-xs sm:text-sm max-w-lg leading-relaxed">
-              数据以各站点实时 registry 为准，包含独立 adapter 与阿里 CPO 体系。开箱即用，支持多 Agent 运行时无缝调用。
+              数据以各站点实时 registry 为准。阿里系统一用阿里巴巴标识，其余公司使用对应品牌图形。开箱即用，支持多 Agent 运行时无缝调用。
             </p>
           </div>
 

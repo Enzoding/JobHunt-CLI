@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-09-02
+
+### 落地页公司 Logo 改为对应品牌图形
+
+**修改文件**：`website/src/data/companies.js`、`website/src/components/LogoMarquee.jsx`、`website/src/App.jsx`、`website/src/styles.css`、`website/public/logos/companies/`、`CHANGES.md`
+
+**修改内容**：
+1. 公司跑马灯不再使用字母占位图。阿里系（CPO 子品牌与蚂蚁）合并为一条「Alibaba」，其余公司使用对应品牌 SVG/PNG。
+2. Logo 改为本地静态文件 + `<img>` 展示，不依赖运行时 CDN。
+
+**原因**：用户反馈当前 logo 都是虚拟标识，要求阿里系统一、其余找出对应 logo。
+
+**影响范围**：
+- 仅 `website/` 落地页展示；CLI 与 npm 包不变。
+
+---
+
 ## 2026-09-01
 
 ### 新增独立落地页 `website/`

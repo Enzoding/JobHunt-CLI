@@ -1,13 +1,13 @@
 import React from 'react';
 
+function logoSrc(item, logoDir) {
+  return item.file || `/logos/${logoDir}/${item.id}.svg`;
+}
+
 function MarqueeItem({ item, logoDir }) {
   return (
     <div className="flex shrink-0 items-center gap-2.5 px-3 py-1.5 rounded-md border border-border/60 bg-background/50 backdrop-blur-xs transition-all duration-200 hover:border-foreground/30 hover:bg-background hover:scale-[1.02] select-none">
-      <span
-        className="logo-mark"
-        style={{ '--logo-src': `url(/logos/${logoDir}/${item.id}.svg)` }}
-        aria-hidden="true"
-      />
+      <img src={logoSrc(item, logoDir)} alt="" className="logo-img" />
       <span className="text-foreground text-xs sm:text-sm font-medium tracking-tight whitespace-nowrap">
         {item.name}
       </span>
