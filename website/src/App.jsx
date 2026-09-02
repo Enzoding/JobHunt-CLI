@@ -88,20 +88,20 @@ export default function App() {
           <div className="page-shell py-12 sm:py-16 lg:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               {/* Left Column: Value Prop & Install */}
-              <div className="lg:col-span-6 space-y-5">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>v0.2.6 · 30+ 招聘官网 · Agent 原生支持</span>
+              <div className="lg:col-span-6 space-y-4 sm:space-y-5">
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>开源 CLI · 覆盖 30+ 招聘官网</span>
                 </div>
 
                 <h1 className="hero-title text-foreground tracking-tight">
-                  让 Agent 与开发者
+                  让 Agent 直接搜索
                   <br />
-                  直达真实招聘官网
+                  真实招聘官网
                 </h1>
 
-                <p className="text-foreground-muted text-base sm:text-lg leading-relaxed max-w-xl">
-                  聚合 30+ 家互联网大厂公开招聘数据。同一套 <code className="font-mono text-sm px-1.5 py-0.5 rounded bg-foreground/5 border border-border text-foreground font-semibold">job</code> 命令，支持单司检索、跨司对比与 Agent 紧凑数据流。
+                <p className="text-foreground-muted text-sm sm:text-base leading-relaxed max-w-lg">
+                  把 30+ 家大厂职位统一成结构化数据。同一套 <code className="font-mono text-xs sm:text-sm px-1.5 py-0.5 rounded bg-foreground/5 border border-border text-foreground font-semibold">job</code> 命令，支持单司检索、跨司对比与按需导出。
                 </p>
 
                 <div id="install" className="pt-1 scroll-mt-24">

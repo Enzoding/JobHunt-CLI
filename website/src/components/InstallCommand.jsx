@@ -8,14 +8,14 @@ const INSTALL_OPTIONS = [
     label: 'CLI 安装 (推荐)',
     command: 'npm install -g jobhunt-cli',
     badge: 'Node.js >= 21',
-    hint: '全局安装 job 命令，开箱即用，支持终端交互、多司对比与多格式导出。',
+    hint: '全局安装 job 命令，支持单司检索、跨司对比与数据导出。',
   },
   {
     value: 'skill',
     label: 'Agent Skill',
     command: 'npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli',
-    badge: '零配置 · 即装即用',
-    hint: '为 Codex、Claude Code、OpenClaw 等 Agent 添加招聘官网查询能力。',
+    badge: '即装即用',
+    hint: '为 Codex、Claude Code、OpenClaw 等 Agent 赋予查询能力。',
   },
 ];
 
