@@ -6,7 +6,7 @@ const DEMO_SCENARIOS = [
     id: 'search',
     label: 'job search',
     tag: '单司检索',
-    command: 'job meituan search "AI Agent" --category 技术类 --view compact --limit 3',
+    command: 'job meituan search "AI Agent" --category 技术类 --view compact --format json --limit 3',
     status: '200 OK · 124ms',
     content: (
       <div className="space-y-2 text-xs md:text-[13px] leading-relaxed font-mono">
@@ -14,33 +14,33 @@ const DEMO_SCENARIOS = [
           ✔ 已连接 meituan 招聘官网 registry · 耗时 38ms
         </div>
         <div className="text-foreground-muted">
-          找到 18 个匹配职位 (当前展示前 3 条 · --view compact 紧凑视图):
+          找到匹配职位 (当前展示前 3 条 · --view compact 紧凑视图):
         </div>
         <div className="border-l-2 border-primary/40 pl-3 space-y-1.5 my-2.5">
           <div>
-            <span className="text-foreground font-semibold">[1] 大模型应用开发专家 (Agentic Workflow)</span>
-            <span className="text-foreground-muted ml-2 text-xs">北京 · 美团平台 · 社招</span>
+            <span className="text-foreground font-semibold">[1] AI Agent Builder</span>
+            <span className="text-foreground-muted ml-2 text-xs">深圳市 · 无人机业务部 · 社招</span>
             <div className="text-foreground-subtle text-[11px] truncate">
-              ID: MT-882103 · 标签: Python / LLM / Agent / Prompt · 更新: 2026-03-01
+              ID: 4669710957 · 标签: Java / AI Agent / 系统设计 · 更新: 2026-09-01
             </div>
           </div>
           <div className="pt-1">
-            <span className="text-foreground font-semibold">[2] Agent 算法工程师 (NLP/RL 方向)</span>
-            <span className="text-foreground-muted ml-2 text-xs">上海 · 核心本地商业 · 社招</span>
+            <span className="text-foreground font-semibold">[2] AI Agent工程师</span>
+            <span className="text-foreground-muted ml-2 text-xs">北京市、上海市 · 核心本地商业-基础研发平台 · 社招</span>
             <div className="text-foreground-subtle text-[11px] truncate">
-              ID: MT-881944 · 标签: RAG / LangChain / Multi-Agent · 更新: 2026-02-28
+              ID: 3424768905 · 标签: AI Agent · 更新: 2026-07-23
             </div>
           </div>
           <div className="pt-1">
-            <span className="text-foreground font-semibold">[3] AI 智能体后端架构师</span>
-            <span className="text-foreground-muted ml-2 text-xs">北京 · 自动车配送部 · 社招</span>
+            <span className="text-foreground font-semibold">[3] AI Agent 开发工程师</span>
+            <span className="text-foreground-muted ml-2 text-xs">北京市、成都市 · 核心本地商业-基础研发平台 · 社招</span>
             <div className="text-foreground-subtle text-[11px] truncate">
-              ID: MT-879012 · 标签: Go / 微服务 / 高并发 · 更新: 2026-02-27
+              ID: 4603842394 · 标签: AI Agent · 更新: 2026-08-28
             </div>
           </div>
         </div>
         <div className="text-foreground-subtle text-xs">
-          💡 运行 <span className="text-foreground font-semibold">job meituan jd MT-882103</span> 可直接查看完整岗位详情
+          💡 运行 <span className="text-foreground font-semibold">job meituan detail 4669710957 --format json</span> 可直接查看完整岗位详情
         </div>
       </div>
     ),
@@ -69,21 +69,21 @@ const DEMO_SCENARIOS = [
             <tbody className="divide-y divide-border/50 text-foreground">
               <tr>
                 <td className="py-1.5 pr-3 font-medium text-amber-600 dark:text-amber-400">美团</td>
-                <td className="py-1.5 pr-3">LLM Agent 研发专家</td>
-                <td className="py-1.5 pr-2 text-foreground-muted">北京</td>
-                <td className="py-1.5 text-foreground-subtle">job meituan jd 10248</td>
+                <td className="py-1.5 pr-3">AI Agent Builder</td>
+                <td className="py-1.5 pr-2 text-foreground-muted">深圳市</td>
+                <td className="py-1.5 text-foreground-subtle">job meituan detail 4669710957 --format json</td>
               </tr>
               <tr>
                 <td className="py-1.5 pr-3 font-medium text-orange-600 dark:text-orange-400">小米</td>
-                <td className="py-1.5 pr-3">端侧大模型算法专家</td>
-                <td className="py-1.5 pr-2 text-foreground-muted">武汉</td>
-                <td className="py-1.5 text-foreground-subtle">job xiaomi jd 88402</td>
+                <td className="py-1.5 pr-3">搜广推算法平台架构专家</td>
+                <td className="py-1.5 pr-2 text-foreground-muted">北京</td>
+                <td className="py-1.5 text-foreground-subtle">job xiaomi detail 7677425837373622569 --format json</td>
               </tr>
               <tr>
                 <td className="py-1.5 pr-3 font-medium text-blue-600 dark:text-blue-400">腾讯</td>
-                <td className="py-1.5 pr-3">混元大模型应用工程师</td>
-                <td className="py-1.5 pr-2 text-foreground-muted">深圳</td>
-                <td className="py-1.5 text-foreground-subtle">job tencent jd 77190</td>
+                <td className="py-1.5 pr-3">Agent Security Expert</td>
+                <td className="py-1.5 pr-2 text-foreground-muted">新加坡</td>
+                <td className="py-1.5 text-foreground-subtle">job tencent detail 2088058045916692480 --format json</td>
               </tr>
             </tbody>
           </table>
@@ -112,18 +112,18 @@ const DEMO_SCENARIOS = [
   "context_optimized": true,
   "jobs": [
     {
-      "id": "TC-202603019",
-      "title": "腾讯混元 Agent 研发专家",
-      "city": "深圳",
-      "dept": "TEG技术工程事业群",
+      "id": "2088058045916692480",
+      "title": "Agent Security Expert",
+      "city": "新加坡",
+      "dept": "CSIG",
       "nature": "social",
       "url": "https://careers.tencent.com/..."
     },
     {
-      "id": "TC-202602881",
-      "title": "微信 AI Agent 后端开发",
-      "city": "广州",
-      "dept": "WXG微信事业群",
+      "id": "2090443785732538368",
+      "title": "Product Manager, WorkBuddy Enterprise — Agent Platform",
+      "city": "新加坡",
+      "dept": "CSIG",
       "nature": "social",
       "url": "https://careers.tencent.com/..."
     }
