@@ -41,7 +41,7 @@ function SiteMark() {
     <a href="#top" className="text-foreground inline-flex items-center gap-2.5 no-underline group">
       <span
         aria-hidden="true"
-        className="border-foreground/80 bg-foreground text-background inline-flex h-6 w-6 items-center justify-center rounded-[5px] border text-[11px] leading-none font-mono font-bold"
+        className="border-foreground/80 bg-foreground text-background inline-flex h-6 w-6 items-center justify-center rounded-[6px] border text-[12px] leading-none font-mono font-bold shadow-xs group-hover:scale-105 transition-transform"
       >
         &gt;_
       </span>
@@ -60,10 +60,10 @@ export default function App() {
       </a>
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-md">
         <div className="page-shell flex h-14 items-center justify-between gap-6">
           <SiteMark />
-          <nav aria-label="页面章节导航" className="hidden items-center gap-6 md:flex">
+          <nav aria-label="页面章节导航" className="hidden items-center gap-7 md:flex">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
@@ -84,13 +84,13 @@ export default function App() {
 
       <main id="main">
         {/* Hero Section */}
-        <section className="relative border-b border-border">
+        <section className="relative overflow-hidden border-b border-border hero-glow">
           <div className="page-shell py-12 sm:py-16 lg:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               {/* Left Column: Value Prop & Install */}
               <div className="lg:col-span-6 space-y-4 sm:space-y-5">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span>开源 CLI · 覆盖 30+ 招聘官网</span>
                 </div>
 
@@ -121,7 +121,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Right Column: Visual Anchor / Developer Command Deck */}
+              {/* Right Column: Visual Anchor / Interactive Terminal Showcase */}
               <div className="lg:col-span-6">
                 <TerminalShowcase />
               </div>
@@ -130,13 +130,13 @@ export default function App() {
         </section>
 
         {/* Ecosystem Marquee Section */}
-        <section id="ecosystem" className="border-b border-border py-10 sm:py-12 scroll-mt-14 bg-background-subtle/20">
+        <section id="ecosystem" className="border-b border-border py-10 sm:py-14 scroll-mt-14 bg-background-subtle/30">
           <div className="page-shell mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
             <div>
               <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
-                Ecosystem
+                Supported Ecosystem
               </div>
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                 覆盖 30+ 招聘官网与主流 Agent
               </h2>
             </div>
@@ -145,7 +145,7 @@ export default function App() {
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {/* Row 1: Companies (Moving left) */}
             <LogoMarquee
               items={companies}
@@ -165,16 +165,16 @@ export default function App() {
         </section>
 
         {/* Core Capabilities Section */}
-        <section id="capabilities" className="border-b border-border py-12 sm:py-16 scroll-mt-14">
-          <div className="page-shell space-y-6">
+        <section id="capabilities" className="border-b border-border py-14 sm:py-20 scroll-mt-14">
+          <div className="page-shell space-y-8">
             <div className="max-w-xl">
               <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
-                Capabilities
+                Core Capabilities
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 核心能力
               </h2>
-              <p className="text-foreground-muted mt-1.5 text-xs sm:text-sm leading-relaxed">
+              <p className="text-foreground-muted mt-2 text-sm sm:text-base leading-relaxed">
                 统一数据规范，横向比对分析，极低 Token 消耗。
               </p>
             </div>
@@ -183,68 +183,58 @@ export default function App() {
           </div>
         </section>
 
-        {/* Quickstart Workflow: Precision Pipeline Stream */}
-        <section id="workflow" className="border-b border-border py-12 sm:py-16 scroll-mt-14 bg-background-subtle/30">
-          <div className="page-shell space-y-8">
-            <div className="max-w-xl">
+        {/* Quickstart Workflow Section */}
+        <section id="workflow" className="border-b border-border py-14 sm:py-18 scroll-mt-14 bg-background-subtle/40">
+          <div className="page-shell">
+            <div className="text-center max-w-xl mx-auto mb-10">
               <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
-                Quickstart
+                Quickstart Workflow
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                管道式快速上手
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                快速上手
               </h2>
-              <p className="text-foreground-muted mt-1.5 text-xs sm:text-sm">
-                三步极速串联 CLI 与 Agent 工作流
+              <p className="text-foreground-muted mt-1.5 text-sm sm:text-base">
+                三步开始使用
               </p>
             </div>
 
-            {/* Continuous Pipeline Rails */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 sm:p-5 rounded-lg border border-border bg-background space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-foreground">STEP 01</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-foreground/5 text-foreground-muted border border-border">
-                    INSTALL
-                  </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
+                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                  01
                 </div>
-                <div className="text-sm font-semibold text-foreground">安装 CLI / Skill</div>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground">安装 CLI 或 Skill</h3>
                 <p className="text-xs text-foreground-muted leading-relaxed">
                   通过 npm 全局安装到终端，或通过 npx 为 Agent 接入。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border font-mono text-xs text-foreground truncate">
-                  $ npm i -g jobhunt-cli
+                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
+                  npm install -g jobhunt-cli
                 </div>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-lg border border-border bg-background space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-foreground">STEP 02</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-foreground/5 text-foreground-muted border border-border">
-                    DISCOVER
-                  </span>
+              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
+                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                  02
                 </div>
-                <div className="text-sm font-semibold text-foreground">查看支持站点</div>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground">查看支持站点</h3>
                 <p className="text-xs text-foreground-muted leading-relaxed">
-                  列出所有支持的 30+ 家企业代码与筛选分类。
+                  列出所有支持的企业代码与可用类别。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border font-mono text-xs text-foreground truncate">
-                  $ job sites
+                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
+                  job sites
                 </div>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-lg border border-border bg-background space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-foreground">STEP 03</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-foreground/5 text-foreground-muted border border-border">
-                    QUERY & COMPARE
-                  </span>
+              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
+                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                  03
                 </div>
-                <div className="text-sm font-semibold text-foreground">执行搜索与比对</div>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground">开始搜索与比对</h3>
                 <p className="text-xs text-foreground-muted leading-relaxed">
                   跨公司横向比对，直接输出表格、CSV 或 JSON。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border font-mono text-xs text-foreground truncate">
-                  $ job compare AI --sites meituan,xiaomi
+                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
+                  job compare AI --sites meituan,xiaomi
                 </div>
               </div>
             </div>
@@ -252,16 +242,16 @@ export default function App() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="border-b border-border py-12 sm:py-16">
+        <section className="border-b border-border py-14 sm:py-20">
           <div className="page-shell">
-            <div className="rounded-lg border border-border bg-background-subtle p-6 sm:p-8 text-center max-w-xl mx-auto space-y-4">
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            <div className="rounded-2xl border border-border bg-background-subtle p-8 sm:p-10 text-center max-w-2xl mx-auto space-y-5 shadow-sm">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 开源、轻量、专为开发者与 Agent 打造
               </h2>
-              <p className="text-foreground-muted text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+              <p className="text-foreground-muted text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
                 无需繁复配置，一条命令直连 30+ 家真实招聘官网。
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+              <div className="flex flex-wrap items-center justify-center gap-3.5 pt-1">
                 <a
                   href="#install"
                   className={buttonVariants({ variant: 'primary', size: 'md' })}
@@ -279,7 +269,7 @@ export default function App() {
 
       {/* Footer */}
       <footer>
-        <div className="page-shell flex flex-col sm:flex-row items-center justify-between gap-4 py-6 text-xs text-foreground-muted">
+        <div className="page-shell flex flex-col sm:flex-row items-center justify-between gap-4 py-7 text-xs text-foreground-muted">
           <div className="flex items-center gap-3">
             <span className="font-semibold text-foreground">JobHunt CLI</span>
             <span>·</span>
