@@ -193,12 +193,21 @@ export function FeatureShowcase() {
 
           {/* Right Column: High-contrast Output Showcase */}
           <div className="lg:col-span-7">
-            <div className="rounded-xl border border-slate-800 bg-[#0d1117] overflow-hidden shadow-md">
-              <div className="flex items-center justify-between px-3.5 py-2 border-b border-slate-800 bg-[#151b23] text-[11px] font-mono">
-                <span className="text-slate-300 font-medium">{active.codeTitle}</span>
-                <span className="text-slate-400">{active.codeLang}</span>
+            <div className="glass-terminal rounded-xl overflow-hidden">
+              <div className="glass-terminal-titlebar flex items-center justify-between px-3.5 py-2 text-[11px] font-mono select-none">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] shadow-[0_0_8px_rgba(255,95,86,0.5)] inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] shadow-[0_0_8px_rgba(255,189,46,0.5)] inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f] shadow-[0_0_8px_rgba(39,201,63,0.5)] inline-block" />
+                  </div>
+                  <span className="text-slate-300 font-medium ml-1">{active.codeTitle}</span>
+                </div>
+                <span className="text-slate-400 font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/10">
+                  {active.codeLang}
+                </span>
               </div>
-              <pre className="p-4 m-0 overflow-x-auto font-mono text-xs leading-relaxed text-slate-200 bg-[#0d1117]">
+              <pre className="glass-terminal-body p-4 m-0 overflow-x-auto font-mono text-xs leading-relaxed text-slate-200">
                 {active.codeSnippet}
               </pre>
             </div>

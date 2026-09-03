@@ -125,7 +125,11 @@ export default function App() {
               </div>
 
               {/* Right Column: Visual Anchor / Interactive Terminal Showcase */}
-              <div className="lg:col-span-6 min-w-0 w-full">
+              <div className="lg:col-span-6 min-w-0 w-full relative group">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -inset-2.5 rounded-2xl bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-sky-500/15 blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-500 -z-1"
+                />
                 <TerminalShowcase />
               </div>
             </div>

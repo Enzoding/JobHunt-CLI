@@ -6,6 +6,30 @@
 
 ## 2026-09-03
 
+### 终端展示引入深色毛玻璃（Acrylic / Glassmorphism）质感与光影升级
+
+**修改文件**：`website/src/styles.css`、`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/App.jsx`、`CHANGES.md`
+
+**修改内容**：
+1. **构建深色毛玻璃终端视觉系统（`styles.css`）**：
+   - 抽象 `.glass-terminal` 系列专属类，采用 `rgba(13, 17, 23, 0.82)` 半透明深色黑曜石底色配合 `backdrop-filter: blur(24px) saturate(190%)` 亚克力漫反射；
+   - 增加顶部边缘内发光倒角（`inset 0 1px 0 0 rgba(255, 255, 255, 0.16)`）与多重复合阴影，赋予物理玻璃视效与自然景深；
+   - 标题栏、命令栏与内容区分离为多级亚克力透光度（`glass-terminal-titlebar` / `glass-terminal-prompt` / `glass-terminal-body`）；
+   - 支持 `prefers-reduced-transparency` 纯色优雅降级。
+2. **重塑 Hero 首屏终端质感（`TerminalShowcase.jsx`、`App.jsx`）**：
+   - 为 macOS 红黄绿三色窗口控制点增加 LED 柔光投影（`shadow-[0_0_8px_rgba(...)]`）；
+   - Tab 切换器重构为玻璃胶囊底座与微弱光晕选中态；
+   - Hero 终端背景增加环境光晕（`bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-sky-500/15 blur-2xl`），使毛玻璃边缘漫射出温润柔和的科技光泽。
+3. **拉齐核心特性代码终端（`FeatureShowcase.jsx`）**：
+   - 将右侧代码预览窗口升级为与 Hero 一致的深色毛玻璃终端，补齐红黄绿窗口控制与半透明玻璃标题栏。
+
+**原因**：响应用户对于终端视觉效果质感升级的需求，打造更有层次、物理真实感更强的深色毛玻璃效果。
+
+**影响范围**：
+- 仅影响 `website/` 落地页终端与代码预览组件渲染表现；不影响 CLI 与其他业务逻辑。
+
+---
+
 ### 新增「用户高频解决场景」与纠正 WorkBuddy / Hermes 官方 Logo
 
 **修改文件**：`website/src/components/UserScenarios.jsx`（新建）、`website/src/App.jsx`、`website/public/logos/agents/workbuddy.svg`、`website/public/logos/agents/hermes.svg`、`CHANGES.md`
