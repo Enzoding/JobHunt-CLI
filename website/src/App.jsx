@@ -5,6 +5,7 @@ import { InstallCommand } from './components/InstallCommand.jsx';
 import { TerminalShowcase } from './components/TerminalShowcase.jsx';
 import { LogoMarquee } from './components/LogoMarquee.jsx';
 import { FeatureShowcase } from './components/FeatureShowcase.jsx';
+import { UserScenarios } from './components/UserScenarios.jsx';
 import { agents } from './data/agents.js';
 import { companies } from './data/companies.js';
 
@@ -12,6 +13,7 @@ const GITHUB_URL = 'https://github.com/Enzoding/JobHunt-CLI';
 
 const NAV_LINKS = [
   { href: '#install', label: '安装' },
+  { href: '#scenarios', label: '场景' },
   { href: '#ecosystem', label: '生态' },
   { href: '#capabilities', label: '能力' },
   { href: '#workflow', label: '快速上手' },
@@ -92,7 +94,7 @@ export default function App() {
               <div className="lg:col-span-6 min-w-0 space-y-4 sm:space-y-5">
                 <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>开源 CLI · 覆盖 30+ 招聘官网</span>
+                  <span>开源 CLI · 覆盖 30+ 招聘官网 · 你的 AI 求职副驾驶</span>
                 </div>
 
                 <h1 className="hero-title text-foreground tracking-tight">
@@ -102,7 +104,7 @@ export default function App() {
                 </h1>
 
                 <p className="text-foreground-muted text-sm sm:text-base leading-relaxed max-w-lg">
-                  把 30+ 家大厂职位统一成结构化数据。同一套 <code className="font-mono text-xs sm:text-sm px-1.5 py-0.5 rounded bg-foreground/5 border border-border text-foreground font-semibold">job</code> 命令，支持单司检索、跨司对比与按需导出。
+                  把 30+ 家大厂在招职位统一成高质量结构化数据。你可以用一句话让 AI 帮你精准找岗、横向对比多家大厂要求、追踪行业扩招动向。
                 </p>
 
                 <div id="install" className="pt-1 scroll-mt-24">
@@ -114,10 +116,10 @@ export default function App() {
                     在 GitHub 查看
                   </GitHubLink>
                   <a
-                    href="#capabilities"
+                    href="#scenarios"
                     className={buttonVariants({ variant: 'outline', size: 'md' })}
                   >
-                    核心能力 ↓
+                    典型应用场景 ↓
                   </a>
                 </div>
               </div>
@@ -165,8 +167,33 @@ export default function App() {
           </div>
         </section>
 
+        {/* Real-world Scenarios Section */}
+        <section id="scenarios" className="border-b border-border py-14 sm:py-20 scroll-mt-14">
+          <div className="page-shell space-y-8">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <div className="max-w-2xl">
+                <div className="text-xs font-mono text-emerald-600 font-semibold uppercase tracking-wider mb-1">
+                  Real-World Use Cases
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  你能用它解决什么？四大高频使用场景
+                </h2>
+                <p className="text-foreground-muted mt-2 text-sm sm:text-base leading-relaxed">
+                  不只是极客的命令行，更是每个职场人的 AI 求职与大厂调研副驾驶。告别低效人肉刷网站，让真实一手岗位触手可及。
+                </p>
+              </div>
+              <div className="text-xs text-foreground-muted flex items-center gap-2 bg-background-subtle px-3 py-1.5 rounded-full border border-border shrink-0 self-start md:self-auto">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>支持自然语言吩咐 Agent 执行</span>
+              </div>
+            </div>
+
+            <UserScenarios />
+          </div>
+        </section>
+
         {/* Core Capabilities Section */}
-        <section id="capabilities" className="border-b border-border py-14 sm:py-20 scroll-mt-14">
+        <section id="capabilities" className="border-b border-border py-14 sm:py-20 scroll-mt-14 bg-background-subtle/20">
           <div className="page-shell space-y-8">
             <div className="max-w-xl">
               <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">

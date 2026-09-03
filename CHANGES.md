@@ -6,6 +6,31 @@
 
 ## 2026-09-03
 
+### 新增「用户高频解决场景」与纠正 WorkBuddy / Hermes 官方 Logo
+
+**修改文件**：`website/src/components/UserScenarios.jsx`（新建）、`website/src/App.jsx`、`website/public/logos/agents/workbuddy.svg`、`website/public/logos/agents/hermes.svg`、`CHANGES.md`
+
+**修改内容**：
+1. **新增用户高频解决场景模块（`UserScenarios.jsx`）**：
+   - 针对非纯极客用户（求职者、技术调研人员、职场人），新增面向真实痛点的 4 大典型场景：
+     1. **大厂岗位一句话直查**（告别逐个官网机械翻页，自然语言吩咐 Agent 调取一手在招 JD）；
+     2. **多家大厂横向对比**（同屏拉通 3~5 家大厂职位要求，一眼看清技能门槛与业务侧重）；
+     3. **实时追踪大厂招聘雷达**（消费官网一手开放源，避开二手过期岗位，洞察扩招部门与热门技术栈）；
+     4. **AI 简历智能匹配与定制求职**（调取目标完整 JD 进行 Gap 诊断并生成定制面试攻略）。
+   - 每个场景包含“传统痛点 vs 解决方案”、真实人类自然语言 Prompt 气泡、底层的 CLI 指令映射，以及右侧交互式真实交付物（职位卡片流、同屏比对表、热力分布图、Gap 匹配雷达）。
+2. **纠正 WorkBuddy 与 Hermes Agent 的官方 Logo**：
+   - 将 `workbuddy.svg` 从通用的机器人头像替换为腾讯云 WorkBuddy（`workbuddy.ai`）官方规范的立体渐变矢量标；
+   - 将 `hermes.svg` 从包裹快递公司的 Hermes 标纠正为 Nous Research 官方开源 Hermes Agent 的正版矢量徽标。
+3. **优化首屏与导航文案用户友好度**（`App.jsx`）：
+   - Hero 标语补充“你的 AI 求职副驾驶”，增加场景跳转按钮，使产品定位同时包容开发者与普通求职者。
+
+**原因**：响应用户反馈，落地页需要更面向普通用户，阐明有哪些真实生活场景能用此工具解决；同时修正错误的 Agent Logo。
+
+**影响范围**：
+- 仅影响 `website/` 落地页展示；CLI 与底层 adapter 逻辑不变。
+
+---
+
 ### 落地页视觉设计与 UI/UX 全面优化（浅色模式专属打磨）
 
 **修改文件**：`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/InstallCommand.jsx`、`website/src/App.jsx`、`website/src/data/companies.js`、`website/src/styles.css`、`CHANGES.md`
