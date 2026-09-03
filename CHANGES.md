@@ -4,6 +4,136 @@
 
 ---
 
+## 2026-09-03
+
+### 全站文案全面精简与冗余字数压缩
+
+**修改文件**：`website/src/App.jsx`、`website/src/components/UserScenarios.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/InstallCommand.jsx`、`CHANGES.md`
+
+**修改内容**：
+1. **Hero 与生态介绍文案压缩**：
+   - Hero 副标题精简为 `统一 30+ 招聘官网，输出标准化岗位数据，支持自然语言检索与跨司比对。`；
+   - 导航按钮从 `应用场景 ↓` 缩至更利落的 `场景 ↓`；
+   - 生态说明与跑马灯标签去重去冗（`招聘官网`、`Agent 运行时`、`支持 36 个公开招聘站点，主流 Agent 即开即用。`）。
+2. **场景分类与功能特性短语化（UserScenarios & FeatureShowcase）**：
+   - 场景标题缩短（如 `招聘趋势分析`、`JD 结构化提取`），每个场景的 Summary 从 30+ 字压缩至 20 字以内；
+   - 场景说明要点与 UI 标签去重（如 `底层对应执行指令：` -> `对应命令：`、`结构化数据交付预览` -> `输出预览`）；
+   - 特性列表条目提炼为精悍短语（`统一标准字段`、`智能别名解析`、`多源并发拉取`、`同屏对照矩阵`、`纯净结构化`、`极低 Token 消耗`），每个描述控制在 1 行内。
+3. **上手流程与底部 CTA 去冗**：
+   - 快速上手副标题直接为 `三步快速开始`，三步步骤标题简化为 `安装环境`、`发现站点`、`检索比对`；
+   - 底部 CTA 标题与文案剔除修饰性套话。
+
+**原因**：响应用户对于整页字数仍然偏多、需要进一步精简文案的要求。
+
+**影响范围**：
+- 仅影响落地页文案展示；JS 产物体积减少约 1.3 kB。
+
+---
+
+### 全新产品 Logo 生成、终端浅色毛玻璃升级与全站空白压缩
+
+**修改文件**：`website/src/components/JobHuntLogo.jsx`（新建）、`website/public/logos/jobhunt-icon.svg`（新建）、`website/public/favicon.svg`、`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/UserScenarios.jsx`、`website/src/App.jsx`、`website/src/styles.css`、`CHANGES.md`
+
+**修改内容**：
+1. **重塑产品专属品牌矢量 Logo**：
+   - 移除此前临时的黑白粗糙 `>_` 方块，设计专属的 JobHunt-CLI 品牌标志；
+   - 融合 CLI 命令行终端 Chevron 提示符（`>`）、求职雷达目标环（Radar Crosshair）与雷达目标微光节点，体现“终端与 Agent 探测真实在招机会”的核心意向；
+   - 同步更新导航栏 `SiteMark`、页脚 Logo、`website/public/logos/jobhunt-icon.svg` 与 `favicon.svg`。
+2. **终端改为浅色调毛玻璃（Light Glassmorphism / Acrylic）质感**：
+   - 遵循用户要求将终端切换为浅色调，通过 `rgba(255, 255, 255, 0.76)` 搭配 `backdrop-filter: blur(24px) saturate(190%)` 实现透光磨砂；
+   - 顶部保留倒角高光 `inset 0 1px 0 0 rgba(255, 255, 255, 0.95)`，终端文字统一采用高可读性的深灰阶与翡翠绿高亮；
+   - 首屏终端与核心特性代码窗口统一对齐为浅色毛玻璃终端规范。
+3. **大幅压缩全站空白与内边距，提升信息密度**：
+   - 将全站各章节（Hero、Ecosystem、Scenarios、Capabilities、Workflow、CTA）的纵向上下 Padding 从原本夸张的 `py-14 sm:py-20`（80px）大幅压缩至 `py-7 sm:py-10`，页面总高度缩短约 40%；
+   - 缩小各模块卡片内部空白，收紧标题间距与元素 Gap，消除页面空旷松散感，移动端和桌面端浏览节奏更加紧凑流畅。
+
+**原因**：响应用户对于生成新产品 Logo、终端改为浅色毛玻璃质感、以及减少全站空白压缩排版的要求。
+
+**影响范围**：
+- 仅影响 `website/` 落地页与 Favicon 资源；CLI 及底层逻辑不变。
+
+---
+
+### 终端展示引入深色毛玻璃（Acrylic / Glassmorphism）质感与光影升级
+
+**修改文件**：`website/src/styles.css`、`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/App.jsx`、`CHANGES.md`
+
+**修改内容**：
+1. **构建深色毛玻璃终端视觉系统（`styles.css`）**：
+   - 抽象 `.glass-terminal` 系列专属类，采用 `rgba(13, 17, 23, 0.82)` 半透明深色黑曜石底色配合 `backdrop-filter: blur(24px) saturate(190%)` 亚克力漫反射；
+   - 增加顶部边缘内发光倒角（`inset 0 1px 0 0 rgba(255, 255, 255, 0.16)`）与多重复合阴影，赋予物理玻璃视效与自然景深；
+   - 标题栏、命令栏与内容区分离为多级亚克力透光度（`glass-terminal-titlebar` / `glass-terminal-prompt` / `glass-terminal-body`）；
+   - 支持 `prefers-reduced-transparency` 纯色优雅降级。
+2. **重塑 Hero 首屏终端质感（`TerminalShowcase.jsx`、`App.jsx`）**：
+   - 为 macOS 红黄绿三色窗口控制点增加 LED 柔光投影（`shadow-[0_0_8px_rgba(...)]`）；
+   - Tab 切换器重构为玻璃胶囊底座与微弱光晕选中态；
+   - Hero 终端背景增加环境光晕（`bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-sky-500/15 blur-2xl`），使毛玻璃边缘漫射出温润柔和的科技光泽。
+3. **拉齐核心特性代码终端（`FeatureShowcase.jsx`）**：
+   - 将右侧代码预览窗口升级为与 Hero 一致的深色毛玻璃终端，补齐红黄绿窗口控制与半透明玻璃标题栏。
+
+**原因**：响应用户对于终端视觉效果质感升级的需求，打造更有层次、物理真实感更强的深色毛玻璃效果。
+
+**影响范围**：
+- 仅影响 `website/` 落地页终端与代码预览组件渲染表现；不影响 CLI 与其他业务逻辑。
+
+---
+
+### 新增「用户高频解决场景」与纠正 WorkBuddy / Hermes 官方 Logo
+
+**修改文件**：`website/src/components/UserScenarios.jsx`（新建）、`website/src/App.jsx`、`website/public/logos/agents/workbuddy.svg`、`website/public/logos/agents/hermes.svg`、`CHANGES.md`
+
+**修改内容**：
+1. **重构场景模块，去除营销套话与 Emoji（`UserScenarios.jsx`）**：
+   - 彻底剔除所有 Emoji 装饰，采用干净的数字索引（`01`~`04`）与中立类型标签；
+   - 简化 4 大场景文案（定向岗位检索、多司横向比对、招聘趋势与技术风向、JD 结构化提取与分析），去除夸张叙事与过度修饰；
+   - 补充 WAI-ARIA 无障碍语义（`role="tablist"`、`role="tab"`、`aria-selected`、`aria-controls`），规范键盘与辅助技术体验；
+   - 统一使用系统语义颜色 Tokens，去除杂乱的红绿警示框与多余嵌套边框，提升信息密度与整洁度。
+2. **纠正 WorkBuddy 与 Hermes Agent 的官方 Logo**：
+   - 将 `workbuddy.svg` 从通用的机器人头像替换为腾讯云 WorkBuddy（`workbuddy.ai`）官方规范的立体渐变矢量标；
+   - 将 `hermes.svg` 从包裹快递公司的 Hermes 标纠正为 Nous Research 官方开源 Hermes Agent 的正版矢量徽标。
+3. **精简首屏与导航文案（`App.jsx`）**：
+   - 剔除首屏“副驾驶”等 AI 营销套话，保留克制专业的产品价值叙述；
+   - 场景区主标题简化为「典型应用场景」，辅以中立副标题与自然语言驱动标识。
+
+**原因**：响应用户反馈，落地页需要更面向普通用户，阐明有哪些真实生活场景能用此工具解决；同时修正错误的 Agent Logo。
+
+**影响范围**：
+- 仅影响 `website/` 落地页展示；CLI 与底层 adapter 逻辑不变。
+
+---
+
+### 落地页视觉设计与 UI/UX 全面优化（浅色模式专属打磨）
+
+**修改文件**：`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/InstallCommand.jsx`、`website/src/App.jsx`、`website/src/data/companies.js`、`website/src/styles.css`、`CHANGES.md`
+
+**修改内容**：
+1. **终端交互与视觉重塑**（`TerminalShowcase.jsx`）：
+   - 浅色模式下采用深色高对比石墨终端（Dark Slate Terminal），成为 Hero 首屏第一视觉锚点；
+   - 修复事实硬伤：修正 `job search` 场景中带着 `--format json` 却输出文本列表的命令与输出不一致；
+   - 统一 Tab 命名（`job search` / `job compare` / `Agent JSON`），并为移动端添加 `shortLabel` 自动紧凑展示；
+   - 优化移动端提示符栏与复制按钮，确保在各种手机窄屏下均不被遮挡或截断。
+2. **解决核心能力文本机械复读**（`FeatureShowcase.jsx`）：
+   - 彻底解决顶部 3 张卡片与下方详情面板文字 100% 机械重复的问题；
+   - 顶部卡片精简为紧凑能力标签与核心指标；
+   - 详情面板左侧升级为 3 条结构化核心价值 Checklist 与场景描述；
+   - 右侧代码区将原本简陋的伪代码注释升级为真实归一化 JSON Schema、ASCII 跨司比对矩阵与 Token 节约对比基准。
+3. **消除公司 Logo 跑马灯的图文双重重复**（`companies.js`）：
+   - 将英文简称对齐为中文企业标准名称（如 `滴滴`、`网易`、`腾讯`、`美团`），彻底解决与自带英文字母 Logo 产生的图文复读（如 `DiDi Didi`）问题。
+4. **快速上手与底部 CTA 交互升级**（`App.jsx`）：
+   - 快速上手三步流程均增加轻量一键 `CopyButton`，降低开发者试用摩擦；
+   - 底部 CTA 区域直接内嵌安装命令与原地复制按钮，无需强制跳转回页面顶部；
+   - 页脚增加 `v0.2.6` 版本标签与 NPM 包直达链接。
+5. **浅色背景工程质感与全端自适应**（`styles.css`）：
+   - Hero 区域增加细腻的点阵工程网格（Dot-matrix Grid）与微弱径向漫射，告别单调纯白；
+   - 补充 `html, body` 的 `overflow-x: hidden` 与网格列 `min-w-0`，杜绝小屏幕横向溢出。
+
+**原因**：响应用户对落地页视觉与 UI 层面优化需求，专注浅色模式下的视觉冲击力、信息增量、真实数据呈现与移动端可用性。
+
+**影响范围**：
+- 仅影响 `website/` 前端落地页展示与体验，不影响 CLI、npm 包代码及任何底层 adapter 逻辑。
+
+---
+
 ## 2026-09-02
 
 ### 落地页公司 Logo 改为对应品牌图形

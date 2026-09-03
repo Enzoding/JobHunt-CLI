@@ -1,9 +1,12 @@
 import React from 'react';
 import { buttonVariants } from '@appica/ui-react/button';
+import { CopyButton } from '@appica/ui-react/copy-button';
 import { InstallCommand } from './components/InstallCommand.jsx';
 import { TerminalShowcase } from './components/TerminalShowcase.jsx';
 import { LogoMarquee } from './components/LogoMarquee.jsx';
 import { FeatureShowcase } from './components/FeatureShowcase.jsx';
+import { UserScenarios } from './components/UserScenarios.jsx';
+import { JobHuntLogo } from './components/JobHuntLogo.jsx';
 import { agents } from './data/agents.js';
 import { companies } from './data/companies.js';
 
@@ -11,6 +14,7 @@ const GITHUB_URL = 'https://github.com/Enzoding/JobHunt-CLI';
 
 const NAV_LINKS = [
   { href: '#install', label: '安装' },
+  { href: '#scenarios', label: '场景' },
   { href: '#ecosystem', label: '生态' },
   { href: '#capabilities', label: '能力' },
   { href: '#workflow', label: '快速上手' },
@@ -39,13 +43,8 @@ function GitHubLink({ children, variant = 'outline', size = 'md', className = ''
 function SiteMark() {
   return (
     <a href="#top" className="text-foreground inline-flex items-center gap-2.5 no-underline group">
-      <span
-        aria-hidden="true"
-        className="border-foreground/80 bg-foreground text-background inline-flex h-6 w-6 items-center justify-center rounded-[6px] border text-[12px] leading-none font-mono font-bold shadow-xs group-hover:scale-105 transition-transform"
-      >
-        &gt;_
-      </span>
-      <span className="text-sm font-semibold tracking-tight text-foreground">
+      <JobHuntLogo size={26} className="group-hover:scale-105 transition-transform" />
+      <span className="text-sm font-semibold tracking-tight text-foreground font-mono">
         JobHunt <span className="text-foreground-muted font-normal">CLI</span>
       </span>
     </a>
@@ -61,14 +60,14 @@ export default function App() {
 
       {/* Navigation Header */}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-md">
-        <div className="page-shell flex h-14 items-center justify-between gap-6">
+        <div className="page-shell flex h-13 items-center justify-between gap-6">
           <SiteMark />
-          <nav aria-label="页面章节导航" className="hidden items-center gap-7 md:flex">
+          <nav aria-label="页面章节导航" className="hidden items-center gap-6 md:flex">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-foreground-muted hover:text-foreground text-sm font-medium transition-colors no-underline"
+                className="text-foreground-muted hover:text-foreground text-xs sm:text-sm font-medium transition-colors no-underline"
               >
                 {link.label}
               </a>
@@ -85,10 +84,10 @@ export default function App() {
       <main id="main">
         {/* Hero Section */}
         <section className="relative overflow-hidden border-b border-border hero-glow">
-          <div className="page-shell py-12 sm:py-16 lg:py-20">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <div className="page-shell py-8 sm:py-10 lg:py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
               {/* Left Column: Value Prop & Install */}
-              <div className="lg:col-span-6 space-y-4 sm:space-y-5">
+              <div className="lg:col-span-6 min-w-0 space-y-3 sm:space-y-3.5">
                 <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span>开源 CLI · 覆盖 30+ 招聘官网</span>
@@ -100,29 +99,33 @@ export default function App() {
                   真实招聘官网
                 </h1>
 
-                <p className="text-foreground-muted text-sm sm:text-base leading-relaxed max-w-lg">
-                  把 30+ 家大厂职位统一成结构化数据。同一套 <code className="font-mono text-xs sm:text-sm px-1.5 py-0.5 rounded bg-foreground/5 border border-border text-foreground font-semibold">job</code> 命令，支持单司检索、跨司对比与按需导出。
+                <p className="text-foreground-muted text-xs sm:text-sm leading-relaxed max-w-lg">
+                  统一 30+ 招聘官网，输出标准化岗位数据，支持自然语言检索与跨司比对。
                 </p>
 
-                <div id="install" className="pt-1 scroll-mt-24">
+                <div id="install" className="pt-0.5 scroll-mt-20">
                   <InstallCommand />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
+                <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
                   <GitHubLink variant="primary" size="md">
                     在 GitHub 查看
                   </GitHubLink>
                   <a
-                    href="#capabilities"
+                    href="#scenarios"
                     className={buttonVariants({ variant: 'outline', size: 'md' })}
                   >
-                    核心能力 ↓
+                    场景 ↓
                   </a>
                 </div>
               </div>
 
-              {/* Right Column: Visual Anchor / Interactive Terminal Showcase */}
-              <div className="lg:col-span-6">
+              {/* Right Column: Visual Anchor / Light Frosted Terminal Showcase */}
+              <div className="lg:col-span-6 min-w-0 w-full relative group">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -inset-2 rounded-2xl bg-gradient-to-tr from-emerald-500/10 via-slate-200/40 to-sky-500/10 blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500 -z-1"
+                />
                 <TerminalShowcase />
               </div>
             </div>
@@ -130,28 +133,28 @@ export default function App() {
         </section>
 
         {/* Ecosystem Marquee Section */}
-        <section id="ecosystem" className="border-b border-border py-10 sm:py-14 scroll-mt-14 bg-background-subtle/30">
-          <div className="page-shell mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+        <section id="ecosystem" className="border-b border-border py-5 sm:py-7 scroll-mt-14 bg-background-subtle/30">
+          <div className="page-shell mb-3.5 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
             <div>
-              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
+              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
                 Supported Ecosystem
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
                 覆盖 30+ 招聘官网与主流 Agent
               </h2>
             </div>
-            <p className="text-foreground-muted text-xs sm:text-sm max-w-md leading-relaxed">
-              支持 36 个官方招聘站点与主流 Agent 运行时环境，开箱即用。
+            <p className="text-foreground-muted text-xs sm:text-[13px] max-w-md leading-relaxed">
+              支持 36 个公开招聘站点，主流 Agent 即开即用。
             </p>
           </div>
 
-          <div className="space-y-3.5">
+          <div className="space-y-2">
             {/* Row 1: Companies (Moving left) */}
             <LogoMarquee
               items={companies}
               logoDir="companies"
               duration="68s"
-              label="当前支持的招聘官网名单"
+              label="招聘官网"
             />
             {/* Row 2: Agents (Moving right / reverse) */}
             <LogoMarquee
@@ -159,23 +162,48 @@ export default function App() {
               logoDir="agents"
               duration="30s"
               reverse={true}
-              label="支持一键接入的 Agent 运行时"
+              label="Agent 运行时"
             />
           </div>
         </section>
 
+        {/* Real-world Scenarios Section */}
+        <section id="scenarios" className="border-b border-border py-7 sm:py-9 scroll-mt-14">
+          <div className="page-shell space-y-4">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+              <div className="max-w-2xl">
+                <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
+                  Use Cases
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  典型应用场景
+                </h2>
+                <p className="text-foreground-muted mt-1 text-xs sm:text-sm leading-relaxed">
+                  配合 Agent 执行自然语言找岗、跨司对照与趋势分析。
+                </p>
+              </div>
+              <div className="text-xs text-foreground-muted flex items-center gap-2 bg-background-subtle px-2.5 py-1 rounded-md border border-border shrink-0 self-start md:self-auto font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>自然语言驱动</span>
+              </div>
+            </div>
+
+            <UserScenarios />
+          </div>
+        </section>
+
         {/* Core Capabilities Section */}
-        <section id="capabilities" className="border-b border-border py-14 sm:py-20 scroll-mt-14">
-          <div className="page-shell space-y-8">
+        <section id="capabilities" className="border-b border-border py-7 sm:py-9 scroll-mt-14 bg-background-subtle/20">
+          <div className="page-shell space-y-4">
             <div className="max-w-xl">
-              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
+              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
                 Core Capabilities
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                 核心能力
               </h2>
-              <p className="text-foreground-muted mt-2 text-sm sm:text-base leading-relaxed">
-                统一数据规范，横向比对分析，极低 Token 消耗。
+              <p className="text-foreground-muted mt-1 text-xs sm:text-sm leading-relaxed">
+                统一规范、跨司比对与低 Token 原生流。
               </p>
             </div>
 
@@ -184,57 +212,69 @@ export default function App() {
         </section>
 
         {/* Quickstart Workflow Section */}
-        <section id="workflow" className="border-b border-border py-14 sm:py-18 scroll-mt-14 bg-background-subtle/40">
-          <div className="page-shell">
-            <div className="text-center max-w-xl mx-auto mb-10">
-              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
+        <section id="workflow" className="border-b border-border py-7 sm:py-9 scroll-mt-14 bg-background-subtle/30">
+          <div className="page-shell space-y-4">
+            <div className="text-center max-w-xl mx-auto mb-2">
+              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
                 Quickstart Workflow
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                 快速上手
               </h2>
-              <p className="text-foreground-muted mt-1.5 text-sm sm:text-base">
-                三步开始使用
+              <p className="text-foreground-muted mt-1 text-xs sm:text-sm">
+                三步快速开始
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
-                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                  01
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <div className="p-3.5 sm:p-4 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                    01
+                  </div>
+                  <span className="text-[11px] font-mono text-foreground-muted">环境准备</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground">安装 CLI 或 Skill</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed">
-                  通过 npm 全局安装到终端，或通过 npx 为 Agent 接入。
+                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">安装环境</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed m-0">
+                  全局安装 CLI，或通过 npx 为各类 Agent 接入。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
-                  npm install -g jobhunt-cli
+                <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
+                  <code className="truncate flex-1">npm install -g jobhunt-cli</code>
+                  <CopyButton value="npm install -g jobhunt-cli" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
-                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                  02
+              <div className="p-3.5 sm:p-4 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                    02
+                  </div>
+                  <span className="text-[11px] font-mono text-foreground-muted">发现站点</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground">查看支持站点</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed">
-                  列出所有支持的企业代码与可用类别。
+                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">发现站点</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed m-0">
+                  查看已支持的公司代码、招聘渠道与分类。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
-                  job sites
+                <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
+                  <code className="truncate flex-1">job sites</code>
+                  <CopyButton value="job sites" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
-                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                  03
+              <div className="p-3.5 sm:p-4 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                    03
+                  </div>
+                  <span className="text-[11px] font-mono text-foreground-muted">横向比对</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground">开始搜索与比对</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed">
-                  跨公司横向比对，直接输出表格、CSV 或 JSON。
+                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">检索比对</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed m-0">
+                  并发查询多家公司，输出表格、CSV 或 JSON。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
-                  job compare AI --sites meituan,xiaomi
+                <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
+                  <code className="truncate flex-1">job compare AI --sites meituan,xiaomi</code>
+                  <CopyButton value="job compare AI --sites meituan,xiaomi" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
                 </div>
               </div>
             </div>
@@ -242,25 +282,47 @@ export default function App() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="border-b border-border py-14 sm:py-20">
+        <section className="border-b border-border py-7 sm:py-10">
           <div className="page-shell">
-            <div className="rounded-2xl border border-border bg-background-subtle p-8 sm:p-10 text-center max-w-2xl mx-auto space-y-5 shadow-sm">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                开源、轻量、专为开发者与 Agent 打造
+            <div className="rounded-2xl border border-border bg-white p-5 sm:p-7 text-center max-w-2xl mx-auto space-y-4 shadow-xs">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>开源工具</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground m-0">
+                轻量、纯净、专为 Agent 打造
               </h2>
-              <p className="text-foreground-muted text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
-                无需繁复配置，一条命令直连 30+ 家真实招聘官网。
+              <p className="text-foreground-muted text-xs sm:text-sm max-w-lg mx-auto leading-relaxed m-0">
+                一条命令直连 30+ 家公开招聘官网，获取结构化岗位数据。
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-3.5 pt-1">
-                <a
-                  href="#install"
-                  className={buttonVariants({ variant: 'primary', size: 'md' })}
-                >
-                  复制安装命令 ↑
-                </a>
-                <GitHubLink variant="outline" size="md">
-                  GitHub 仓库
+
+              {/* In-place install command bar */}
+              <div className="max-w-md mx-auto pt-0.5">
+                <div className="flex items-center justify-between gap-3 p-2 px-3 rounded-xl border border-border bg-background-subtle font-mono text-xs sm:text-sm shadow-2xs">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-foreground-muted select-none">$</span>
+                    <code className="text-foreground font-medium truncate">npm install -g jobhunt-cli</code>
+                  </div>
+                  <CopyButton
+                    value="npm install -g jobhunt-cli"
+                    variant="outline"
+                    size="icon-sm"
+                    label="复制安装命令"
+                    copiedLabel="已复制"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-0.5">
+                <GitHubLink variant="primary" size="md">
+                  在 GitHub 查看源码
                 </GitHubLink>
+                <a
+                  href="#capabilities"
+                  className={buttonVariants({ variant: 'outline', size: 'md' })}
+                >
+                  核心能力 ↓
+                </a>
               </div>
             </div>
           </div>
@@ -269,20 +331,24 @@ export default function App() {
 
       {/* Footer */}
       <footer>
-        <div className="page-shell flex flex-col sm:flex-row items-center justify-between gap-4 py-7 text-xs text-foreground-muted">
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-foreground">JobHunt CLI</span>
+        <div className="page-shell flex flex-col sm:flex-row items-center justify-between gap-3 py-5 text-xs text-foreground-muted">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <JobHuntLogo size={20} />
+            <span className="font-semibold text-foreground font-mono">JobHunt CLI</span>
+            <span className="px-1.5 py-0.5 rounded bg-foreground/5 text-foreground-muted font-mono text-[10px] border border-border">v0.2.6</span>
             <span>·</span>
             <span>MIT License</span>
             <span>·</span>
             <span>Open Source</span>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4 font-medium">
             <a
-              href="#top"
+              href="https://www.npmjs.com/package/jobhunt-cli"
+              target="_blank"
+              rel="noreferrer"
               className="text-foreground-muted hover:text-foreground transition-colors no-underline"
             >
-              回到顶部
+              npm 包
             </a>
             <a
               href={GITHUB_URL}
@@ -291,6 +357,12 @@ export default function App() {
               className="text-foreground-muted hover:text-foreground transition-colors no-underline"
             >
               GitHub 仓库
+            </a>
+            <a
+              href="#top"
+              className="text-foreground-muted hover:text-foreground transition-colors no-underline"
+            >
+              回到顶部 ↑
             </a>
           </div>
         </div>

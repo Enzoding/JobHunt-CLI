@@ -42,6 +42,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -52,6 +53,7 @@ html {
 
 body {
   margin: 0;
+  overflow-x: hidden;
   font-family: var(--font-sans);
   background: var(--background);
   color: var(--foreground);
@@ -162,10 +164,68 @@ body {
   object-fit: contain;
 }
 
-/* Subtle background glow & mesh */
+/* Subtle engineering tech backdrop with fine dot-matrix grid */
 .hero-glow {
-  background: radial-gradient(circle at 50% 0%, oklch(0.5 0.05 240 / 0.08) 0%, transparent 70%);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.94 0.025 240 / 0.6) 0%, transparent 70%),
+    radial-gradient(oklch(0.82 0.008 80 / 0.45) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px;
 }
+
+/* Premium light frosted glass (acrylic / glassmorphism) for terminal surfaces */
+.glass-terminal-light {
+  position: relative;
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  box-shadow:
+    0 20px 45px -12px rgba(15, 23, 42, 0.08),
+    0 8px 18px -6px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.glass-terminal-light:hover {
+  border-color: rgba(148, 163, 184, 0.75);
+  box-shadow:
+    0 24px 50px -12px rgba(15, 23, 42, 0.12),
+    0 10px 22px -6px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 0 #ffffff;
+}
+
+.glass-terminal-light-titlebar {
+  background: rgba(248, 250, 252, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.glass-terminal-light-prompt {
+  background: rgba(241, 245, 249, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.glass-terminal-light-body {
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-terminal-light,
+  .glass-terminal-light-titlebar,
+  .glass-terminal-light-prompt,
+  .glass-terminal-light-body {
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   .marquee-track,
