@@ -4,47 +4,99 @@ import { CopyButton } from '@appica/ui-react/copy-button';
 const FEATURES = [
   {
     id: 'unified',
-    title: '统一搜索',
-    badge: '统一格式',
-    description:
-      '一套参数覆盖所有招聘站。支持社招、校招、实习一键切换，无需关注各家筛选差异。',
+    title: '统一搜索协议',
+    badge: '单命令直连',
+    tagline: '30+ 平台同一接口，社招/校招/实习无缝切换',
     command: 'job meituan search "算法" --nature social --category 技术类 --limit 5',
-    codeSnippet: `// 统一的 CLI 命令格式
-job <site> search <keyword> [options]
-
-// 支持多性质灵活切换
---nature social  // 社招
---nature campus  // 校招
---nature intern  // 实习`,
+    highlights: [
+      {
+        title: '统一的标准数据规范',
+        desc: '各司原始数据格式千差万别，JobHunt 全部映射为规范标准字段（id, title, city, dept, req）',
+      },
+      {
+        title: '智能别名模糊解析',
+        desc: '支持传入中文与别名（如 --category 技术、--city 北京），自动映射底层各司内部代码',
+      },
+      {
+        title: '三大招聘性质秒级切换',
+        desc: '统一通过 --nature 参数穿透切换 social（社招）、campus（校招）与 intern（实习）',
+      },
+    ],
+    codeTitle: 'normalized-schema.json',
+    codeLang: '标准字段规范',
+    codeSnippet: `{
+  "id": "4669710957",
+  "name": "AI Agent Builder",
+  "category_name": "技术类",
+  "nature_code": "social",
+  "location_names": ["深圳市"],
+  "department_name": "无人机业务部",
+  "updated_at": "2026-09-01",
+  "url": "https://zhaopin.meituan.com/job-detail?jobId=4669710957"
+}`,
   },
   {
     id: 'compare',
-    title: '跨司对比',
-    badge: '横向比对',
-    description:
-      '跨公司岗位同屏对照。一键比对各家职责、地点与发布时间，告别多网页来回跳转。',
-    command: 'job compare "前端" --sites meituan,xiaomi,bytedance --nature social',
-    codeSnippet: `// 跨公司多站点聚合对比
-job compare <keyword> --sites <site1,site2,...>
-
-// 查阅具体岗位完整 JD
-job meituan detail <job-id> --format json`,
+    title: '跨司横向比对',
+    badge: '同屏聚合',
+    tagline: '一次查询多家大厂在招岗位，同屏比对职责与发布时间',
+    command: 'job compare "前端架构" --sites meituan,xiaomi,tencent --nature social',
+    highlights: [
+      {
+        title: '多招聘站并行并发拉取',
+        desc: '同时向美团、小米、腾讯等多个官网发起异步请求，毫秒级聚合并去重',
+      },
+      {
+        title: '同屏对照排版',
+        desc: '告别数十个繁杂网页标签页的反复跳转，终端或表格直接横向透视岗位差异',
+      },
+      {
+        title: '直接导出 CSV / JSON 分析表格',
+        desc: '配合 --format csv --output compare.csv，方便接入 Excel 或本地 Python 脚本分析',
+      },
+    ],
+    codeTitle: 'cross-company-matrix.txt',
+    codeLang: '聚合对比矩阵',
+    codeSnippet: `┌──────────┬────────────────────────────┬────────┬────────────┐
+│ 站点     │ 职位名称                   │ 城市   │ 更新时间   │
+├──────────┼────────────────────────────┼────────┼────────────┤
+│ meituan  │ 核心系统前端技术专家       │ 北京   │ 2026-09-02 │
+│ xiaomi   │ 大模型终端应用前端负责人   │ 北京   │ 2026-09-01 │
+│ tencent  │ 全栈前端架构师 (微信生态)  │ 广州   │ 2026-08-30 │
+└──────────┴────────────────────────────┴────────┴────────────┘`,
   },
   {
     id: 'agent-native',
-    title: 'Agent 原生',
+    title: 'Agent 原生流',
     badge: 'Token 优化',
-    description:
-      '紧凑 JSON / CSV 导出。智能剥离冗余信息，单岗位节省 75%+ Token，专为 Agent 上下文设计。',
+    tagline: '剔除冗余 HTML 噪点，单岗节省 75%+ Token 消耗',
     command: 'job aliyun search "Agent" --format json --view compact',
-    codeSnippet: `// 紧凑 JSON 输出，专为 LLM 上下文设计
-{
-  "site": "aliyun",
-  "view": "compact",
-  "tokens_saved": "78%",
-  "jobs": [
-    { "id": "AL-901", "title": "AI Agent 架构师", "city": "杭州" }
-  ]
+    highlights: [
+      {
+        title: '纯粹结构化，消除 DOM 噪声',
+        desc: '智能剔除导航条、追踪脚本与排版杂质，只保留核心 JD 要求与技能画像',
+      },
+      {
+        title: '极致上下文 Token 节约',
+        desc: '10 个岗位的完整网页需要 >8,000 Tokens，JobHunt Compact 视图仅需 ~600 Tokens',
+      },
+      {
+        title: '开箱集成主流 Agent 运行时',
+        desc: '标准技能规范，专为 Codex, Claude Code, Cursor, Windsurf 与 OpenClaw 打造',
+      },
+    ],
+    codeTitle: 'token-savings.json',
+    codeLang: 'Token 消耗对比',
+    codeSnippet: `{
+  "raw_html_crawling": {
+    "tokens": 8420,
+    "payload": "包含大量 DOM、CSS、追踪脚本与全局导航"
+  },
+  "jobhunt_compact_json": {
+    "tokens": 612,
+    "savings": "92.7% Token 节约",
+    "prompt_friendly": true
+  }
 }`,
   },
 ];
@@ -54,9 +106,9 @@ export function FeatureShowcase() {
   const active = FEATURES.find((f) => f.id === selectedFeature) || FEATURES[0];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Feature Selector Tabs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         {FEATURES.map((feature) => {
           const isSelected = feature.id === selectedFeature;
           return (
@@ -64,25 +116,29 @@ export function FeatureShowcase() {
               key={feature.id}
               type="button"
               onClick={() => setSelectedFeature(feature.id)}
-              className={`text-left p-4 sm:p-4.5 rounded-xl border transition-all cursor-pointer ${
+              className={`text-left p-4 sm:p-5 rounded-xl border transition-all cursor-pointer ${
                 isSelected
-                  ? 'border-foreground/80 bg-background shadow-md ring-1 ring-border'
-                  : 'border-border bg-background-subtle/60 hover:bg-background-subtle hover:border-foreground/30'
+                  ? 'border-foreground/80 bg-white shadow-sm ring-1 ring-border'
+                  : 'border-border bg-background-subtle/50 hover:bg-background-subtle hover:border-foreground/30'
               }`}
             >
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-foreground/5 text-foreground-muted border border-border">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${
+                  isSelected
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-foreground/5 text-foreground-muted border-border'
+                }`}>
                   {feature.badge}
                 </span>
                 {isSelected && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-foreground animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 )}
               </div>
-              <h3 className="text-sm sm:text-base font-semibold text-foreground tracking-tight">
+              <h3 className="text-base font-semibold text-foreground tracking-tight mb-1">
                 {feature.title}
               </h3>
-              <p className="text-foreground-muted text-xs sm:text-[13px] leading-relaxed mt-1 line-clamp-2">
-                {feature.description}
+              <p className="text-foreground-muted text-xs sm:text-[13px] leading-relaxed line-clamp-2 m-0">
+                {feature.tagline}
               </p>
             </button>
           );
@@ -90,24 +146,39 @@ export function FeatureShowcase() {
       </div>
 
       {/* Detail Showcase Panel */}
-      <div className="rounded-xl border border-border bg-background-subtle p-4.5 sm:p-5.5 shadow-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          <div className="lg:col-span-5 space-y-3">
-            <span className="text-xs font-mono text-foreground-muted font-medium uppercase tracking-wider">
-              {active.badge}
-            </span>
-            <h4 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
-              {active.title}
-            </h4>
-            <p className="text-foreground-muted text-xs sm:text-sm leading-relaxed">
-              {active.description}
-            </p>
+      <div className="rounded-xl border border-border bg-white p-5 sm:p-6 shadow-xs">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Key Highlights & Command */}
+          <div className="lg:col-span-5 space-y-4">
+            <div>
+              <span className="text-xs font-mono text-foreground-muted font-medium uppercase tracking-wider block mb-1">
+                {active.badge} · 核心特性
+              </span>
+              <h4 className="text-xl font-bold text-foreground tracking-tight">
+                {active.title}
+              </h4>
+            </div>
 
-            <div className="pt-1">
-              <div className="text-[11px] font-mono text-foreground-subtle mb-1 font-medium">
-                示例命令:
+            {/* Checklist of value points */}
+            <div className="space-y-3 py-1">
+              {active.highlights.map((item, idx) => (
+                <div key={idx} className="flex items-start gap-2.5">
+                  <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                    ✓
+                  </span>
+                  <div className="text-xs leading-relaxed">
+                    <strong className="text-foreground font-semibold block">{item.title}</strong>
+                    <span className="text-foreground-muted">{item.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 border-t border-border/80">
+              <div className="text-[11px] font-mono text-foreground-subtle mb-1.5 font-medium">
+                示例运行命令:
               </div>
-              <div className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background text-xs font-mono text-foreground">
+              <div className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background-subtle text-xs font-mono text-foreground">
                 <code className="flex-1 truncate">{active.command}</code>
                 <CopyButton
                   value={active.command}
@@ -120,13 +191,14 @@ export function FeatureShowcase() {
             </div>
           </div>
 
+          {/* Right Column: High-contrast Output Showcase */}
           <div className="lg:col-span-7">
-            <div className="rounded-lg border border-border bg-background overflow-hidden shadow-xs">
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-background-subtle text-[11px] font-mono text-foreground-muted">
-                <span>{active.id}.sh</span>
-                <span>bash / json</span>
+            <div className="rounded-xl border border-slate-800 bg-[#0d1117] overflow-hidden shadow-md">
+              <div className="flex items-center justify-between px-3.5 py-2 border-b border-slate-800 bg-[#151b23] text-[11px] font-mono">
+                <span className="text-slate-300 font-medium">{active.codeTitle}</span>
+                <span className="text-slate-400">{active.codeLang}</span>
               </div>
-              <pre className="p-3.5 m-0 overflow-x-auto font-mono text-xs leading-relaxed text-foreground bg-background">
+              <pre className="p-4 m-0 overflow-x-auto font-mono text-xs leading-relaxed text-slate-200 bg-[#0d1117]">
                 {active.codeSnippet}
               </pre>
             </div>
@@ -136,3 +208,4 @@ export function FeatureShowcase() {
     </div>
   );
 }
+

@@ -4,6 +4,40 @@
 
 ---
 
+## 2026-09-03
+
+### 落地页视觉设计与 UI/UX 全面优化（浅色模式专属打磨）
+
+**修改文件**：`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/InstallCommand.jsx`、`website/src/App.jsx`、`website/src/data/companies.js`、`website/src/styles.css`、`CHANGES.md`
+
+**修改内容**：
+1. **终端交互与视觉重塑**（`TerminalShowcase.jsx`）：
+   - 浅色模式下采用深色高对比石墨终端（Dark Slate Terminal），成为 Hero 首屏第一视觉锚点；
+   - 修复事实硬伤：修正 `job search` 场景中带着 `--format json` 却输出文本列表的命令与输出不一致；
+   - 统一 Tab 命名（`job search` / `job compare` / `Agent JSON`），并为移动端添加 `shortLabel` 自动紧凑展示；
+   - 优化移动端提示符栏与复制按钮，确保在各种手机窄屏下均不被遮挡或截断。
+2. **解决核心能力文本机械复读**（`FeatureShowcase.jsx`）：
+   - 彻底解决顶部 3 张卡片与下方详情面板文字 100% 机械重复的问题；
+   - 顶部卡片精简为紧凑能力标签与核心指标；
+   - 详情面板左侧升级为 3 条结构化核心价值 Checklist 与场景描述；
+   - 右侧代码区将原本简陋的伪代码注释升级为真实归一化 JSON Schema、ASCII 跨司比对矩阵与 Token 节约对比基准。
+3. **消除公司 Logo 跑马灯的图文双重重复**（`companies.js`）：
+   - 将英文简称对齐为中文企业标准名称（如 `滴滴`、`网易`、`腾讯`、`美团`），彻底解决与自带英文字母 Logo 产生的图文复读（如 `DiDi Didi`）问题。
+4. **快速上手与底部 CTA 交互升级**（`App.jsx`）：
+   - 快速上手三步流程均增加轻量一键 `CopyButton`，降低开发者试用摩擦；
+   - 底部 CTA 区域直接内嵌安装命令与原地复制按钮，无需强制跳转回页面顶部；
+   - 页脚增加 `v0.2.6` 版本标签与 NPM 包直达链接。
+5. **浅色背景工程质感与全端自适应**（`styles.css`）：
+   - Hero 区域增加细腻的点阵工程网格（Dot-matrix Grid）与微弱径向漫射，告别单调纯白；
+   - 补充 `html, body` 的 `overflow-x: hidden` 与网格列 `min-w-0`，杜绝小屏幕横向溢出。
+
+**原因**：响应用户对落地页视觉与 UI 层面优化需求，专注浅色模式下的视觉冲击力、信息增量、真实数据呈现与移动端可用性。
+
+**影响范围**：
+- 仅影响 `website/` 前端落地页展示与体验，不影响 CLI、npm 包代码及任何底层 adapter 逻辑。
+
+---
+
 ## 2026-09-02
 
 ### 落地页公司 Logo 改为对应品牌图形

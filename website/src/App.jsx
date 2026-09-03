@@ -1,5 +1,6 @@
 import React from 'react';
 import { buttonVariants } from '@appica/ui-react/button';
+import { CopyButton } from '@appica/ui-react/copy-button';
 import { InstallCommand } from './components/InstallCommand.jsx';
 import { TerminalShowcase } from './components/TerminalShowcase.jsx';
 import { LogoMarquee } from './components/LogoMarquee.jsx';
@@ -88,7 +89,7 @@ export default function App() {
           <div className="page-shell py-12 sm:py-16 lg:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               {/* Left Column: Value Prop & Install */}
-              <div className="lg:col-span-6 space-y-4 sm:space-y-5">
+              <div className="lg:col-span-6 min-w-0 space-y-4 sm:space-y-5">
                 <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span>开源 CLI · 覆盖 30+ 招聘官网</span>
@@ -122,7 +123,7 @@ export default function App() {
               </div>
 
               {/* Right Column: Visual Anchor / Interactive Terminal Showcase */}
-              <div className="lg:col-span-6">
+              <div className="lg:col-span-6 min-w-0 w-full">
                 <TerminalShowcase />
               </div>
             </div>
@@ -184,57 +185,69 @@ export default function App() {
         </section>
 
         {/* Quickstart Workflow Section */}
-        <section id="workflow" className="border-b border-border py-14 sm:py-18 scroll-mt-14 bg-background-subtle/40">
+        <section id="workflow" className="border-b border-border py-14 sm:py-20 scroll-mt-14 bg-background-subtle/30">
           <div className="page-shell">
-            <div className="text-center max-w-xl mx-auto mb-10">
+            <div className="text-center max-w-xl mx-auto mb-12">
               <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
                 Quickstart Workflow
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 快速上手
               </h2>
-              <p className="text-foreground-muted mt-1.5 text-sm sm:text-base">
-                三步开始使用
+              <p className="text-foreground-muted mt-2 text-sm sm:text-base">
+                只需三步，立即将 30+ 招聘官网转化为结构化数据流
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
-                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                  01
+              <div className="p-5 sm:p-6 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                    01
+                  </div>
+                  <span className="text-[11px] font-mono text-foreground-muted">环境准备</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground">安装 CLI 或 Skill</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed">
-                  通过 npm 全局安装到终端，或通过 npx 为 Agent 接入。
+                <h3 className="text-base font-semibold text-foreground m-0">安装 CLI 或接入 Skill</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed m-0">
+                  通过 npm 全局安装到终端，或通过 npx 为各类 Agent 运行时直接无感接入。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
-                  npm install -g jobhunt-cli
+                <div className="flex items-center justify-between gap-2 p-2 px-2.5 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
+                  <code className="truncate flex-1">npm install -g jobhunt-cli</code>
+                  <CopyButton value="npm install -g jobhunt-cli" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
-                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                  02
+              <div className="p-5 sm:p-6 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                    02
+                  </div>
+                  <span className="text-[11px] font-mono text-foreground-muted">发现站点</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground">查看支持站点</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed">
-                  列出所有支持的企业代码与可用类别。
+                <h3 className="text-base font-semibold text-foreground m-0">查看支持站点与类别</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed m-0">
+                  列出当前已支持的企业代码（如 meituan, tencent）、渠道性质与分类。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
-                  job sites
+                <div className="flex items-center justify-between gap-2 p-2 px-2.5 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
+                  <code className="truncate flex-1">job sites</code>
+                  <CopyButton value="job sites" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl border border-border bg-background shadow-xs space-y-2.5">
-                <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                  03
+              <div className="p-5 sm:p-6 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
+                    03
+                  </div>
+                  <span className="text-[11px] font-mono text-foreground-muted">横向比对</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground">开始搜索与比对</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed">
-                  跨公司横向比对，直接输出表格、CSV 或 JSON。
+                <h3 className="text-base font-semibold text-foreground m-0">开始搜索与跨司比对</h3>
+                <p className="text-xs text-foreground-muted leading-relaxed m-0">
+                  跨多家大厂并行同屏比对职位，直接输出格式化表格、CSV 或紧凑 JSON。
                 </p>
-                <div className="p-2 rounded bg-background-subtle border border-border/80 font-mono text-xs text-foreground truncate">
-                  job compare AI --sites meituan,xiaomi
+                <div className="flex items-center justify-between gap-2 p-2 px-2.5 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
+                  <code className="truncate flex-1">job compare AI --sites meituan,xiaomi</code>
+                  <CopyButton value="job compare AI --sites meituan,xiaomi" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
                 </div>
               </div>
             </div>
@@ -242,25 +255,47 @@ export default function App() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="border-b border-border py-14 sm:py-20">
+        <section className="border-b border-border py-16 sm:py-24">
           <div className="page-shell">
-            <div className="rounded-2xl border border-border bg-background-subtle p-8 sm:p-10 text-center max-w-2xl mx-auto space-y-5 shadow-sm">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            <div className="rounded-2xl border border-border bg-white p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-6 shadow-xs">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>开箱即用 · 持续维护</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground m-0">
                 开源、轻量、专为开发者与 Agent 打造
               </h2>
-              <p className="text-foreground-muted text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
-                无需繁复配置，一条命令直连 30+ 家真实招聘官网。
+              <p className="text-foreground-muted text-sm sm:text-base max-w-lg mx-auto leading-relaxed m-0">
+                无需复杂配置，一条命令直连 30+ 家真实招聘官网，轻松获取结构化岗位数据。
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-3.5 pt-1">
-                <a
-                  href="#install"
-                  className={buttonVariants({ variant: 'primary', size: 'md' })}
-                >
-                  复制安装命令 ↑
-                </a>
-                <GitHubLink variant="outline" size="md">
-                  GitHub 仓库
+
+              {/* In-place install command bar */}
+              <div className="max-w-md mx-auto pt-1">
+                <div className="flex items-center justify-between gap-3 p-2.5 px-3.5 rounded-xl border border-border bg-background-subtle font-mono text-xs sm:text-sm shadow-2xs">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-foreground-muted select-none">$</span>
+                    <code className="text-foreground font-medium truncate">npm install -g jobhunt-cli</code>
+                  </div>
+                  <CopyButton
+                    value="npm install -g jobhunt-cli"
+                    variant="outline"
+                    size="icon-sm"
+                    label="复制安装命令"
+                    copiedLabel="已复制"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+                <GitHubLink variant="primary" size="md">
+                  在 GitHub 查看源码
                 </GitHubLink>
+                <a
+                  href="#capabilities"
+                  className={buttonVariants({ variant: 'outline', size: 'md' })}
+                >
+                  查看核心能力 ↓
+                </a>
               </div>
             </div>
           </div>
@@ -269,20 +304,23 @@ export default function App() {
 
       {/* Footer */}
       <footer>
-        <div className="page-shell flex flex-col sm:flex-row items-center justify-between gap-4 py-7 text-xs text-foreground-muted">
-          <div className="flex items-center gap-3">
+        <div className="page-shell flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-xs text-foreground-muted">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="font-semibold text-foreground">JobHunt CLI</span>
+            <span className="px-1.5 py-0.5 rounded bg-foreground/5 text-foreground-muted font-mono text-[11px] border border-border">v0.2.6</span>
             <span>·</span>
             <span>MIT License</span>
             <span>·</span>
             <span>Open Source</span>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 font-medium">
             <a
-              href="#top"
+              href="https://www.npmjs.com/package/jobhunt-cli"
+              target="_blank"
+              rel="noreferrer"
               className="text-foreground-muted hover:text-foreground transition-colors no-underline"
             >
-              回到顶部
+              npm 包
             </a>
             <a
               href={GITHUB_URL}
@@ -291,6 +329,12 @@ export default function App() {
               className="text-foreground-muted hover:text-foreground transition-colors no-underline"
             >
               GitHub 仓库
+            </a>
+            <a
+              href="#top"
+              className="text-foreground-muted hover:text-foreground transition-colors no-underline"
+            >
+              回到顶部 ↑
             </a>
           </div>
         </div>
