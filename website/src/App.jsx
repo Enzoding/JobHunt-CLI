@@ -94,7 +94,7 @@ export default function App() {
               <div className="lg:col-span-6 min-w-0 space-y-4 sm:space-y-5">
                 <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>开源 CLI · 覆盖 30+ 招聘官网 · 你的 AI 求职副驾驶</span>
+                  <span>开源 CLI · 覆盖 30+ 招聘官网</span>
                 </div>
 
                 <h1 className="hero-title text-foreground tracking-tight">
@@ -104,7 +104,7 @@ export default function App() {
                 </h1>
 
                 <p className="text-foreground-muted text-sm sm:text-base leading-relaxed max-w-lg">
-                  把 30+ 家大厂在招职位统一成高质量结构化数据。你可以用一句话让 AI 帮你精准找岗、横向对比多家大厂要求、追踪行业扩招动向。
+                  把 30+ 家大厂职位统一为结构化数据。支持自然语言找岗、跨司横向对比与行业招聘动向分析。
                 </p>
 
                 <div id="install" className="pt-1 scroll-mt-24">
@@ -119,7 +119,7 @@ export default function App() {
                     href="#scenarios"
                     className={buttonVariants({ variant: 'outline', size: 'md' })}
                   >
-                    典型应用场景 ↓
+                    应用场景 ↓
                   </a>
                 </div>
               </div>
@@ -172,19 +172,19 @@ export default function App() {
           <div className="page-shell space-y-8">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
               <div className="max-w-2xl">
-                <div className="text-xs font-mono text-emerald-600 font-semibold uppercase tracking-wider mb-1">
-                  Real-World Use Cases
+                <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
+                  Use Cases
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                  你能用它解决什么？四大高频使用场景
+                  典型应用场景
                 </h2>
                 <p className="text-foreground-muted mt-2 text-sm sm:text-base leading-relaxed">
-                  不只是极客的命令行，更是每个职场人的 AI 求职与大厂调研副驾驶。告别低效人肉刷网站，让真实一手岗位触手可及。
+                  面向求职与行业调研，支持通过自然语言吩咐 Agent 执行，输出标准结构化数据。
                 </p>
               </div>
-              <div className="text-xs text-foreground-muted flex items-center gap-2 bg-background-subtle px-3 py-1.5 rounded-full border border-border shrink-0 self-start md:self-auto">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>支持自然语言吩咐 Agent 执行</span>
+              <div className="text-xs text-foreground-muted flex items-center gap-2 bg-background-subtle px-3 py-1.5 rounded-md border border-border shrink-0 self-start md:self-auto font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>自然语言驱动</span>
               </div>
             </div>
 
