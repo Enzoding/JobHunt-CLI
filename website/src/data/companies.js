@@ -21,4 +21,3 @@ export const companies = [
   { id: 'dewu', name: '得物' },
   { id: 'ctrip', name: '携程' },
 ];
-

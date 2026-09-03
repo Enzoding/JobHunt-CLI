@@ -80,8 +80,8 @@ const SCENARIOS = [
     label: '趋势分析',
     title: '招聘趋势分析',
     summary: '统计目标公司放岗动态与高频技能词频，快速识别扩招方向。',
-    prompt: '分析快手、字节和滴滴近期放出的算法岗位，统计高频技术关键词分布。',
-    command: 'job analyze --site kuaishou,bytedance,didi --keyword "算法"',
+    prompt: '分析快手近期放出的算法岗位，统计高频技术关键词分布。',
+    command: 'job kuaishou analyze "算法" --nature social --summary-only --format json',
     points: [
       '基于官网实时放岗时间统计',
       '自动提取高频技能词频分布',
