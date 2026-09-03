@@ -6,13 +6,13 @@ const SCENARIOS = [
     number: '01',
     label: '定向检索',
     title: '定向岗位检索',
-    summary: '指定公司、城市、类别与性质，直接检索官网在招岗位，返回干净的结构化数据。',
+    summary: '指定公司、城市与类别，直接检索官网在招岗位，返回规范数据。',
     prompt: '查一下美团在深圳最近更新的 AI Agent 技术岗，社招，返回前 3 条。',
     command: 'job meituan search "AI Agent" --category 技术类 --location 深圳 --nature social --limit 3',
     points: [
-      '直连各公司公开招聘网关，跳过第三方中介与过期职位',
-      '支持中英文别名模糊匹配（如 技术类、深圳、社招）',
-      '直接输出岗位 ID 与官网直达链接，便于后续调用完整 JD',
+      '直连公开招聘网关，跳过中介与过期职位',
+      '支持中英文别名匹配（城市、类别、性质）',
+      '直接输出岗位 ID 与直链，便于调取完整 JD',
     ],
     previewType: 'list',
     previewItems: [
@@ -41,13 +41,13 @@ const SCENARIOS = [
     number: '02',
     label: '跨司比对',
     title: '多司横向比对',
-    summary: '一次查询聚合多家大厂在招岗位，同屏对照岗位职责、技术栈侧重与门槛差异。',
+    summary: '聚合多家大厂在招岗位，同屏对照职责要求、技术栈与门槛差异。',
     prompt: '对比小米、腾讯和美团目前在招的大模型算法岗位，按技能要求与业务线对比。',
     command: 'job compare "大模型" --sites xiaomi,tencent,meituan --nature social',
     points: [
-      '并发请求多家招聘官网，自动按岗位语义合并去重',
-      '同屏矩阵对照各厂用人要求，无需在数十个网页标签间跳转',
-      '支持导出 CSV 或 JSON，可直接供分析脚本或大模型消费',
+      '并发请求多家招聘官网，自动去重',
+      '同屏矩阵对照要求，无需切换多个网页',
+      '支持导出 CSV 与 JSON，便于二次分析',
     ],
     previewType: 'table',
     previewRows: [
@@ -78,14 +78,14 @@ const SCENARIOS = [
     id: 'trends',
     number: '03',
     label: '趋势分析',
-    title: '招聘趋势与技术风向',
-    summary: '分析目标公司近期放岗动态与技术关键词分布，快速识别团队扩招方向。',
+    title: '招聘趋势分析',
+    summary: '统计目标公司放岗动态与高频技能词频，快速识别扩招方向。',
     prompt: '分析快手、字节和滴滴近期放出的算法岗位，统计高频技术关键词分布。',
     command: 'job analyze --site kuaishou,bytedance,didi --keyword "算法"',
     points: [
-      '基于官网实时放岗时间戳统计，杜绝长期不招的挂靠职位',
-      '自动提取高频技能词频分布，直观洞悉行业热点技术演进',
-      '帮助求职者按需调整准备方向，帮助团队做人才市场调研',
+      '基于官网实时放岗时间统计',
+      '自动提取高频技能词频分布',
+      '辅助求职准备与团队用人调研',
     ],
     previewType: 'stats',
     statBars: [
@@ -100,14 +100,14 @@ const SCENARIOS = [
     id: 'detail',
     number: '04',
     label: 'JD 提取',
-    title: 'JD 结构化提取与分析',
-    summary: '提取指定职位的完整官方职责描述与任职要求，输出纯净文本供大模型比对。',
+    title: 'JD 结构化提取',
+    summary: '提取目标职位完整职责与任职要求，输出纯净文本供大模型消费。',
     prompt: '调取腾讯此 Agent 岗位的完整 JD，与我的项目经历做对比，指出差距。',
     command: 'job tencent detail 2088058045916692480',
     points: [
-      '剔除网页多余 HTML 噪音与导航元素，单岗位提取 Token 极低',
-      '职责与任职资格严格分字段输出，便于针对性撰写简历与面试准备',
-      '支持与各类 Agent 工作流无缝配合，自动化生成求职分析报告',
+      '剔除 HTML 噪点，单岗位极低 Token 消耗',
+      '职责与资格严格分字段，便于定向准备',
+      '支持与各类 Agent 编排流水线集成',
     ],
     previewType: 'jd',
     jdDetail: {
@@ -212,7 +212,7 @@ export function UserScenarios() {
                 “{active.prompt}”
               </div>
               <div className="text-foreground-muted text-[11px] pt-0.5">
-                <span>底层对应执行指令：</span>
+                <span>对应命令：</span>
                 <div className="mt-1 text-foreground font-mono bg-foreground/5 p-1.5 rounded border border-border break-all">
                   {active.command}
                 </div>
@@ -235,10 +235,10 @@ export function UserScenarios() {
             <div className="rounded-lg border border-border bg-background-subtle/30 p-3 sm:p-3.5">
               <div className="flex items-center justify-between border-b border-border/80 pb-2 mb-2.5 text-xs">
                 <span className="font-mono text-foreground-muted font-medium">
-                  结构化数据交付预览
+                  输出预览
                 </span>
                 <span className="font-mono text-[10px] text-foreground-muted">
-                  官方公开源
+                  公开数据源
                 </span>
               </div>
 

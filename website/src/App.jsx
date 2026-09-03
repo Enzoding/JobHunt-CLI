@@ -100,7 +100,7 @@ export default function App() {
                 </h1>
 
                 <p className="text-foreground-muted text-xs sm:text-sm leading-relaxed max-w-lg">
-                  把 30+ 家大厂职位统一为结构化数据。支持自然语言找岗、跨司横向对比与行业招聘动向分析。
+                  统一 30+ 招聘官网，输出标准化岗位数据，支持自然语言检索与跨司比对。
                 </p>
 
                 <div id="install" className="pt-0.5 scroll-mt-20">
@@ -115,7 +115,7 @@ export default function App() {
                     href="#scenarios"
                     className={buttonVariants({ variant: 'outline', size: 'md' })}
                   >
-                    应用场景 ↓
+                    场景 ↓
                   </a>
                 </div>
               </div>
@@ -144,7 +144,7 @@ export default function App() {
               </h2>
             </div>
             <p className="text-foreground-muted text-xs sm:text-[13px] max-w-md leading-relaxed">
-              支持 36 个官方招聘站点与主流 Agent 运行时环境，开箱即用。
+              支持 36 个公开招聘站点，主流 Agent 即开即用。
             </p>
           </div>
 
@@ -154,7 +154,7 @@ export default function App() {
               items={companies}
               logoDir="companies"
               duration="68s"
-              label="当前支持的招聘官网名单"
+              label="招聘官网"
             />
             {/* Row 2: Agents (Moving right / reverse) */}
             <LogoMarquee
@@ -162,7 +162,7 @@ export default function App() {
               logoDir="agents"
               duration="30s"
               reverse={true}
-              label="支持一键接入的 Agent 运行时"
+              label="Agent 运行时"
             />
           </div>
         </section>
@@ -179,7 +179,7 @@ export default function App() {
                   典型应用场景
                 </h2>
                 <p className="text-foreground-muted mt-1 text-xs sm:text-sm leading-relaxed">
-                  面向求职与行业调研，支持通过自然语言吩咐 Agent 执行，输出标准结构化数据。
+                  配合 Agent 执行自然语言找岗、跨司对照与趋势分析。
                 </p>
               </div>
               <div className="text-xs text-foreground-muted flex items-center gap-2 bg-background-subtle px-2.5 py-1 rounded-md border border-border shrink-0 self-start md:self-auto font-mono">
@@ -203,7 +203,7 @@ export default function App() {
                 核心能力
               </h2>
               <p className="text-foreground-muted mt-1 text-xs sm:text-sm leading-relaxed">
-                统一数据规范，横向比对分析，极低 Token 消耗。
+                统一规范、跨司比对与低 Token 原生流。
               </p>
             </div>
 
@@ -222,7 +222,7 @@ export default function App() {
                 快速上手
               </h2>
               <p className="text-foreground-muted mt-1 text-xs sm:text-sm">
-                只需三步，立即将 30+ 招聘官网转化为结构化数据流
+                三步快速开始
               </p>
             </div>
 
@@ -234,9 +234,9 @@ export default function App() {
                   </div>
                   <span className="text-[11px] font-mono text-foreground-muted">环境准备</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">安装 CLI 或接入 Skill</h3>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">安装环境</h3>
                 <p className="text-xs text-foreground-muted leading-relaxed m-0">
-                  通过 npm 全局安装到终端，或通过 npx 为各类 Agent 运行时直接无感接入。
+                  全局安装 CLI，或通过 npx 为各类 Agent 接入。
                 </p>
                 <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
                   <code className="truncate flex-1">npm install -g jobhunt-cli</code>
@@ -251,9 +251,9 @@ export default function App() {
                   </div>
                   <span className="text-[11px] font-mono text-foreground-muted">发现站点</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">查看支持站点与类别</h3>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">发现站点</h3>
                 <p className="text-xs text-foreground-muted leading-relaxed m-0">
-                  列出当前已支持的企业代码（如 meituan, tencent）、渠道性质与分类。
+                  查看已支持的公司代码、招聘渠道与分类。
                 </p>
                 <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
                   <code className="truncate flex-1">job sites</code>
@@ -268,9 +268,9 @@ export default function App() {
                   </div>
                   <span className="text-[11px] font-mono text-foreground-muted">横向比对</span>
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">开始搜索与跨司比对</h3>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">检索比对</h3>
                 <p className="text-xs text-foreground-muted leading-relaxed m-0">
-                  跨多家大厂并行同屏比对职位，直接输出格式化表格、CSV 或紧凑 JSON。
+                  并发查询多家公司，输出表格、CSV 或 JSON。
                 </p>
                 <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
                   <code className="truncate flex-1">job compare AI --sites meituan,xiaomi</code>
@@ -287,13 +287,13 @@ export default function App() {
             <div className="rounded-2xl border border-border bg-white p-5 sm:p-7 text-center max-w-2xl mx-auto space-y-4 shadow-xs">
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>开箱即用 · 持续维护</span>
+                <span>开源工具</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground m-0">
-                开源、轻量、专为开发者与 Agent 打造
+                轻量、纯净、专为 Agent 打造
               </h2>
               <p className="text-foreground-muted text-xs sm:text-sm max-w-lg mx-auto leading-relaxed m-0">
-                无需复杂配置，一条命令直连 30+ 家真实招聘官网，轻松获取结构化岗位数据。
+                一条命令直连 30+ 家公开招聘官网，获取结构化岗位数据。
               </p>
 
               {/* In-place install command bar */}
@@ -321,7 +321,7 @@ export default function App() {
                   href="#capabilities"
                   className={buttonVariants({ variant: 'outline', size: 'md' })}
                 >
-                  查看核心能力 ↓
+                  核心能力 ↓
                 </a>
               </div>
             </div>

@@ -6,24 +6,24 @@ const FEATURES = [
     id: 'unified',
     title: '统一搜索协议',
     badge: '单命令直连',
-    tagline: '30+ 平台同一接口，社招/校招/实习无缝切换',
+    tagline: '30+ 平台统一接口，支持社招、校招、实习',
     command: 'job meituan search "算法" --nature social --category 技术类 --limit 5',
     highlights: [
       {
-        title: '统一的标准数据规范',
-        desc: '各司原始数据格式千差万别，JobHunt 全部映射为规范标准字段（id, title, city, dept, req）',
+        title: '统一标准字段',
+        desc: '映射为统一标准字段（id, title, city, dept, req）',
       },
       {
-        title: '智能别名模糊解析',
-        desc: '支持传入中文与别名（如 --category 技术、--city 北京），自动映射底层各司内部代码',
+        title: '智能别名解析',
+        desc: '支持中文与别名（如 --category 技术、--city 北京），自动映射内部代码',
       },
       {
-        title: '三大招聘性质秒级切换',
-        desc: '统一通过 --nature 参数穿透切换 social（社招）、campus（校招）与 intern（实习）',
+        title: '多性质秒级切换',
+        desc: '通过 --nature 参数切换社招、校招与实习',
       },
     ],
     codeTitle: 'normalized-schema.json',
-    codeLang: '标准字段规范',
+    codeLang: '标准规范',
     codeSnippet: `{
   "id": "4669710957",
   "name": "AI Agent Builder",
@@ -39,24 +39,24 @@ const FEATURES = [
     id: 'compare',
     title: '跨司横向比对',
     badge: '同屏聚合',
-    tagline: '一次查询多家大厂在招岗位，同屏比对职责与发布时间',
+    tagline: '聚合多家大厂在招岗位，同屏比对要求与发布时间',
     command: 'job compare "前端架构" --sites meituan,xiaomi,tencent --nature social',
     highlights: [
       {
-        title: '多招聘站并行并发拉取',
-        desc: '同时向美团、小米、腾讯等多个官网发起异步请求，毫秒级聚合并去重',
+        title: '多源并发拉取',
+        desc: '同时向美团、小米、腾讯等发起并发请求并自动去重',
       },
       {
-        title: '同屏对照排版',
-        desc: '告别数十个繁杂网页标签页的反复跳转，终端或表格直接横向透视岗位差异',
+        title: '同屏对照矩阵',
+        desc: '终端或表格横向透视岗位要求，无需切换标签页',
       },
       {
-        title: '直接导出 CSV / JSON 分析表格',
-        desc: '配合 --format csv --output compare.csv，方便接入 Excel 或本地 Python 脚本分析',
+        title: '导出分析表格',
+        desc: '支持 --format csv 或 json，便于脚本与表格二次分析',
       },
     ],
     codeTitle: 'cross-company-matrix.txt',
-    codeLang: '聚合对比矩阵',
+    codeLang: '对比矩阵',
     codeSnippet: `┌──────────┬────────────────────────────┬────────┬────────────┐
 │ 站点     │ 职位名称                   │ 城市   │ 更新时间   │
 ├──────────┼────────────────────────────┼────────┼────────────┤
@@ -69,24 +69,24 @@ const FEATURES = [
     id: 'agent-native',
     title: 'Agent 原生流',
     badge: 'Token 优化',
-    tagline: '剔除冗余 HTML 噪点，单岗节省 75%+ Token 消耗',
+    tagline: '剔除 HTML 噪点，单岗节省 75%+ Token',
     command: 'job aliyun search "Agent" --format json --view compact',
     highlights: [
       {
-        title: '纯粹结构化，消除 DOM 噪声',
-        desc: '智能剔除导航条、追踪脚本与排版杂质，只保留核心 JD 要求与技能画像',
+        title: '纯净结构化',
+        desc: '智能剔除 DOM 与脚本杂质，只保留核心要求',
       },
       {
-        title: '极致上下文 Token 节约',
-        desc: '10 个岗位的完整网页需要 >8,000 Tokens，JobHunt Compact 视图仅需 ~600 Tokens',
+        title: '极低 Token 消耗',
+        desc: '紧凑视图单岗位仅 ~60 Tokens，避免上下文溢出',
       },
       {
-        title: '开箱集成主流 Agent 运行时',
-        desc: '标准技能规范，专为 Codex, Claude Code, Cursor, Windsurf 与 OpenClaw 打造',
+        title: '主流 Agent 即插即用',
+        desc: '原生适配 Codex, Claude Code, Cursor 与 OpenClaw',
       },
     ],
     codeTitle: 'token-savings.json',
-    codeLang: 'Token 消耗对比',
+    codeLang: 'Token 对比',
     codeSnippet: `{
   "raw_html_crawling": {
     "tokens": 8420,

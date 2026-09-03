@@ -5,17 +5,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@appica/ui-react/tabs'
 const INSTALL_OPTIONS = [
   {
     value: 'cli',
-    label: 'CLI 安装 (推荐)',
+    label: 'CLI 安装',
     command: 'npm install -g jobhunt-cli',
     badge: 'Node.js >= 21',
-    hint: '全局安装 job 命令，支持单司检索、跨司对比与数据导出。',
+    hint: '安装全局 job 命令，支持单司检索、跨司比对与数据导出。',
   },
   {
     value: 'skill',
     label: 'Agent Skill',
     command: 'npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli',
     badge: '即装即用',
-    hint: '为 Codex、Claude Code、OpenClaw 等 Agent 赋予查询能力。',
+    hint: '为 Codex、Claude Code、OpenClaw 等 Agent 接入检索能力。',
   },
 ];
 

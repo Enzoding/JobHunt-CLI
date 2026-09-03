@@ -6,6 +6,30 @@
 
 ## 2026-09-03
 
+### 全站文案全面精简与冗余字数压缩
+
+**修改文件**：`website/src/App.jsx`、`website/src/components/UserScenarios.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/InstallCommand.jsx`、`CHANGES.md`
+
+**修改内容**：
+1. **Hero 与生态介绍文案压缩**：
+   - Hero 副标题精简为 `统一 30+ 招聘官网，输出标准化岗位数据，支持自然语言检索与跨司比对。`；
+   - 导航按钮从 `应用场景 ↓` 缩至更利落的 `场景 ↓`；
+   - 生态说明与跑马灯标签去重去冗（`招聘官网`、`Agent 运行时`、`支持 36 个公开招聘站点，主流 Agent 即开即用。`）。
+2. **场景分类与功能特性短语化（UserScenarios & FeatureShowcase）**：
+   - 场景标题缩短（如 `招聘趋势分析`、`JD 结构化提取`），每个场景的 Summary 从 30+ 字压缩至 20 字以内；
+   - 场景说明要点与 UI 标签去重（如 `底层对应执行指令：` -> `对应命令：`、`结构化数据交付预览` -> `输出预览`）；
+   - 特性列表条目提炼为精悍短语（`统一标准字段`、`智能别名解析`、`多源并发拉取`、`同屏对照矩阵`、`纯净结构化`、`极低 Token 消耗`），每个描述控制在 1 行内。
+3. **上手流程与底部 CTA 去冗**：
+   - 快速上手副标题直接为 `三步快速开始`，三步步骤标题简化为 `安装环境`、`发现站点`、`检索比对`；
+   - 底部 CTA 标题与文案剔除修饰性套话。
+
+**原因**：响应用户对于整页字数仍然偏多、需要进一步精简文案的要求。
+
+**影响范围**：
+- 仅影响落地页文案展示；JS 产物体积减少约 1.3 kB。
+
+---
+
 ### 全新产品 Logo 生成、终端浅色毛玻璃升级与全站空白压缩
 
 **修改文件**：`website/src/components/JobHuntLogo.jsx`（新建）、`website/public/logos/jobhunt-icon.svg`（新建）、`website/public/favicon.svg`、`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/UserScenarios.jsx`、`website/src/App.jsx`、`website/src/styles.css`、`CHANGES.md`
