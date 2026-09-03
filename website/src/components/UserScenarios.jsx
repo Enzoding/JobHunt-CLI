@@ -130,12 +130,12 @@ export function UserScenarios() {
   const active = SCENARIOS.find((s) => s.id === activeTab) || SCENARIOS[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5">
       {/* Scenario Selector Tabs */}
       <div
         role="tablist"
         aria-label="典型使用场景分类"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-2.5"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-2"
       >
         {SCENARIOS.map((s) => {
           const isSelected = s.id === activeTab;
@@ -148,18 +148,18 @@ export function UserScenarios() {
               aria-controls={`panel-${s.id}`}
               type="button"
               onClick={() => setActiveTab(s.id)}
-              className={`p-3.5 rounded-lg text-left border transition-all cursor-pointer select-none ${
+              className={`p-2.5 sm:p-3 rounded-lg text-left border transition-all cursor-pointer select-none ${
                 isSelected
                   ? 'bg-background border-foreground/30 shadow-xs'
                   : 'bg-background-subtle/40 border-border/70 hover:bg-background hover:border-border text-foreground-muted'
               }`}
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-1">
                 <span className="font-mono text-xs text-foreground-muted font-semibold">
                   {s.number}
                 </span>
                 <span
-                  className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
+                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
                     isSelected
                       ? 'bg-foreground text-background font-medium'
                       : 'bg-foreground/5 text-foreground-muted'
@@ -169,7 +169,7 @@ export function UserScenarios() {
                 </span>
               </div>
               <div
-                className={`text-sm font-semibold tracking-tight ${
+                className={`text-xs sm:text-sm font-semibold tracking-tight ${
                   isSelected ? 'text-foreground' : 'text-foreground/80'
                 }`}
               >
@@ -185,44 +185,44 @@ export function UserScenarios() {
         id={`panel-${active.id}`}
         role="tabpanel"
         aria-labelledby={`tab-${active.id}`}
-        className="rounded-xl border border-border bg-background p-5 sm:p-6 shadow-xs"
+        className="rounded-xl border border-border bg-background p-4 sm:p-5 shadow-xs"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
           {/* Left Column: Context & Workflow */}
-          <div className="lg:col-span-6 space-y-4">
+          <div className="lg:col-span-6 space-y-3">
             <div>
-              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-1">
+              <div className="text-[11px] font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
                 Scenario {active.number}
               </div>
-              <h3 className="text-xl font-bold tracking-tight text-foreground">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
                 {active.title}
               </h3>
-              <p className="text-sm text-foreground-muted mt-1 leading-relaxed">
+              <p className="text-xs sm:text-sm text-foreground-muted mt-0.5 leading-relaxed">
                 {active.summary}
               </p>
             </div>
 
             {/* Instruction and CLI command */}
-            <div className="rounded-lg border border-border bg-background-subtle/50 p-3.5 space-y-2 text-xs font-mono">
+            <div className="rounded-lg border border-border bg-background-subtle/50 p-2.5 space-y-1.5 text-xs font-mono">
               <div className="text-foreground-muted text-[11px] flex items-center justify-between">
                 <span>用户指令</span>
                 <span className="text-[10px] uppercase text-foreground-muted/80">自然语言</span>
               </div>
-              <div className="text-foreground font-sans font-medium text-xs sm:text-[13px] leading-relaxed bg-background p-2.5 rounded border border-border/80">
+              <div className="text-foreground font-sans font-medium text-xs leading-relaxed bg-background p-2 rounded border border-border/80">
                 “{active.prompt}”
               </div>
-              <div className="text-foreground-muted text-[11px] pt-1">
+              <div className="text-foreground-muted text-[11px] pt-0.5">
                 <span>底层对应执行指令：</span>
-                <div className="mt-1 text-foreground font-mono bg-foreground/5 p-2 rounded border border-border break-all">
+                <div className="mt-1 text-foreground font-mono bg-foreground/5 p-1.5 rounded border border-border break-all">
                   {active.command}
                 </div>
               </div>
             </div>
 
             {/* Value checklist */}
-            <ul className="space-y-1.5 text-xs sm:text-sm text-foreground-muted">
+            <ul className="space-y-1 text-xs text-foreground-muted">
               {active.points.map((p, i) => (
-                <li key={i} className="flex items-start gap-2">
+                <li key={i} className="flex items-start gap-1.5">
                   <span className="text-foreground/80 font-bold shrink-0 mt-0.5">•</span>
                   <span className="leading-relaxed">{p}</span>
                 </li>
@@ -232,12 +232,12 @@ export function UserScenarios() {
 
           {/* Right Column: Structured Output Preview */}
           <div className="lg:col-span-6 w-full">
-            <div className="rounded-lg border border-border bg-background-subtle/30 p-4">
-              <div className="flex items-center justify-between border-b border-border/80 pb-2.5 mb-3 text-xs">
+            <div className="rounded-lg border border-border bg-background-subtle/30 p-3 sm:p-3.5">
+              <div className="flex items-center justify-between border-b border-border/80 pb-2 mb-2.5 text-xs">
                 <span className="font-mono text-foreground-muted font-medium">
                   结构化数据交付预览
                 </span>
-                <span className="font-mono text-[11px] text-foreground-muted">
+                <span className="font-mono text-[10px] text-foreground-muted">
                   官方公开源
                 </span>
               </div>

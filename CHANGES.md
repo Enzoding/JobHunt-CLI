@@ -6,6 +6,30 @@
 
 ## 2026-09-03
 
+### 全新产品 Logo 生成、终端浅色毛玻璃升级与全站空白压缩
+
+**修改文件**：`website/src/components/JobHuntLogo.jsx`（新建）、`website/public/logos/jobhunt-icon.svg`（新建）、`website/public/favicon.svg`、`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/components/UserScenarios.jsx`、`website/src/App.jsx`、`website/src/styles.css`、`CHANGES.md`
+
+**修改内容**：
+1. **重塑产品专属品牌矢量 Logo**：
+   - 移除此前临时的黑白粗糙 `>_` 方块，设计专属的 JobHunt-CLI 品牌标志；
+   - 融合 CLI 命令行终端 Chevron 提示符（`>`）、求职雷达目标环（Radar Crosshair）与雷达目标微光节点，体现“终端与 Agent 探测真实在招机会”的核心意向；
+   - 同步更新导航栏 `SiteMark`、页脚 Logo、`website/public/logos/jobhunt-icon.svg` 与 `favicon.svg`。
+2. **终端改为浅色调毛玻璃（Light Glassmorphism / Acrylic）质感**：
+   - 遵循用户要求将终端切换为浅色调，通过 `rgba(255, 255, 255, 0.76)` 搭配 `backdrop-filter: blur(24px) saturate(190%)` 实现透光磨砂；
+   - 顶部保留倒角高光 `inset 0 1px 0 0 rgba(255, 255, 255, 0.95)`，终端文字统一采用高可读性的深灰阶与翡翠绿高亮；
+   - 首屏终端与核心特性代码窗口统一对齐为浅色毛玻璃终端规范。
+3. **大幅压缩全站空白与内边距，提升信息密度**：
+   - 将全站各章节（Hero、Ecosystem、Scenarios、Capabilities、Workflow、CTA）的纵向上下 Padding 从原本夸张的 `py-14 sm:py-20`（80px）大幅压缩至 `py-7 sm:py-10`，页面总高度缩短约 40%；
+   - 缩小各模块卡片内部空白，收紧标题间距与元素 Gap，消除页面空旷松散感，移动端和桌面端浏览节奏更加紧凑流畅。
+
+**原因**：响应用户对于生成新产品 Logo、终端改为浅色毛玻璃质感、以及减少全站空白压缩排版的要求。
+
+**影响范围**：
+- 仅影响 `website/` 落地页与 Favicon 资源；CLI 及底层逻辑不变。
+
+---
+
 ### 终端展示引入深色毛玻璃（Acrylic / Glassmorphism）质感与光影升级
 
 **修改文件**：`website/src/styles.css`、`website/src/components/TerminalShowcase.jsx`、`website/src/components/FeatureShowcase.jsx`、`website/src/App.jsx`、`CHANGES.md`
