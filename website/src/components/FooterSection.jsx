@@ -18,25 +18,25 @@ export function FooterSection() {
             <span className="text-sm font-semibold tracking-tight">jobhunt</span>
           </div>
           <p className="max-w-xs text-neutral-500 leading-relaxed text-[11px]">
-            将中国互联网大厂官方招聘网关转化为干净、标准化的结构化数据，供开发者与 AI Agent 秒级调用。
+            把各公司的公开招聘网站变成同一套命令，供你和 Agent 使用。
           </p>
         </div>
 
         {/* Product */}
         <div className="col-span-1 md:col-span-2 space-y-2.5">
-          <span className="font-semibold text-neutral-300 block">功能导航</span>
+          <span className="font-semibold text-neutral-300 block">目录</span>
           <ul className="space-y-2">
-            <li><a href="#features" className="hover:text-white transition-colors no-underline">核心特性</a></li>
-            <li><a href="#how-it-works" className="hover:text-white transition-colors no-underline">工作流程</a></li>
-            <li><a href="#capabilities" className="hover:text-white transition-colors no-underline">全景支持</a></li>
-            <li><a href="#compare" className="hover:text-white transition-colors no-underline">多司比对</a></li>
-            <li><a href="#ecosystem" className="hover:text-white transition-colors no-underline">生态覆盖</a></li>
+            <li><a href="#install" className="hover:text-white transition-colors no-underline">安装</a></li>
+            <li><a href="#features" className="hover:text-white transition-colors no-underline">能做什么</a></li>
+            <li><a href="#how-it-works" className="hover:text-white transition-colors no-underline">使用步骤</a></li>
+            <li><a href="#capabilities" className="hover:text-white transition-colors no-underline">在哪里用</a></li>
+            <li><a href="#compare" className="hover:text-white transition-colors no-underline">对比多家</a></li>
           </ul>
         </div>
 
         {/* Sites */}
         <div className="col-span-1 md:col-span-3 space-y-2.5">
-          <span className="font-semibold text-neutral-300 block">已支持大厂</span>
+          <span className="font-semibold text-neutral-300 block">支持的公司</span>
           <div className="grid grid-cols-2 gap-y-1.5 text-neutral-500">
             <span>美团 (Meituan)</span>
             <span>字节跳动 (ByteDance)</span>
@@ -60,7 +60,7 @@ export function FooterSection() {
                 rel="noreferrer"
                 className="hover:text-white transition-colors no-underline"
               >
-                GitHub 开源仓库
+                GitHub 仓库
               </a>
             </li>
             <li>
@@ -70,7 +70,7 @@ export function FooterSection() {
                 rel="noreferrer"
                 className="hover:text-white transition-colors no-underline"
               >
-                npm registry
+                npm 上的安装包
               </a>
             </li>
             <li>
@@ -80,7 +80,7 @@ export function FooterSection() {
                 rel="noreferrer"
                 className="hover:text-white transition-colors no-underline"
               >
-                Agent SKILL.md
+                Agent 使用说明
               </a>
             </li>
           </ul>

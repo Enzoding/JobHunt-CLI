@@ -19,9 +19,6 @@
   --m-accent-hover: #c44614;
   --m-line: rgba(0, 0, 0, 0.08);
   --m-line-strong: rgba(0, 0, 0, 0.16);
-  --m-win: #ffffff;
-  --m-win-side: #fafafa;
-  --m-win-line: rgba(0, 0, 0, 0.08);
   --m-footer: #111111;
 
   --background: var(--m-paper);
@@ -41,9 +38,6 @@
   --m-accent-hover: #ff8452;
   --m-line: rgba(255, 255, 255, 0.08);
   --m-line-strong: rgba(255, 255, 255, 0.16);
-  --m-win: #141416;
-  --m-win-side: #0e0e10;
-  --m-win-line: rgba(255, 255, 255, 0.08);
   --m-footer: #08080a;
 
   --background: var(--m-paper);

@@ -3,24 +3,24 @@ import { ChevronDown } from 'lucide-react';
 
 const FAQS = [
   {
-    q: '数据来自哪里？是否需要登录账号或提供 Cookie？',
-    a: '所有数据均来自各公司官方招聘网站公开直连的 API 网关或公开页面。完全不涉及登录态、Cookie 窃取、内部内网越权或隐私信息，纯净合规，零配置开箱即用。',
+    q: '数据从哪里来？需要登录吗？',
+    a: '数据来自各公司公开的招聘网站。你不需要登录，JobHunt 也不会使用 Cookie。',
   },
   {
-    q: '相比传统的无头浏览器网页爬虫（Puppeteer / Playwright），核心优势是什么？',
-    a: '传统网页爬虫依赖复杂的 DOM 结构解析与无头浏览器，极其臃肿且网页一旦改版立即失效。JobHunt-CLI 针对每家公司编写了独立的 API Site Adapter，直连底层 JSON 接口，单机极速并发，内存占用极低，且输出数据已全部映射为标准规范字段。',
+    q: '这和爬虫有什么不同？',
+    a: 'JobHunt 不打开网页，也不启动浏览器。每家公司各有一个适配器，直接读取公开接口，再整理成同一套字段。',
   },
   {
-    q: '如何让 Claude Code、Cursor 或其他 AI Agent 直接调用？',
-    a: '项目内置了标准 skills/jobhunt-cli/SKILL.md 文档。你可以直接在 Agent 中将该目录或内容作为 Skill 载入，智能体即可自动掌握 job meituan search、job detail 以及 job analyze 等全部子命令的语法与使用规范。',
+    q: '怎么让 Agent 使用？',
+    a: '在页面顶部选择「交给 Agent」，复制那条命令并运行。安装完成后，Claude Code、Cursor 或 Codex 会根据附带的说明自己查询。',
   },
   {
-    q: '支持哪些招聘类型？（社招、校招、实习）',
-    a: '各站点 Adapter 均声明了其已验证的 recruitment natures（如 social、campus、intern）。通过统一参数 --nature social 即可一键切换，默认采用社招渠道。',
+    q: '可以查询社招、校招和实习吗？',
+    a: '可以。在命令里加上 --nature，取值可以是社招、校招或实习。不写时默认查询社招。每家公司支持的类型不同，运行 job sites 可以查看。',
   },
   {
-    q: '如何添加新的公司招聘站点？',
-    a: '非常简单！项目采用经典的 Adapter 设计模式。查阅项目根目录下的 docs/ADDING_SITE.md 文档，在 src/sites/<site>/ 下实现 search、detail、all 和 filters 接口并在 registry.js 中注册，即可秒级接入全新公司。',
+    q: '怎么再添加一家公司？',
+    a: '打开项目里的 docs/ADDING_SITE.md，按其中的步骤在 src/sites 添加适配器，并在 registry.js 里注册。',
   },
 ];
 
@@ -35,15 +35,9 @@ export function FAQSection() {
     <section id="faq" className="py-20 sm:py-28 bg-[var(--m-paper)] border-b border-[var(--m-line)]">
       <div className="page-shell max-w-3xl">
         <div className="text-center mb-12">
-          <span className="text-[11px] font-semibold tracking-widest text-[var(--m-muted)] uppercase block mb-2 font-mono">
-            FREQUENTLY ASKED QUESTIONS
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-bold text-[var(--m-ink)] tracking-tight">
-            常见问题与解答
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-[var(--m-ink)] sm:text-4xl">
+            常见问题
           </h2>
-          <p className="mt-3 text-xs sm:text-sm text-[var(--m-muted)]">
-            了解 JobHunt-CLI 的底层原理、合规保障与最佳实践。
-          </p>
         </div>
 
         <div className="space-y-3">

@@ -28,13 +28,11 @@ export default function App() {
       <Navbar />
 
       <main id="main" tabIndex="-1" className="outline-none">
-        {/* Aceternity Style Hero Section with Interactive Scaled Mac Window & Spring Pill Tabs */}
         <HeroSection />
 
         {/* Aceternity Z-style Infinite Marquee with Hover Pause */}
         <MarqueeIntegrations />
 
-        {/* Aceternity Le-style 6 Bento Grid Feature Cards with Micro-Visuals */}
         <BentoFeatures />
 
         {/* Aceternity Ue-style 3-Step Auto-Progress Workflow */}

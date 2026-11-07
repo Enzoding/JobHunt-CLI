@@ -1,195 +1,118 @@
 import React from 'react';
-import {
-  ShieldCheck,
-  Cpu,
-  Layers,
-  Sparkles,
-  FileSpreadsheet,
-  Globe,
-  Database,
-  Check,
-  Search,
-  Terminal,
-} from 'lucide-react';
+import { Card, CardDescription, CardHeader, CardMedia, CardTitle } from '@appica/ui-react/card';
+
+const COMPANIES = [
+  { name: '美团', role: 'AI Agent 架构师', place: '深圳 · 社招' },
+  { name: '字节跳动', role: '大模型应用', place: '上海 · 社招' },
+  { name: '小米', role: '端侧算法', place: '北京 · 校招' },
+];
+
+function CapabilityCard({ className, title, description, command, children }) {
+  return (
+    <Card
+      frame
+      render={<article className={className} />}
+      className="h-full bg-[var(--m-panel)] shadow-none backdrop-blur-none"
+      contentProps={{
+        className: 'h-full gap-6 border-[var(--m-line)] bg-[var(--m-card)] p-5 sm:p-6',
+      }}
+    >
+      <CardMedia className="text-sm leading-6 text-[var(--m-ink)]">{children}</CardMedia>
+      <CardHeader className="mt-auto flex-none gap-2 p-0">
+        <CardTitle className="text-lg tracking-tight text-[var(--m-ink)]">{title}</CardTitle>
+        <CardDescription className="text-sm leading-6 text-pretty text-[var(--m-muted)]">
+          {description}
+        </CardDescription>
+        <p className="pt-1 font-mono text-xs leading-5 break-all text-[var(--m-muted)]">
+          <span className="text-[var(--m-ink)]">安装完成后运行 </span>
+          {command}
+        </p>
+      </CardHeader>
+    </Card>
+  );
+}
 
 export function BentoFeatures() {
   return (
-    <section id="features" className="py-20 sm:py-28 bg-[var(--m-paper)] border-b border-[var(--m-line)]">
+    <section id="features" className="scroll-mt-6 border-b border-[var(--m-line)] bg-[var(--m-paper)] py-20 sm:py-28">
       <div className="page-shell">
-        {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-16">
-          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[var(--m-ink)]">
-            像调用数据库一样
-            <br />
-            查询 30+ 家真实招聘官网。
+        <div className="mb-10 max-w-xl sm:mb-14">
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-balance text-[var(--m-ink)] sm:text-4xl">
+            装好之后可以做这些
           </h2>
-          <p className="mt-3 text-base text-[var(--m-muted)]">
-            不爬网页，不搞黑盒。接口毫秒级直连，全量规范数据。
+          <p className="mt-3 text-base leading-7 text-pretty text-[var(--m-muted)]">
+            查询、查看详情、对比和导出，每家公司都用同一套命令。
           </p>
         </div>
 
-        {/* 6 Bento Grid Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-          {/* Card 1: 公开 API 直连 */}
-          <article className="flex h-full min-h-[23rem] flex-col overflow-hidden rounded-2xl bg-[var(--m-panel)] border border-[var(--m-line)] hover:border-[var(--m-line-strong)] transition-all p-6 justify-between">
-            <div className="flex flex-1 items-center justify-center pb-6">
-              <div className="w-56 p-3.5 rounded-xl bg-[var(--m-card)] shadow-xs border border-[var(--m-line)] space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-[var(--m-muted)]">官方网关直通</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-semibold tabular-nums">
-                    ● 200 OK
+        <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-6">
+          <CapabilityCard
+            className="lg:col-span-4"
+            title="查询一家公司的在招岗位"
+            description="可以按关键词、城市，以及社招、校招或实习来缩小范围。结果来自该公司的公开招聘网站。"
+            command="job meituan search AI --location 深圳 --nature 社招"
+          >
+            <ul className="space-y-2.5">
+              {COMPANIES.map((company) => (
+                <li key={company.name} className="flex items-baseline justify-between gap-4">
+                  <span className="min-w-0">
+                    <span className="text-[var(--m-muted)]">{company.name}</span>{' '}
+                    <span className="font-medium">{company.role}</span>
                   </span>
-                </div>
-                <div className="font-semibold text-xs text-[var(--m-ink)] flex items-center gap-1.5">
-                  <img src="/logos/companies/meituan.svg" alt="美团" className="h-3 w-auto" />
-                  <img src="/logos/companies/bytedance.svg" alt="字节" className="h-3 w-auto" />
-                  <img src="/logos/companies/kuaishou.svg" alt="快手" className="h-3 w-auto" />
-                  <span className="text-[11px] text-[var(--m-muted)] font-normal ml-1">等 30+ 司</span>
-                </div>
-                <div className="flex items-center gap-3 pt-1 text-[11px] text-[var(--m-muted)] font-mono">
-                  <span className="inline-flex items-center gap-1">
-                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" aria-hidden="true" />
-                    <span>HMAC 自动签名</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" aria-hidden="true" />
-                    <span>零 Cookie 依赖</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--m-ink)]">
-                公开网关直连，零爬虫黑盒
-              </h3>
-              <p className="mt-1.5 text-sm text-[var(--m-muted)] leading-relaxed">
-                全量数据来自各司招聘官网底层公开 API，不走无头浏览器渲染，响应毫秒级，稳定性极高。
-              </p>
-            </div>
-          </article>
+                  <span className="shrink-0 text-[var(--m-muted)]">{company.place}</span>
+                </li>
+              ))}
+            </ul>
+          </CapabilityCard>
 
-          {/* Card 2: 规范统一的数据 Schema */}
-          <article className="flex h-full min-h-[23rem] flex-col overflow-hidden rounded-2xl bg-[var(--m-panel)] border border-[var(--m-line)] hover:border-[var(--m-line-strong)] transition-all p-6 justify-between">
-            <div className="flex flex-1 items-center justify-center pb-6">
-              <div className="w-56 p-3.5 rounded-xl bg-[var(--m-card)] shadow-xs border border-[var(--m-line)] space-y-1.5 text-[11px] font-mono">
-                <div className="text-[10px] text-[var(--m-muted)] pb-1 border-b border-[var(--m-line)]">
-                  统一标准 Schema 字段
-                </div>
-                <div className="text-emerald-600 dark:text-emerald-400">id, code, job_no, name</div>
-                <div className="text-[var(--m-ink)]">nature_code: "social" | "campus"</div>
-                <div className="text-[var(--m-muted)]">location_names, department_name</div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--m-ink)]">
-                统一岗位数据规范
-              </h3>
-              <p className="mt-1.5 text-sm text-[var(--m-muted)] leading-relaxed">
-                将 30+ 家不同结构字段统一映射为标准数据模型，消除异构阻碍，供 Agent 与算法精准处理。
+          <CapabilityCard
+            className="lg:col-span-2"
+            title="查看一条岗位的详情"
+            description="可以看到职责、要求、部门和原文链接。各公司的字段已经整理成同一套。"
+            command="job meituan detail <岗位 ID>"
+          >
+            <div className="space-y-3">
+              <p>
+                <span className="text-[var(--m-muted)]">职责 </span>
+                编排多步任务，对接业务工具。
+              </p>
+              <p>
+                <span className="text-[var(--m-muted)]">要求 </span>
+                有 Agent 或检索系统的经验。
               </p>
             </div>
-          </article>
+          </CapabilityCard>
 
-          {/* Card 3: AI Agent 原生集成 */}
-          <article className="flex h-full min-h-[23rem] flex-col overflow-hidden rounded-2xl bg-[var(--m-panel)] border border-[var(--m-line)] hover:border-[var(--m-line-strong)] transition-all p-6 justify-between">
-            <div className="flex flex-1 items-center justify-center pb-6">
-              <div className="w-56 p-3.5 rounded-xl bg-[var(--m-card)] shadow-xs border border-[var(--m-line)] space-y-2 text-xs">
-                <div className="flex items-center gap-1.5 font-mono text-[10px] text-[var(--m-muted)]">
-                  <Terminal className="w-3 h-3 text-[var(--m-accent)]" />
-                  <span>Agent Skill Ready</span>
-                </div>
-                <div className="p-2 rounded bg-[var(--m-panel)] font-mono text-[10px] text-[var(--m-ink)]">
-                  npx skills add Enzoding/JobHunt-CLI
-                </div>
-                <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono inline-flex items-center gap-1">
-                  <Check className="w-3 h-3 stroke-[2.5]" aria-hidden="true" />
-                  <span>Claude / Cursor 自动掌握语法</span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--m-ink)]">
-                面向 AI Agent 原生设计
-              </h3>
-              <p className="mt-1.5 text-sm text-[var(--m-muted)] leading-relaxed">
-                内置标准 <code className="px-1 py-0.5 rounded bg-[var(--m-chip)] text-[var(--m-accent)] font-mono text-xs">SKILL.md</code>，主流 Coding Agent 可自主识别语法并自动规划调用。
-              </p>
-            </div>
-          </article>
+          <CapabilityCard
+            className="lg:col-span-3"
+            title="对比多家公司"
+            description="用同一个条件，看各家在招什么岗位、在哪个城市、要求差在哪里。"
+            command="job compare AI --sites meituan,bytedance,xiaomi"
+          >
+            <ul className="space-y-2.5">
+              {COMPANIES.map((company) => (
+                <li key={company.name} className="flex items-baseline justify-between gap-4">
+                  <span className="font-medium">{company.name}</span>
+                  <span className="text-[var(--m-muted)]">{company.place}</span>
+                </li>
+              ))}
+            </ul>
+          </CapabilityCard>
 
-          {/* Card 4: 全量采集与双重防爆防重 */}
-          <article className="flex h-full min-h-[23rem] flex-col overflow-hidden rounded-2xl bg-[var(--m-panel)] border border-[var(--m-line)] hover:border-[var(--m-line-strong)] transition-all p-6 justify-between">
-            <div className="flex flex-1 items-center justify-center pb-6">
-              <div className="w-56 p-3.5 rounded-xl bg-[var(--m-card)] shadow-xs border border-[var(--m-line)] space-y-2 text-xs">
-                <div className="flex items-center justify-between text-[11px] text-[var(--m-muted)] font-mono">
-                  <span>分页采集监控</span>
-                  <span className="text-emerald-600 font-semibold tabular-nums">98.3% 去重率</span>
-                </div>
-                <div className="p-1.5 rounded bg-[var(--m-panel)] text-[10px] font-mono text-[var(--m-ink)]">
-                  终止校验 1: pageNo &gt;= totalPage
-                </div>
-                <div className="p-1.5 rounded bg-[var(--m-panel)] text-[10px] font-mono text-[var(--m-ink)]">
-                  终止校验 2: list.length &lt; pageSize
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--m-ink)]">
-                全量采集与防爆防重
-              </h3>
-              <p className="mt-1.5 text-sm text-[var(--m-muted)] leading-relaxed">
-                全量采集兼顾安全与稳定。双重分页终止边界与内存 Set 复合唯一键去重，杜绝死循环。
-              </p>
-            </div>
-          </article>
-
-          {/* Card 5: 纯本地安全运行 */}
-          <article className="flex h-full min-h-[23rem] flex-col overflow-hidden rounded-2xl bg-[var(--m-panel)] border border-[var(--m-line)] hover:border-[var(--m-line-strong)] transition-all p-6 justify-between">
-            <div className="flex flex-1 items-center justify-center pb-6">
-              <div className="w-56 p-4 rounded-xl bg-[var(--m-card)] shadow-xs border border-[var(--m-line)] text-center space-y-2 text-xs">
-                <div className="flex items-center justify-center gap-3 text-xs font-mono text-[var(--m-ink)]">
-                  <span>本地终端</span>
-                  <span className="flex items-center gap-1 opacity-40" aria-hidden="true">
-                    <span className="h-px w-3 bg-current" />
-                    <span className="w-1.5 h-1.5 rounded-full border border-current" />
-                    <span className="h-px w-3 bg-current" />
-                  </span>
-                  <span>云端收集</span>
-                </div>
-                <div className="text-[11px] text-[var(--m-muted)] font-mono pt-1">
-                  上传数据量: <strong className="text-emerald-600 font-semibold tabular-nums">0 bytes</strong>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--m-ink)]">
-                本地执行，隐私零泄露
-              </h3>
-              <p className="mt-1.5 text-sm text-[var(--m-muted)] leading-relaxed">
-                所有查询均在本地发起并直接交付结果，不保留任何日志，不回传任何求职者私密偏好。
-              </p>
-            </div>
-          </article>
-
-          {/* Card 6: 智能别名解析与过滤 */}
-          <article className="flex h-full min-h-[23rem] flex-col overflow-hidden rounded-2xl bg-[var(--m-panel)] border border-[var(--m-line)] hover:border-[var(--m-line-strong)] transition-all p-6 justify-between">
-            <div className="flex flex-1 items-center justify-center pb-6">
-              <div className="w-56 p-3 rounded-xl bg-[var(--m-card)] shadow-xs border border-[var(--m-line)] flex items-center justify-between text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <Search className="w-3.5 h-3.5 text-[var(--m-muted)]" />
-                  <span className="text-[var(--m-ink)] font-medium">--city 深圳 --category 技术</span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--m-ink)]">
-                智能别名解析与过滤
-              </h3>
-              <p className="mt-1.5 text-sm text-[var(--m-muted)] leading-relaxed">
-                支持中文与别名输入，自动映射各公司底层城市代码与业务类别，告别记忆繁琐编码。
-              </p>
-            </div>
-          </article>
+          <CapabilityCard
+            className="lg:col-span-3"
+            title="导出结果或生成分析"
+            description="可以导出表格、CSV 或 JSON，也可以生成一份 Markdown，里面有技能词频和城市分布。"
+            command="job meituan analyze AI --format md"
+          >
+            <ul className="grid grid-cols-2 gap-2">
+              {['表格', 'CSV', 'JSON', 'Markdown'].map((item) => (
+                <li key={item} className="rounded-lg bg-[var(--m-panel)] px-3 py-2.5">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </CapabilityCard>
         </div>
       </div>
     </section>

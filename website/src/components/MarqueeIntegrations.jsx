@@ -29,11 +29,8 @@ export function MarqueeIntegrations() {
   return (
     <section id="ecosystem" className="relative z-10 overflow-hidden bg-[var(--m-paper)] pt-12 pb-20 sm:pt-16 sm:pb-24 border-t border-[var(--m-line)]">
       <div className="text-center max-w-xl mx-auto px-4 mb-8 sm:mb-10">
-        <span className="text-[10px] uppercase font-semibold font-mono tracking-widest text-[var(--m-muted)] block mb-1.5">
-          ECOSYSTEM & COVERAGE
-        </span>
-        <h2 className="text-base sm:text-lg font-bold text-[var(--m-ink)] tracking-tight">
-          已覆盖 30+ 互联网大厂公开招聘网关，适配主流 AI Agent
+        <h2 className="text-base font-medium tracking-tight text-balance text-[var(--m-ink)] sm:text-lg">
+          这些是目前支持的公司，以及可以配合使用的 Agent。
         </h2>
       </div>
 

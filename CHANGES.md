@@ -6,6 +6,136 @@
 
 ## 2026-11-07
 
+### 更换落地页首屏 Hero 主标题文案与品牌 Logo
+
+**修改文件**：`website/src/components/HeroSection.jsx`、`website/index.html`、`website/src/components/JobHuntLogo.jsx`、`website/public/favicon.svg`、`website/src/components/Navbar.jsx`、`CHANGES.md`
+
+**修改内容**：
+1. 将首屏 H1 主标题及页面 `<title>` 从「让 Agent 直接搜索真实招聘官网」替换为「把大厂招聘岗位，接入你的 Agent」。
+2. 重新设计品牌 Logo（`JobHuntLogo.jsx` 与 `favicon.svg`）：弃用旧版深蓝青绿渐变雷达图，改为纯黑白高对比度的「终端公文包（`>_` Briefcase）」几何图标；同时将导航栏 `JobHunt CLI` 中的 `CLI` 从暖橙色改为中性灰（`--m-muted`），使品牌标识整体保持纯粹、直接的黑白灰风格。
+
+**原因**：
+1. 原主标题「搜索真实招聘官网」表达略显生硬，新文案更直接传达将大厂招聘岗位数据源接入 Agent 的核心价值。
+2. 原版 Logo 的青绿渐变和细碎虚线与当前落地页风格不搭，纯黑白设计更加直接、干净，在 16px~26px 尺寸下辨识度更高。
+
+**影响范围**：官网首屏标题、导航栏/页脚品牌标识及站点 Favicon。
+
+---
+
+## 2026-11-07
+
+### 首屏改成同一条左边线往下排
+
+**修改文件**：`website/src/components/HeroSection.jsx`、`CHANGES.md`
+
+**修改内容**：去掉标题下方的左右两列。标题、说明和安装卡改成同一宽度、同一条起始边，从上到下排列。标题和说明靠近（24px），安装卡再隔开一倍（48px），说明跟着标题，安装是下一组。
+
+**原因**：两列时左边只有两行字，右边安装卡高出一截，标题又比两边都宽，三条边对不齐，安装卡像悬在空白里。
+
+**影响范围**：仅官网首屏。窄屏本来就是上下排，桌面不再拆成两列。
+
+---
+
+## 2026-11-07
+
+### 去掉首屏「看看装好之后能做什么」链接
+
+**修改文件**：`website/src/components/HeroSection.jsx`、`CHANGES.md`
+
+**修改内容**：删除首屏说明文字下方指向能力区的链接。桌面和窄屏各有一份，一并去掉。往下滚动仍然可以到达同一块内容，导航里的「能做什么」也还在。
+
+**原因**：这个链接和旁边的安装卡抢位置，也没有比直接往下看多说出什么。
+
+**影响范围**：仅官网首屏。
+
+---
+
+## 2026-11-07
+
+### 落地页文案改成完整、同一套说法
+
+**修改文件**：
+- `website/index.html`
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/InstallCommand.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/MarqueeIntegrations.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/FAQSection.jsx`
+- `website/src/components/Navbar.jsx`
+- `website/src/components/FooterSection.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+把削短后读起来像笔记的句子，改成完整的说明。导航、页脚和各段标题使用同一组词：安装、能做什么、使用步骤、在哪里用、对比多家、支持的公司。安装方式统一叫「安装到本机」「先试一次」「交给 Agent」。查询命令标明「安装完成后运行」。对比表写明是示例，筛不到结果时可以清空筛选。
+
+**原因**：上一版为了短，用了「收成」「就这四件事」「不写入全局」这类不完整或不好懂的说法，各段用词也不一致。
+
+**影响范围**：仅官网文案。页面结构和 CLI 行为不变。
+
+---
+
+## 2026-11-07
+
+### 落地页补上层次，并收成同一套文案
+
+**修改文件**：
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/InstallCommand.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/MarqueeIntegrations.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/FAQSection.jsx`
+- `website/src/components/FooterSection.jsx`
+- `website/src/components/Navbar.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. 首屏改成标题全宽，说明和安装卡左右并置。安装卡和四张能力卡用 Appica Card 的 frame，外层浅底、内层白底，靠色块分层。
+2. 文案收成同一套说法：先装上，然后查、读、比、导出。去掉英文小标签、口号和实现细节口吻。常见问题改成可以直接回答的句子。
+
+**原因**：上一版结构清楚，但首屏右侧空着，卡片没有层次，各段文案还是各说各的。
+
+**影响范围**：仅官网 `website/`。
+
+---
+
+## 2026-11-07
+
+### 落地页首屏改为安装引导，能力区改成按使用顺序说明
+
+**修改文件**：
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/InstallCommand.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/Navbar.jsx`
+- `website/src/components/MacWindowMockup.jsx`（删除）
+- `website/src/App.jsx`
+- `website/src/styles.css`
+- `CHANGES.md`
+
+**修改内容**：
+1. **首屏只引导安装**。去掉可切换的 Mac 窗口和功能药丸。访客还没有 `job` 命令，复制查询指令没有用。首屏改为三条现在就能复制的命令：全局安装、`npx` 先试一次、给 Agent 装 Skill。交互复用 `@appica/ui-react` 的 Card、Tabs、Badge、CopyButton。
+2. **能力区按使用顺序讲清能做什么**：查一家公司、读一条岗位、几家放在一起比、导出或写成分析。示例命令标成「安装后」，不再做成复制按钮。
+3. 页尾、全平台和跨司对照里的 `job ...` 复制按钮一并去掉，避免在安装前诱导复制还不能运行的命令。导航增加「安装」。
+
+**原因**：首屏的交互演示和六张并列特性卡没有先告诉用户怎么装，也没有把产品能力收成一条能跟着做的路径。
+
+**影响范围**：仅官网 `website/`。CLI 行为不变。
+
+---
+
+## 2026-11-07
+
 ### 基于 better-layout 全局排版校准与 Hero 视窗 5 大功能视角深度交互重塑
 
 **修改文件**：

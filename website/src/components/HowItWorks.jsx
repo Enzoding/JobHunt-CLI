@@ -4,22 +4,22 @@ import { Terminal, Send, CheckCircle2, ArrowRight, Check } from 'lucide-react';
 
 const STEPS = [
   {
-    heading: '接入 CLI 或配置 Agent Skill',
+    heading: '先安装，或装给 Agent',
     step: '01',
-    title: '安装配置',
-    desc: '运行 npm install -g jobhunt-cli，或直接通过 npx skills add 挂载到 Claude Code、Cursor 或 Windsurf，智能体即刻就绪。',
+    title: '安装',
+    desc: '自己用，就安装 job。交给 Claude Code、Cursor 或 Codex，就安装对应的 Skill。',
   },
   {
-    heading: '用自然语言下发岗位需求',
+    heading: '用一句话说明要找的岗位',
     step: '02',
-    title: '指令下发',
-    desc: '向你的 Agent 提问：“查一下美团和字节跳动在深圳的 AI Agent 岗位，只要社招，对比核心技术栈与发布时间”。',
+    title: '说明要求',
+    desc: '例如：查美团和字节在深圳的 AI 岗位，只要社招，并对比技术栈和发布时间。',
   },
   {
-    heading: '秒级获取规范数据与分析简报',
+    heading: '查看可以直接比较的结果',
     step: '03',
-    title: '报告生成',
-    desc: 'Agent 自动规划执行 job search 与 detail，过滤失效职位，同屏输出结构化 Markdown 对比表格与词频决策简报。',
+    title: '查看结果',
+    desc: 'Agent 会自己查询和读取详情，然后给你一张对比表，或一份分析。',
   },
 ];
 
@@ -96,14 +96,14 @@ export function HowItWorks() {
                       jobhunt-cli
                     </div>
                     <div className="text-[10px] text-[var(--m-muted)] pt-1 border-t border-[var(--m-line)]">
-                      或 npx skills add
+                      或安装给 Agent
                     </div>
                   </div>
                 )}
 
                 {idx === 1 && (
                   <div className="w-full max-w-[220px] p-3 rounded-full bg-[var(--m-card)] shadow-xs border border-[var(--m-line)] flex items-center justify-between px-4 text-xs text-[var(--m-muted)]">
-                    <span className="truncate pr-2">检索美团和字节在深圳的 AI 岗...</span>
+                    <span className="truncate pr-2">查美团和字节在深圳的 AI 岗位</span>
                     <div className="w-6 h-6 rounded-full bg-[var(--m-ink)] text-[var(--m-paper)] flex items-center justify-center shrink-0">
                       <Send className="w-3 h-3" />
                     </div>
@@ -120,10 +120,10 @@ export function HowItWorks() {
                       </span>
                     </div>
                     <div className="text-[11px] text-[var(--m-ink)] font-medium">
-                      • cross-company.csv 已生成
+                      对比表已经生成
                     </div>
                     <div className="text-[11px] text-[var(--m-muted)]">
-                      • 核心要求对齐: RAG / Agent
+                      技术栈包括 RAG 和 Agent
                     </div>
                   </div>
                 )}

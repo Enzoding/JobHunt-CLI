@@ -1,18 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
-  <defs>
-    <linearGradient id="jh-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#090d16" />
-      <stop offset="100%" stop-color="#161f30" />
-    </linearGradient>
-    <linearGradient id="jh-emerald" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#10b981" />
-      <stop offset="100%" stop-color="#06b6d4" />
-    </linearGradient>
-  </defs>
-  <rect width="36" height="36" rx="8" fill="url(#jh-bg)" />
-  <circle cx="21.5" cy="14.5" r="7.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" stroke-dasharray="2 2" />
-  <path d="M8.5 11L14.5 16L8.5 21" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="21.5" cy="14.5" r="3" fill="url(#jh-emerald)" />
-  <circle cx="21.5" cy="14.5" r="1" fill="#ffffff" />
-  <line x1="12" y1="24.5" x2="21" y2="24.5" stroke="url(#jh-emerald)" stroke-width="2.5" stroke-linecap="round" />
+  <rect width="36" height="36" rx="8.5" fill="#171717" />
+  <rect x="0.5" y="0.5" width="35" height="35" rx="8" stroke="rgba(255,255,255,0.16)" stroke-width="1" />
+  <path d="M13.5 11.5V9.2C13.5 8.1 14.4 7.2 15.5 7.2H20.5C21.6 7.2 22.5 8.1 22.5 9.2V11.5" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+  <rect x="6.5" y="11" width="23" height="17.5" rx="4" fill="#ffffff" />
+  <path d="M12 16.5L16 19.75L12 23" stroke="#171717" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+  <line x1="18.5" y1="23" x2="23.5" y2="23" stroke="#171717" stroke-width="2.6" stroke-linecap="round" />
 </svg>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Check, Copy } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const COMPARISON_DATA = [
   {
@@ -61,15 +61,8 @@ const COMPARISON_DATA = [
 
 export function CrossCompanyMatrix() {
   const [filterQuery, setFilterQuery] = useState('');
-  const [cmdCopied, setCmdCopied] = useState(false);
 
   const compareCommand = 'job compare "大模型" --sites xiaomi,tencent,meituan,kuaishou,bytedance';
-
-  const handleCopyCmd = () => {
-    navigator.clipboard.writeText(compareCommand);
-    setCmdCopied(true);
-    setTimeout(() => setCmdCopied(false), 2000);
-  };
 
   const filtered = COMPARISON_DATA.filter((row) =>
     (row.title + row.company + row.focus).toLowerCase().includes(filterQuery.toLowerCase())
@@ -79,14 +72,11 @@ export function CrossCompanyMatrix() {
     <section id="compare" className="py-20 sm:py-28 bg-[var(--m-paper)] border-b border-[var(--m-line)]">
       <div className="page-shell">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-[10px] uppercase font-semibold font-mono tracking-widest text-[var(--m-muted)] block mb-1.5">
-            CROSS-COMPANY PERSPECTIVE
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-bold text-[var(--m-ink)] tracking-tight">
-            跨司同屏横向比对
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-balance text-[var(--m-ink)] sm:text-4xl">
+            把多家公司放在一起对比
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-[var(--m-muted)] leading-relaxed">
-            告别在 10 个网页标签页之间反复横跳。一行命令同屏对比各大厂业务重点与核心要求。
+          <p className="mt-3 text-base leading-7 text-pretty text-[var(--m-muted)]">
+            用同一个条件，看各家在招什么岗位、在哪个城市、要求差在哪里。
           </p>
         </div>
 
@@ -94,36 +84,24 @@ export function CrossCompanyMatrix() {
         <div className="rounded-2xl bg-[var(--m-panel)] border border-[var(--m-line)] shadow-xl overflow-hidden">
           {/* Header Bar */}
           <div className="p-4 sm:p-5 bg-[var(--m-card)] border-b border-[var(--m-line)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <p className="min-w-0 font-mono text-xs leading-5 break-all text-[var(--m-ink)]">
+              <span className="text-[var(--m-muted)]">安装完成后运行 </span>
+              {compareCommand}
+            </p>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-semibold text-[var(--m-ink)]">
-                $ {compareCommand}
-              </span>
-              <button
-                type="button"
-                onClick={handleCopyCmd}
-                className="p-1 rounded-md text-[var(--m-muted)] hover:text-[var(--m-ink)] hover:bg-[var(--m-chip)] active:scale-[0.95] transition-all cursor-pointer"
-                title="复制比对命令"
-                aria-label="复制跨司比对命令"
-              >
-                {cmdCopied ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-[var(--m-muted)] absolute left-2.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  aria-label="筛选技术栈或岗位关键字"
-                  placeholder="筛选技术栈 (如: 端侧 / RAG)..."
-                  value={filterQuery}
-                  onChange={(e) => setFilterQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 rounded-lg bg-[var(--m-panel)] border border-[var(--m-line)] text-xs font-mono text-[var(--m-ink)] placeholder-[var(--m-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--m-accent)] focus:border-[var(--m-accent)] w-full"
-                />
-              </div>
+              <label className="flex w-full items-center gap-2 sm:w-72">
+                <span className="shrink-0 text-xs text-[var(--m-muted)]">筛选</span>
+                <span className="relative block min-w-0 flex-1">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--m-muted)]" aria-hidden="true" />
+                  <input
+                    type="search"
+                    placeholder="例如：端侧、RAG"
+                    value={filterQuery}
+                    onChange={(e) => setFilterQuery(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--m-line)] bg-[var(--m-panel)] py-1.5 pr-3 pl-8 font-mono text-xs text-[var(--m-ink)] placeholder-[var(--m-muted)] focus:border-[var(--m-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--m-accent)]"
+                  />
+                </span>
+              </label>
             </div>
           </div>
 
@@ -132,11 +110,11 @@ export function CrossCompanyMatrix() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-[var(--m-line)] bg-[var(--m-panel)] text-[var(--m-muted)] font-mono">
-                  <th scope="col" className="py-3 px-4 font-semibold">招聘企业</th>
-                  <th scope="col" className="py-3 px-4 font-semibold">岗位名称与部门</th>
-                  <th scope="col" className="py-3 px-4 font-semibold">工作城市</th>
-                  <th scope="col" className="py-3 px-4 font-semibold">核心技术栈与职责侧重</th>
-                  <th scope="col" className="py-3 px-4 font-semibold">经验门槛</th>
+                  <th scope="col" className="py-3 px-4 font-semibold">公司</th>
+                  <th scope="col" className="py-3 px-4 font-semibold">岗位和部门</th>
+                  <th scope="col" className="py-3 px-4 font-semibold">城市</th>
+                  <th scope="col" className="py-3 px-4 font-semibold">岗位要求</th>
+                  <th scope="col" className="py-3 px-4 font-semibold">经验要求</th>
                   <th scope="col" className="py-3 px-4 font-semibold">发布日期</th>
                 </tr>
               </thead>
@@ -180,17 +158,28 @@ export function CrossCompanyMatrix() {
                     </td>
                   </tr>
                 ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-sm text-[var(--m-muted)]">
+                      没有符合「{filterQuery}」的岗位。
+                      <button
+                        type="button"
+                        onClick={() => setFilterQuery('')}
+                        className="ms-2 font-medium text-[var(--m-ink)] underline decoration-[var(--m-line-strong)] underline-offset-4"
+                      >
+                        清空筛选
+                      </button>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Footer of Table */}
           <div className="p-3.5 bg-[var(--m-card)] border-t border-[var(--m-line)] flex items-center justify-between text-xs font-mono text-[var(--m-muted)]">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-              <span>共对比 5 家大厂公开在招岗位 · 自动去重校验完成</span>
-            </span>
-            <span className="text-[var(--m-ink)]">输出格式: --format table | json | csv | md</span>
+            <span>这是 5 家公司的示例，不是实时查询结果。</span>
+            <span className="text-[var(--m-ink)]">安装完成后可以导出表格、JSON、CSV 或 Markdown。</span>
           </div>
         </div>
       </div>

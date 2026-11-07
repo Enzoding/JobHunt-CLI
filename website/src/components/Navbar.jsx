@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { JobHuntLogo } from './JobHuntLogo.jsx';
 import { GithubIcon } from './GithubIcon.jsx';
-import { Sun, Moon, Terminal, Menu, X } from 'lucide-react';
+import { Sun, Moon, Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
-  { href: '#features', label: '核心特性' },
-  { href: '#how-it-works', label: '工作流程' },
-  { href: '#capabilities', label: '全景支持' },
-  { href: '#compare', label: '多司比对' },
-  { href: '#ecosystem', label: '生态覆盖' },
+  { href: '#install', label: '安装' },
+  { href: '#features', label: '能做什么' },
+  { href: '#how-it-works', label: '使用步骤' },
+  { href: '#capabilities', label: '在哪里用' },
+  { href: '#compare', label: '对比多家' },
+  { href: '#ecosystem', label: '支持的公司' },
 ];
 
 export function Navbar() {
@@ -48,7 +49,7 @@ export function Navbar() {
       >
         <JobHuntLogo size={26} />
         <span className="text-base font-semibold tracking-tight text-[var(--m-ink)] font-mono">
-          JobHunt <span className="text-[var(--m-accent)] font-normal">CLI</span>
+          JobHunt <span className="text-[var(--m-muted)] font-normal">CLI</span>
         </span>
       </a>
 
