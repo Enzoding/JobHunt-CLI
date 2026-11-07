@@ -1,39 +1,41 @@
 import React from 'react';
+import { Card } from '@appica/ui-react/card';
 import { CopyButton } from '@appica/ui-react/copy-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@appica/ui-react/tabs';
 
 const INSTALL_OPTIONS = [
   {
     value: 'cli',
-    label: 'CLI 安装',
+    label: '安装到本机',
     command: 'npm install -g jobhunt-cli',
-    badge: 'Node.js >= 21',
-    hint: '安装全局 job 命令，支持单司检索、跨司比对与数据导出。',
+    hint: '需要 Node.js 21 或更高版本。安装完成后，在终端输入 job 就能使用。',
+  },
+  {
+    value: 'try',
+    label: '先试一次',
+    command: 'npx jobhunt-cli sites',
+    hint: '不会安装到系统里。用来查看目前支持哪些公司。',
   },
   {
     value: 'skill',
-    label: 'Agent Skill',
+    label: '交给 Agent',
     command: 'npx skills add Enzoding/JobHunt-CLI --skill jobhunt-cli',
-    badge: '即装即用',
-    hint: '为 Codex、Claude Code、OpenClaw 等 Agent 接入检索能力。',
+    hint: '安装到 Claude Code、Cursor 或 Codex。之后可以用一句话让它查询岗位。',
   },
 ];
 
 function CommandBlock({ command }) {
   return (
-    <div className="border border-border bg-background-subtle relative overflow-hidden rounded-lg shadow-xs group transition-colors hover:border-foreground/40">
-      <div className="flex items-center gap-3 px-4 py-3.5 pe-12">
-        <span className="text-foreground-muted select-none font-mono text-xs">$</span>
-        <code className="text-foreground min-w-0 flex-1 font-mono text-xs sm:text-[13px] leading-6 break-all font-medium">
-          {command}
-        </code>
-      </div>
-      <div className="absolute inset-e-2 top-1/2 -translate-y-1/2">
+    <div className="relative rounded-xl bg-[var(--m-panel)] pe-12">
+      <code className="block px-4 py-3.5 font-mono text-[13px] leading-6 break-all text-[var(--m-ink)]">
+        {command}
+      </code>
+      <div className="absolute inset-e-1.5 top-1/2 -translate-y-1/2">
         <CopyButton
           value={command}
           variant="outline"
           size="icon-sm"
-          label="一键复制安装命令"
+          label={`复制：${command}`}
           copiedLabel="已复制"
         />
       </div>
@@ -43,27 +45,32 @@ function CommandBlock({ command }) {
 
 export function InstallCommand() {
   return (
-    <div className="w-full">
+    <Card
+      frame
+      aria-labelledby="install-heading"
+      className="bg-[var(--m-panel)] shadow-none backdrop-blur-none"
+      contentProps={{
+        className: 'gap-5 border-[var(--m-line)] bg-[var(--m-card)] p-5 sm:p-6',
+      }}
+    >
+      <h2 id="install-heading" className="text-lg font-semibold tracking-tight text-[var(--m-ink)]">
+        选择一种安装方式
+      </h2>
       <Tabs defaultValue="cli" variant="line" size="sm" className="w-full">
-        <TabsList className="border-b border-border/80 w-full justify-start gap-2">
+        <TabsList className="w-full justify-start gap-5 overflow-x-auto border-b border-[var(--m-line)]">
           {INSTALL_OPTIONS.map((option) => (
-            <TabsTrigger key={option.value} value={option.value} className="text-xs sm:text-sm font-medium">
+            <TabsTrigger key={option.value} value={option.value}>
               {option.label}
             </TabsTrigger>
           ))}
         </TabsList>
         {INSTALL_OPTIONS.map((option) => (
-          <TabsContent key={option.value} value={option.value} className="pt-3.5 space-y-2">
+          <TabsContent key={option.value} value={option.value} className="space-y-3 pt-4">
             <CommandBlock command={option.command} />
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-foreground-muted">
-              <p className="m-0 leading-relaxed">{option.hint}</p>
-              <span className="shrink-0 text-[11px] font-mono text-foreground-subtle self-start sm:self-auto">
-                {option.badge}
-              </span>
-            </div>
+            <p className="text-sm leading-6 text-pretty text-[var(--m-muted)]">{option.hint}</p>
           </TabsContent>
         ))}
       </Tabs>
-    </div>
+    </Card>
   );
 }

@@ -4,6 +4,358 @@
 
 ---
 
+## 2026-11-07
+
+### 更换落地页首屏 Hero 主标题文案与品牌 Logo
+
+**修改文件**：`website/src/components/HeroSection.jsx`、`website/index.html`、`website/src/components/JobHuntLogo.jsx`、`website/public/favicon.svg`、`website/src/components/Navbar.jsx`、`CHANGES.md`
+
+**修改内容**：
+1. 将首屏 H1 主标题及页面 `<title>` 从「让 Agent 直接搜索真实招聘官网」替换为「把大厂招聘岗位，接入你的 Agent」。
+2. 重新设计品牌 Logo（`JobHuntLogo.jsx` 与 `favicon.svg`）：弃用旧版深蓝青绿渐变雷达图，改为纯黑白高对比度的「终端公文包（`>_` Briefcase）」几何图标；同时将导航栏 `JobHunt CLI` 中的 `CLI` 从暖橙色改为中性灰（`--m-muted`），使品牌标识整体保持纯粹、直接的黑白灰风格。
+
+**原因**：
+1. 原主标题「搜索真实招聘官网」表达略显生硬，新文案更直接传达将大厂招聘岗位数据源接入 Agent 的核心价值。
+2. 原版 Logo 的青绿渐变和细碎虚线与当前落地页风格不搭，纯黑白设计更加直接、干净，在 16px~26px 尺寸下辨识度更高。
+
+**影响范围**：官网首屏标题、导航栏/页脚品牌标识及站点 Favicon。
+
+---
+
+## 2026-11-07
+
+### 首屏改成同一条左边线往下排
+
+**修改文件**：`website/src/components/HeroSection.jsx`、`CHANGES.md`
+
+**修改内容**：去掉标题下方的左右两列。标题、说明和安装卡改成同一宽度、同一条起始边，从上到下排列。标题和说明靠近（24px），安装卡再隔开一倍（48px），说明跟着标题，安装是下一组。
+
+**原因**：两列时左边只有两行字，右边安装卡高出一截，标题又比两边都宽，三条边对不齐，安装卡像悬在空白里。
+
+**影响范围**：仅官网首屏。窄屏本来就是上下排，桌面不再拆成两列。
+
+---
+
+## 2026-11-07
+
+### 去掉首屏「看看装好之后能做什么」链接
+
+**修改文件**：`website/src/components/HeroSection.jsx`、`CHANGES.md`
+
+**修改内容**：删除首屏说明文字下方指向能力区的链接。桌面和窄屏各有一份，一并去掉。往下滚动仍然可以到达同一块内容，导航里的「能做什么」也还在。
+
+**原因**：这个链接和旁边的安装卡抢位置，也没有比直接往下看多说出什么。
+
+**影响范围**：仅官网首屏。
+
+---
+
+## 2026-11-07
+
+### 落地页文案改成完整、同一套说法
+
+**修改文件**：
+- `website/index.html`
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/InstallCommand.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/MarqueeIntegrations.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/FAQSection.jsx`
+- `website/src/components/Navbar.jsx`
+- `website/src/components/FooterSection.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+把削短后读起来像笔记的句子，改成完整的说明。导航、页脚和各段标题使用同一组词：安装、能做什么、使用步骤、在哪里用、对比多家、支持的公司。安装方式统一叫「安装到本机」「先试一次」「交给 Agent」。查询命令标明「安装完成后运行」。对比表写明是示例，筛不到结果时可以清空筛选。
+
+**原因**：上一版为了短，用了「收成」「就这四件事」「不写入全局」这类不完整或不好懂的说法，各段用词也不一致。
+
+**影响范围**：仅官网文案。页面结构和 CLI 行为不变。
+
+---
+
+## 2026-11-07
+
+### 落地页补上层次，并收成同一套文案
+
+**修改文件**：
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/InstallCommand.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/MarqueeIntegrations.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/FAQSection.jsx`
+- `website/src/components/FooterSection.jsx`
+- `website/src/components/Navbar.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. 首屏改成标题全宽，说明和安装卡左右并置。安装卡和四张能力卡用 Appica Card 的 frame，外层浅底、内层白底，靠色块分层。
+2. 文案收成同一套说法：先装上，然后查、读、比、导出。去掉英文小标签、口号和实现细节口吻。常见问题改成可以直接回答的句子。
+
+**原因**：上一版结构清楚，但首屏右侧空着，卡片没有层次，各段文案还是各说各的。
+
+**影响范围**：仅官网 `website/`。
+
+---
+
+## 2026-11-07
+
+### 落地页首屏改为安装引导，能力区改成按使用顺序说明
+
+**修改文件**：
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/InstallCommand.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/Navbar.jsx`
+- `website/src/components/MacWindowMockup.jsx`（删除）
+- `website/src/App.jsx`
+- `website/src/styles.css`
+- `CHANGES.md`
+
+**修改内容**：
+1. **首屏只引导安装**。去掉可切换的 Mac 窗口和功能药丸。访客还没有 `job` 命令，复制查询指令没有用。首屏改为三条现在就能复制的命令：全局安装、`npx` 先试一次、给 Agent 装 Skill。交互复用 `@appica/ui-react` 的 Card、Tabs、Badge、CopyButton。
+2. **能力区按使用顺序讲清能做什么**：查一家公司、读一条岗位、几家放在一起比、导出或写成分析。示例命令标成「安装后」，不再做成复制按钮。
+3. 页尾、全平台和跨司对照里的 `job ...` 复制按钮一并去掉，避免在安装前诱导复制还不能运行的命令。导航增加「安装」。
+
+**原因**：首屏的交互演示和六张并列特性卡没有先告诉用户怎么装，也没有把产品能力收成一条能跟着做的路径。
+
+**影响范围**：仅官网 `website/`。CLI 行为不变。
+
+---
+
+## 2026-11-07
+
+### 基于 better-layout 全局排版校准与 Hero 视窗 5 大功能视角深度交互重塑
+
+**修改文件**：
+- `website/src/components/MacWindowMockup.jsx`
+- `website/src/components/HeroSection.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. **彻底解决 Hero 视角切换“无效/无感”的根本问题**：
+   - 此前 `activeTab` 仅微调了搜索框边框或标签等次要样式，导致用户切换 `实时搜索`、`岗位详情`、`结构化概览`、`跨司比对`、`趋势洞察` 时感知微弱；
+   - 本次为 5 大功能视角分别打造了**完全独立且高度拟真的业务视图**：
+     - **实时搜索 (search)**：展示 CLI 检索过程与实时岗位流结果卡片（匹配度、部门、城市、性质、日期）；
+     - **岗位详情 (detail)**：展示岗位职责清单、任职要求与【结构化规范映射 / 官网底层 Raw JSON】交互切换；
+     - **结构化概览 (summary)**：展示职位核心描述、统一 Schema 规范、互动复选框与高频技能分布；
+     - **跨司比对 (compare)**：在视窗内同屏横向对比美团、字节跳动、腾讯等大厂在 AI Agent 架构上的核心差异；
+     - **趋势洞察 (analyze)**：展示岗位量级、更新周期 KPI 与自动生成的 Markdown 决策分析简报；
+   - 切换伴随优雅的 `AnimatePresence` 微淡入动效，且底部的执行命令与复制按钮实时联动。
+2. **移动端响应式布局自适应 (better-layout: Hold Structure Until It Breaks)**：
+   - 解决此前移动端因 `hidden md:flex` 隐藏左侧侧边栏导致移动端用户无法切换公司的问题；
+   - 在视窗右侧主内容区顶部为移动端新增了横向平滑滚动的公司图标胶囊栏（`md:hidden flex overflow-x-auto`），确保全视口操作无功能死角。
+3. **负空间与视觉节奏规范 (better-layout: Group with Space)**：
+   - 消除 Mac 视窗内部冗余嵌套边线，统一各子视图的内外间距与对齐基准线。
+
+---
+
+## 2026-11-07
+
+### 结合 UI Skills (unslop / emil-design-eng / ui-taste) 深度优化：消除 AI 痕迹，打磨高触感动态交互与大厂数据真实感
+
+**修改文件**：
+- `website/src/components/MacWindowMockup.jsx`
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/Navbar.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/FAQSection.jsx`
+- `website/src/components/FooterSection.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. **反 AI 痕迹彻底洗练 (unslop 规范)**：
+   - 彻底清除首屏与 Bento 中的装饰性 emoji 与平台不可控 Unicode 字符（如 `💡`、`✔`、`---o---`）；
+   - 将所有状态指示、检查项与步骤完成标记统一升级为项目标准 Lucide 矢量图标（`Check`、`Sparkles`），并以极简线路微组件替代伪 ASCII 字符；
+   - 保证全站图标规格统一（14px~16px，1.5/2.5 纯正描边），颜色继承设计变量，消除 AI 模板廉价感。
+2. **高触感设计工程学 (emil-design-eng 规范)**：
+   - 为全站交互控件（主题切换按钮、Tab 药丸、命令复制按钮、侧边栏公司项、核心要求勾选项、FAQ 折叠条等）注入物理级微交互反馈（`:active:scale-[0.97]` / `:active:scale-[0.98]`）；
+   - 优化 Hero 视窗药丸动画弹性曲线为 snappy 弹簧（`duration: 0.35, bounce: 0.15`），消除拖沓顿挫感；
+   - 将粗糙的 `transition-all` 替换为精准明确的 `transition-[color,transform,background-color]`，提升渲染性能并规避布局重绘抖动。
+3. **真实产品拟真与交互闭环 (ui-taste & JobHunt 核心领域对齐)**：
+   - 彻底重构 Mac 视窗模型：为 7 家主要大厂（美团、字节跳动、腾讯、快手、小米、百度、滴滴）注入真实、详尽的官方招聘网关数据与技术侧重点；
+   - 实现点击侧边栏公司实时切换右侧岗位标题、部门、Schema、核心技能雷达与底层命令联动；
+   - 联动顶层招聘性质（社招/校招/实习）与功能视角（搜索/详情/概览/比对/分析），实现视图深度呼应；
+   - 在全平台卡片区与跨司横向比对矩阵中集成一键复制可执行命令功能，极大增强开发者体验。
+
+---
+
+## 2026-11-07
+
+### 基于 better-interface 跨学科界面校准优化：无障碍、版式、文案、排版、色彩与动效全面提升
+
+**修改文件**：
+- `website/src/styles.css`
+- `website/src/components/MarqueeIntegrations.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `website/src/components/FooterSection.jsx`
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/MacWindowMockup.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. **无障碍深度校准 (better-accessibility)**：
+   - 在 `styles.css` 中增加 `@media (prefers-reduced-motion: reduce)` 规则，为眩晕与前庭功能敏感用户提供平稳可滚动的跑马灯展示，禁用无限自动平移动画；
+   - 扩大 CTA 命令复制按钮的触控热区至标准 44x44px，并补充具体无障碍标签 `aria-label` 与焦点环；
+   - 为横向比对矩阵的检索框补充 `aria-label="筛选技术栈或岗位关键字"` 及明显的 `focus-visible` 焦点环，并为数据表头 `<th>` 补充语义化的 `scope="col"`；
+   - 将工作流程组件中的交互标题转为语义化 `<button type="button">`，添加 `aria-pressed` 状态与键盘 Enter/Space 激活支持；
+   - 为工作流程自动轮播增加键盘焦点捕获暂停（`onFocusCapture` / `onBlurCapture`），避免键盘焦点在屏幕外自动跳跃；
+   - 扩充页脚“回到顶部”按钮触控热区（>= 44x44px）并配备标准聚焦环。
+2. **版式与网格对齐 (better-layout)**：
+   - 将生态跑马灯容器外层容器统一收敛为标准 `max-w-6xl mx-auto px-4 sm:px-6`，消除与其他版块之间的边界错位；
+   - 为 6 大 Bento 特性卡片与全平台展示卡片补充同构细边框（`border border-[var(--m-line)]`）与微悬停反馈，强化卡片同心圆角和视网膜屏幕边界感。
+3. **文案一致性与本地化 (better-writing)**：
+   - 修正首屏 Tab 切换项中残存的英文占位句（`Decisions, requirements...`），替换为与 CLI 业务深度契合的中文描述；
+   - 将页脚纯英文导航与介绍整体规范为地道、统一的中文技术文案，消除中英混杂的不协调感。
+4. **字体与数字排版规范 (better-typography)**：
+   - 全面核查并应用 `tabular-nums`，确保百分比词频、岗位发布数量和指标统计保持等宽列对其，杜绝数字跳动；
+   - 优化标题与正文字距（`tracking-tight`）与行高层级。
+5. **UI 微动效与细节雕琢 (better-ui)**：
+   - 增强卡片悬停触感反馈（`hover:border-[var(--m-line-strong)]`），与 Parley 模板的高质感微交互保持一致。
+
+---
+
+## 2026-11-07
+
+### 落地页品牌真实性与业务深度对齐：找回全部大厂与 Agent 矢量 Logo，彻底消除无关会议隐喻
+
+**修改文件**：
+- `website/src/styles.css`
+- `website/src/components/MarqueeIntegrations.jsx`
+- `website/src/components/MacWindowMockup.jsx`
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/CrossCompanyMatrix.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. **全面找回并接入原有大厂与 Agent 真实品牌 Logo**：
+   - 修复跑马灯中丢失原有 SVG/PNG 资产的问题，完整接入 21 家互联网大厂（美团、字节、腾讯、快手、小米、百度、京东、滴滴、阿里、网易、小红书、B站、华为、DeepSeek、月之暗面、智谱、MiniMax、米哈游、大疆、得物、携程）与 7 款主流 AI Agent（Claude Code、Cursor、Windsurf、OpenClaw、Hermes、WorkBuddy、Codex）的矢量图标；
+   - 在高拟真 Mac App 视窗与横向比对矩阵中，将抽象的彩色圆点直接升级为真实大厂品牌 Logo，极大增强产品的真实感与辨识度。
+2. **彻底清除无关会议内容，全面回归 JobHunt-CLI 核心业务逻辑**：
+   - 彻底删除此前生搬硬套 Parley 模板导致的“会议记录”、“发言时间占比”、“Dana/Priya”等无关英文字样；
+   - 重新梳理落地页所有文案与模块，聚焦 JobHunt-CLI 核心能力：公开 API 直连、三大招聘性质（社招/校招/实习）、统一标准 Schema 字段（`id`, `name`, `nature_code`, `location_names`, `url`, `raw`）、AI Agent 技能集成（`SKILL.md`）、双重边界防爆去重与多司同屏比对；
+   - 优化首屏中文排版断句（“让 Agent 直接搜索 / 真实招聘官网。”），视觉更为平衡、精致与克制。
+
+---
+
+### 官网落地页二次精细化打磨：全面肃清廉价渐变与噪点，像素级还原 Aceternity Parley 极简克制感
+
+**修改文件**：
+- `website/src/styles.css`
+- `website/src/components/Navbar.jsx`
+- `website/src/components/HeroSection.jsx`
+- `website/src/components/MacWindowMockup.jsx`
+- `website/src/components/BentoFeatures.jsx`
+- `website/src/components/HowItWorks.jsx`
+- `website/src/components/PlatformShowcase.jsx`
+- `website/src/components/MarqueeIntegrations.jsx`
+- `website/src/components/CTASection.jsx`
+- `website/src/components/FooterSection.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. **剔除所有喧宾夺主的杂质，还原纯净画布**：
+   - 彻底删除此前画蛇添足的彩色网格微点（`tech-dot-grid`）与黄色光晕，换回原模板极具呼吸感与高级感的纯白纸张（`#ffffff`）及纯黑曜石（`#0a0a0a`）底色；
+   - 移除标题上廉价的营销风橙黄渐变字，重塑为与 Parley 模板 100% 一致的高级实体黑（`#171717` / `#ededed`）大字号紧凑排版（`text-[2.75rem] sm:text-6xl lg:text-[4.25rem]`, `tracking-[-0.045em]`）。
+2. **像素级重现 Parley Mac Window 视窗交互与层级**：
+   - 左侧侧边栏：精准复刻 macOS 三色交通灯按键、布局切换图标、日历分组徽章（`Today`、`All positions`、`Action items`、`Starred`）以及带红/蓝/绿/黄圆点的多渠道分类目录；底部嵌入实时 API 同步卡片；
+   - 右侧主视窗：顶部包含标题、同步时间戳与轻量搜索框（`⌘K`）；正文对齐 Parley 的 `DECISIONS` 规范字段要点与带勾选交互的 `REQUIREMENTS` 动作清单；
+   - 右侧核心指标列：复刻 `KEY MOMENTS` 矩形时间胶囊（`04:12`、`14:02` 等）与 `SITE DISTRIBUTION` 极细双色进度条分布；底部嵌入带审核按钮的胶囊通知栏。
+3. **极简呼吸感导航栏与 Bento 宫格微插画**：
+   - 导航栏移除厚重的包裹边框，回归纯净文字悬浮链接与右侧高对比度纯黑药丸 `GitHub` 按钮；
+   - Bento 六宫格对齐 Parley 模板的微小精致插画：键盘快捷键组合（`⌘⇧S`）、网关检测卡片（`Live`）、标准字段清单、去重云端对照（`0 bytes`）与即时检索栏。
+4. **层叠标题步进工作流与大厂跑马灯优化**：
+   - `HowItWorks` 采用层叠标题与半透明递进（`01`、`02`、`03` 上标）；
+   - 跑马灯降低视觉权重，作为背景辅助元素克制呈现。
+
+**原因**：通过截图对比发现初版存在较多彩色渐变、背景噪点与视觉杂讯，偏离了 Aceternity Parley 模板以克制、大量留白与极致精细排版见长的设计灵魂；全面修正后实现视觉一致。
+
+**影响范围**：
+- 仅影响 `website/` 视觉排版与渲染质感；打包体积更轻量（JS 减少 28 kB），帧率与视觉高级感显著提升。
+
+---
+
+### 官网落地页重构：深度参考 Aceternity UI Meeting Notes 模板风格与动效交互
+
+**修改文件**：
+- `website/package.json`、`website/package-lock.json`
+- `website/src/styles.css`
+- `website/src/lib/utils.js`（新建）
+- `website/src/components/GithubIcon.jsx`（新建）
+- `website/src/components/Navbar.jsx`（新建）
+- `website/src/components/MacWindowMockup.jsx`（新建）
+- `website/src/components/HeroSection.jsx`（新建）
+- `website/src/components/MarqueeIntegrations.jsx`（新建）
+- `website/src/components/BentoFeatures.jsx`（新建）
+- `website/src/components/HowItWorks.jsx`（新建）
+- `website/src/components/PlatformShowcase.jsx`（新建）
+- `website/src/components/CrossCompanyMatrix.jsx`（新建）
+- `website/src/components/FAQSection.jsx`（新建）
+- `website/src/components/CTASection.jsx`（新建）
+- `website/src/components/FooterSection.jsx`（新建）
+- `website/src/App.jsx`
+- `CHANGES.md`
+
+**修改内容**：
+1. **设计系统与主题 Tokens 深度对齐**：
+   - 引入 Aceternity UI Meeting Notes（Parley）模板的设计变量系统（`--m-paper`、`--m-panel`、`--m-card`、`--m-chip`、`--m-ink`、`--m-muted`、`--m-accent`、`--m-line`、`--m-win` 等）；
+   - 全面支持深色（Obsidian Dark）与浅色（Clean Paper）双模式，并添加顶部主题即时切换与持久化；
+   - 引入环境暖橙/朱红高光（`--m-accent: #e45a23` / `#f06a33`）与翡翠绿状态微光，配合网格微点底纹与柔和模糊光晕。
+2. **Hero 首屏与交互式 Mac Window 视窗重做**：
+   - 顶部状态胶囊：带有动态微光脉冲点的开源 CLI 声明；
+   - 大字号极度紧凑排版（`hero-title`，`tracking-[-0.04em]`）与自然居中阅读视线；
+   - **交互式 Pill Tabs 切换器**：使用 Framer Motion `layoutId="hero-pill"` 弹性物理滑块，支持在「实时搜索 (Search)」、「详情解析 (Detail)」、「全量采集 (All)」、「趋势洞察 (Analyze)」4 个功能视角间平滑切换，下方带有文字模糊淡入淡出（Blur-fade）；
+   - **高拟真 Mac App 视窗**：
+     - 顶部 macOS 三色交通灯按键、动态 Terminal 命令胶囊与公网网关激活状态指示；
+     - 左侧双栏公司快速切换列表（美团、字节跳动、腾讯、快手、小米、百度、京东、滴滴、小红书），展示各司实时在招岗位数与协议规范；
+     - 右侧主视窗随 Tab 联动切换（实时结构化岗位卡片、JD 职责要求 / Raw JSON Schema 切换器、全量分页流式进度与去重指标、技能词频分布与 Agent 分析报告）。
+3. **两行双向无限循环跑马灯（MarqueeIntegrations）**：
+   - 第一行展示 30+ 家国内头部互联网招聘平台，第二行展示 Claude Code、Cursor、Windsurf、OpenCode 等 AI Agent 与开发者生态；
+   - 边缘优雅羽化遮罩（`mask-fade-x`），支持鼠标悬停平滑暂停。
+4. **Bento Grid 六宫格核心能力透视（BentoFeatures）**：
+   - 包含：公开 API 直连（零爬虫黑盒）、统一标准数据模型字典、AI Agent 原生集成（SKILL.md & MCP）、全量采集与双重边界防爆防重、结构化多格式即选即出、Undici 企业级智能代理池。每个卡片内置动态 Micro-Visual 交互微界面。
+5. **动态步进工作流程（HowItWorks）**：
+   - 参考 Aceternity `Ue` 组件交互，左侧层叠大号标题随步进联动半透明变化，并标注 `01`、`02`、`03` 上标；
+   - 3 个卡片包含弹簧缩放动效（Scale 1.02）、流转进度条与交互视觉演示；4.2 秒自动循环步进，支持 Hover / Focus 暂停。
+6. **全景部署与开发生态（PlatformShowcase）**：
+   - 原生命令行终端、AI Coding IDE 与 Node.js ESM 库 3 种接入形态并列透视。
+7. **多司横向同屏比对矩阵（CrossCompanyMatrix）**：
+   - 支持关键词即时过滤的大厂在招岗位多维度参数透视对比表。
+8. **常见问答（FAQSection）与高冲击力圆角 CTA（CTASection）**：
+   - 手风琴折叠交互解析数据合规与技术原理；
+   - 底部采用 `rounded-3xl` 暗色浮岛容器与命令一键复制器。
+9. **结构化页脚（FooterSection）**：
+   - 覆盖站点快速导航、公司目录、开发者规范与回到顶部。
+
+**原因**：响应用户对于参考 `https://ui.aceternity.com/page-preview/meeting-notes-landing-page` 模板风格、组件动效与交互体验，重新打造 JobHunt-CLI 官网落地页的需求。
+
+**影响范围**：
+- `website/` 前端应用整体升级，打包体积轻量且性能优异；
+- 根目录 CLI 及核心 adapter 逻辑不受影响。
+
+---
+
 ## 2026-09-03
 
 ### 全站文案全面精简与冗余字数压缩
