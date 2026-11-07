@@ -3,41 +3,52 @@
 
 @source '../node_modules/@appica/ui-react/dist';
 
-:root,
-.light {
-  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+:root {
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Geist Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
-  --radius: 0.5rem;
-  --foreground: oklch(0.18 0.01 75);
-  --foreground-muted: oklch(0.42 0.012 75);
-  --foreground-subtle: oklch(0.58 0.01 75);
-  --foreground-strong: oklch(0.12 0.01 75);
-  --foreground-emphasis: oklch(0.10 0.01 75);
-  --foreground-intense: oklch(0.08 0.01 75);
-  --background: oklch(0.99 0.002 80);
-  --background-subtle: oklch(0.965 0.005 80);
-  --border: oklch(0.88 0.006 80);
-  --border-muted: oklch(0.92 0.004 80);
-  --primary: oklch(0.18 0.01 75);
-  --primary-foreground: oklch(0.99 0.002 80);
+
+  /* Aceternity Parley Template Design Tokens - Pure & High Contrast */
+  --m-paper: #ffffff;
+  --m-panel: #f5f5f7;
+  --m-card: #ffffff;
+  --m-chip: #ebebed;
+  --m-chip-hover: #e2e2e5;
+  --m-ink: #171717;
+  --m-muted: #646464;
+  --m-accent: #d9531f;
+  --m-accent-hover: #c44614;
+  --m-line: rgba(0, 0, 0, 0.08);
+  --m-line-strong: rgba(0, 0, 0, 0.16);
+  --m-win: #ffffff;
+  --m-win-side: #fafafa;
+  --m-win-line: rgba(0, 0, 0, 0.08);
+  --m-footer: #111111;
+
+  --background: var(--m-paper);
+  --foreground: var(--m-ink);
+  --border: var(--m-line);
 }
 
 .dark {
-  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Geist Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
-  --radius: 0.5rem;
-  --foreground: oklch(0.96 0.004 80);
-  --foreground-muted: oklch(0.68 0.01 80);
-  --foreground-subtle: oklch(0.52 0.01 80);
-  --foreground-strong: oklch(0.98 0.002 80);
-  --foreground-emphasis: oklch(1 0 0);
-  --foreground-intense: oklch(1 0 0);
-  --background: oklch(0.12 0.01 75);
-  --background-subtle: oklch(0.16 0.01 75);
-  --border: oklch(0.24 0.01 75);
-  --border-muted: oklch(0.20 0.01 75);
-  --primary: oklch(0.96 0.004 80);
-  --primary-foreground: oklch(0.12 0.01 75);
+  --m-paper: #0a0a0a;
+  --m-panel: #171717;
+  --m-card: #212124;
+  --m-chip: #26262a;
+  --m-chip-hover: #323238;
+  --m-ink: #ededed;
+  --m-muted: #a1a1a1;
+  --m-accent: #f0703d;
+  --m-accent-hover: #ff8452;
+  --m-line: rgba(255, 255, 255, 0.08);
+  --m-line-strong: rgba(255, 255, 255, 0.16);
+  --m-win: #141416;
+  --m-win-side: #0e0e10;
+  --m-win-line: rgba(255, 255, 255, 0.08);
+  --m-footer: #08080a;
+
+  --background: var(--m-paper);
+  --foreground: var(--m-ink);
+  --border: var(--m-line);
 }
 
 html {
@@ -55,8 +66,8 @@ body {
   margin: 0;
   overflow-x: hidden;
   font-family: var(--font-sans);
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--m-paper);
+  color: var(--m-ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -65,45 +76,37 @@ body {
   min-height: 100vh;
 }
 
-.skip-link {
-  position: absolute;
-  inset-inline-start: 1rem;
-  top: 0.75rem;
-  z-index: 50;
-  transform: translateY(-200%);
-  transition: transform 0.2s ease-out;
-}
-
-.skip-link:focus {
-  transform: none;
-}
-
 .page-shell {
-  width: min(100% - 2rem, 74rem);
+  width: min(100% - 2rem, 72rem);
   margin-inline: auto;
 }
 
 @media (min-width: 768px) {
   .page-shell {
-    width: min(100% - 3rem, 74rem);
+    width: min(100% - 3rem, 72rem);
   }
 }
 
-.hero-title {
-  font-size: clamp(2.25rem, 5.5vw, 4.25rem);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-  font-weight: 700;
+.logo-img {
+  display: block;
+  height: 1.25rem;
+  width: auto;
+  max-width: 4.5rem;
+  object-fit: contain;
+}
+
+.dark .logo-img-adaptive {
+  filter: brightness(1.2) contrast(1.1);
 }
 
 /* Mask fade for clean edge transitions */
 .mask-fade-x {
-  mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
 }
 
 .marquee {
-  --marquee-duration: 48s;
+  --marquee-duration: 40s;
   overflow: hidden;
 }
 
@@ -131,11 +134,22 @@ body {
   animation-play-state: paused;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .marquee-track-reverse {
+    animation: none;
+  }
+  .marquee-viewport {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+}
+
 .marquee-row {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  padding-inline: 0.625rem;
+  gap: 1.5rem;
+  padding-inline: 0.75rem;
 }
 
 @keyframes marquee-scroll {
@@ -153,95 +167,5 @@ body {
   }
   to {
     transform: translate3d(0, 0, 0);
-  }
-}
-
-.logo-img {
-  display: block;
-  height: 1.25rem;
-  width: auto;
-  max-width: 4.5rem;
-  object-fit: contain;
-}
-
-/* Subtle engineering tech backdrop with fine dot-matrix grid */
-.hero-glow {
-  background-color: var(--background);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.94 0.025 240 / 0.6) 0%, transparent 70%),
-    radial-gradient(oklch(0.82 0.008 80 / 0.45) 1px, transparent 1px);
-  background-size: 100% 100%, 24px 24px;
-}
-
-/* Premium light frosted glass (acrylic / glassmorphism) for terminal surfaces */
-.glass-terminal-light {
-  position: relative;
-  background: rgba(255, 255, 255, 0.76);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(203, 213, 225, 0.7);
-  box-shadow:
-    0 20px 45px -12px rgba(15, 23, 42, 0.08),
-    0 8px 18px -6px rgba(15, 23, 42, 0.04),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.glass-terminal-light:hover {
-  border-color: rgba(148, 163, 184, 0.75);
-  box-shadow:
-    0 24px 50px -12px rgba(15, 23, 42, 0.12),
-    0 10px 22px -6px rgba(15, 23, 42, 0.06),
-    inset 0 1px 0 0 #ffffff;
-}
-
-.glass-terminal-light-titlebar {
-  background: rgba(248, 250, 252, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-.glass-terminal-light-prompt {
-  background: rgba(241, 245, 249, 0.62);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
-}
-
-.glass-terminal-light-body {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .glass-terminal-light,
-  .glass-terminal-light-titlebar,
-  .glass-terminal-light-prompt,
-  .glass-terminal-light-body {
-    background: #ffffff;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track,
-  .marquee-track-reverse {
-    animation: none;
-    flex-wrap: wrap;
-    width: 100%;
-    justify-content: center;
-    row-gap: 0.75rem;
-  }
-
-  .marquee-duplicate {
-    display: none;
-  }
-
-  .marquee-viewport {
-    overflow: visible;
   }
 }

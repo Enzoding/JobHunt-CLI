@@ -1,372 +1,60 @@
 import React from 'react';
-import { buttonVariants } from '@appica/ui-react/button';
-import { CopyButton } from '@appica/ui-react/copy-button';
-import { InstallCommand } from './components/InstallCommand.jsx';
-import { TerminalShowcase } from './components/TerminalShowcase.jsx';
-import { LogoMarquee } from './components/LogoMarquee.jsx';
-import { FeatureShowcase } from './components/FeatureShowcase.jsx';
-import { UserScenarios } from './components/UserScenarios.jsx';
-import { JobHuntLogo } from './components/JobHuntLogo.jsx';
-import { agents } from './data/agents.js';
-import { companies } from './data/companies.js';
-
-const GITHUB_URL = 'https://github.com/Enzoding/JobHunt-CLI';
-
-const NAV_LINKS = [
-  { href: '#install', label: '安装' },
-  { href: '#scenarios', label: '场景' },
-  { href: '#ecosystem', label: '生态' },
-  { href: '#capabilities', label: '能力' },
-  { href: '#workflow', label: '快速上手' },
-];
-
-function GitHubLink({ children, variant = 'outline', size = 'md', className = '' }) {
-  return (
-    <a
-      href={GITHUB_URL}
-      target="_blank"
-      rel="noreferrer"
-      className={`${buttonVariants({ variant, size })} ${className}`}
-    >
-      <svg
-        className="w-4 h-4 mr-1.5 shrink-0 inline-block fill-current"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-      </svg>
-      {children}
-    </a>
-  );
-}
-
-function SiteMark() {
-  return (
-    <a href="#top" className="text-foreground inline-flex items-center gap-2.5 no-underline group">
-      <JobHuntLogo size={26} className="group-hover:scale-105 transition-transform" />
-      <span className="text-sm font-semibold tracking-tight text-foreground font-mono">
-        JobHunt <span className="text-foreground-muted font-normal">CLI</span>
-      </span>
-    </a>
-  );
-}
+import { Navbar } from './components/Navbar.jsx';
+import { HeroSection } from './components/HeroSection.jsx';
+import { MarqueeIntegrations } from './components/MarqueeIntegrations.jsx';
+import { BentoFeatures } from './components/BentoFeatures.jsx';
+import { HowItWorks } from './components/HowItWorks.jsx';
+import { PlatformShowcase } from './components/PlatformShowcase.jsx';
+import { CrossCompanyMatrix } from './components/CrossCompanyMatrix.jsx';
+import { FAQSection } from './components/FAQSection.jsx';
+import { CTASection } from './components/CTASection.jsx';
+import { FooterSection } from './components/FooterSection.jsx';
 
 export default function App() {
   return (
-    <div id="top" className="bg-background text-foreground min-h-screen selection:bg-foreground selection:text-background">
-      <a className={`${buttonVariants({ variant: 'primary', size: 'sm' })} skip-link`} href="#main">
+    <div
+      id="top"
+      className="min-h-screen bg-[var(--m-paper)] text-[var(--m-ink)] font-sans antialiased selection:bg-[var(--m-accent)]/20 selection:text-[var(--m-accent)] overflow-x-hidden"
+    >
+      {/* Accessibility skip link */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[var(--m-accent)] focus:text-white focus:shadow-lg focus:font-mono focus:text-xs"
+      >
         跳到正文
       </a>
 
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-md">
-        <div className="page-shell flex h-13 items-center justify-between gap-6">
-          <SiteMark />
-          <nav aria-label="页面章节导航" className="hidden items-center gap-6 md:flex">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-foreground-muted hover:text-foreground text-xs sm:text-sm font-medium transition-colors no-underline"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3">
-            <GitHubLink variant="outline" size="sm">
-              GitHub
-            </GitHubLink>
-          </div>
-        </div>
-      </header>
+      {/* Modern Aceternity Style Floating/Sticky Navbar */}
+      <Navbar />
 
-      <main id="main">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden border-b border-border hero-glow">
-          <div className="page-shell py-8 sm:py-10 lg:py-12">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
-              {/* Left Column: Value Prop & Install */}
-              <div className="lg:col-span-6 min-w-0 space-y-3 sm:space-y-3.5">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>开源 CLI · 覆盖 30+ 招聘官网</span>
-                </div>
+      <main id="main" tabIndex="-1" className="outline-none">
+        {/* Aceternity Style Hero Section with Interactive Scaled Mac Window & Spring Pill Tabs */}
+        <HeroSection />
 
-                <h1 className="hero-title text-foreground tracking-tight">
-                  让 Agent 直接搜索
-                  <br />
-                  真实招聘官网
-                </h1>
+        {/* Aceternity Z-style Infinite Marquee with Hover Pause */}
+        <MarqueeIntegrations />
 
-                <p className="text-foreground-muted text-xs sm:text-sm leading-relaxed max-w-lg">
-                  统一 30+ 招聘官网，输出标准化岗位数据，支持自然语言检索与跨司比对。
-                </p>
+        {/* Aceternity Le-style 6 Bento Grid Feature Cards with Micro-Visuals */}
+        <BentoFeatures />
 
-                <div id="install" className="pt-0.5 scroll-mt-20">
-                  <InstallCommand />
-                </div>
+        {/* Aceternity Ue-style 3-Step Auto-Progress Workflow */}
+        <HowItWorks />
 
-                <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
-                  <GitHubLink variant="primary" size="md">
-                    在 GitHub 查看
-                  </GitHubLink>
-                  <a
-                    href="#scenarios"
-                    className={buttonVariants({ variant: 'outline', size: 'md' })}
-                  >
-                    场景 ↓
-                  </a>
-                </div>
-              </div>
+        {/* Aceternity rt-style Multi-Platform Showcase */}
+        <PlatformShowcase />
 
-              {/* Right Column: Visual Anchor / Light Frosted Terminal Showcase */}
-              <div className="lg:col-span-6 min-w-0 w-full relative group">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -inset-2 rounded-2xl bg-gradient-to-tr from-emerald-500/10 via-slate-200/40 to-sky-500/10 blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500 -z-1"
-                />
-                <TerminalShowcase />
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Real-world Cross-company Matrix Perspectve */}
+        <CrossCompanyMatrix />
 
-        {/* Ecosystem Marquee Section */}
-        <section id="ecosystem" className="border-b border-border py-5 sm:py-7 scroll-mt-14 bg-background-subtle/30">
-          <div className="page-shell mb-3.5 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
-            <div>
-              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
-                Supported Ecosystem
-              </div>
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
-                覆盖 30+ 招聘官网与主流 Agent
-              </h2>
-            </div>
-            <p className="text-foreground-muted text-xs sm:text-[13px] max-w-md leading-relaxed">
-              支持 36 个公开招聘站点，主流 Agent 即开即用。
-            </p>
-          </div>
+        {/* Developer & Agent FAQ Accordion */}
+        <FAQSection />
 
-          <div className="space-y-2">
-            {/* Row 1: Companies (Moving left) */}
-            <LogoMarquee
-              items={companies}
-              logoDir="companies"
-              duration="68s"
-              label="招聘官网"
-            />
-            {/* Row 2: Agents (Moving right / reverse) */}
-            <LogoMarquee
-              items={agents}
-              logoDir="agents"
-              duration="30s"
-              reverse={true}
-              label="Agent 运行时"
-            />
-          </div>
-        </section>
-
-        {/* Real-world Scenarios Section */}
-        <section id="scenarios" className="border-b border-border py-7 sm:py-9 scroll-mt-14">
-          <div className="page-shell space-y-4">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
-              <div className="max-w-2xl">
-                <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
-                  Use Cases
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  典型应用场景
-                </h2>
-                <p className="text-foreground-muted mt-1 text-xs sm:text-sm leading-relaxed">
-                  配合 Agent 执行自然语言找岗、跨司对照与趋势分析。
-                </p>
-              </div>
-              <div className="text-xs text-foreground-muted flex items-center gap-2 bg-background-subtle px-2.5 py-1 rounded-md border border-border shrink-0 self-start md:self-auto font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span>自然语言驱动</span>
-              </div>
-            </div>
-
-            <UserScenarios />
-          </div>
-        </section>
-
-        {/* Core Capabilities Section */}
-        <section id="capabilities" className="border-b border-border py-7 sm:py-9 scroll-mt-14 bg-background-subtle/20">
-          <div className="page-shell space-y-4">
-            <div className="max-w-xl">
-              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
-                Core Capabilities
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                核心能力
-              </h2>
-              <p className="text-foreground-muted mt-1 text-xs sm:text-sm leading-relaxed">
-                统一规范、跨司比对与低 Token 原生流。
-              </p>
-            </div>
-
-            <FeatureShowcase />
-          </div>
-        </section>
-
-        {/* Quickstart Workflow Section */}
-        <section id="workflow" className="border-b border-border py-7 sm:py-9 scroll-mt-14 bg-background-subtle/30">
-          <div className="page-shell space-y-4">
-            <div className="text-center max-w-xl mx-auto mb-2">
-              <div className="text-xs font-mono text-foreground-muted uppercase tracking-wider mb-0.5">
-                Quickstart Workflow
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                快速上手
-              </h2>
-              <p className="text-foreground-muted mt-1 text-xs sm:text-sm">
-                三步快速开始
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-              <div className="p-3.5 sm:p-4 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                    01
-                  </div>
-                  <span className="text-[11px] font-mono text-foreground-muted">环境准备</span>
-                </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">安装环境</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed m-0">
-                  全局安装 CLI，或通过 npx 为各类 Agent 接入。
-                </p>
-                <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
-                  <code className="truncate flex-1">npm install -g jobhunt-cli</code>
-                  <CopyButton value="npm install -g jobhunt-cli" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
-                </div>
-              </div>
-
-              <div className="p-3.5 sm:p-4 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                    02
-                  </div>
-                  <span className="text-[11px] font-mono text-foreground-muted">发现站点</span>
-                </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">发现站点</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed m-0">
-                  查看已支持的公司代码、招聘渠道与分类。
-                </p>
-                <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
-                  <code className="truncate flex-1">job sites</code>
-                  <CopyButton value="job sites" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
-                </div>
-              </div>
-
-              <div className="p-3.5 sm:p-4 rounded-xl border border-border bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="w-7 h-7 rounded-lg bg-foreground/5 border border-border flex items-center justify-center font-mono text-xs font-bold text-foreground">
-                    03
-                  </div>
-                  <span className="text-[11px] font-mono text-foreground-muted">横向比对</span>
-                </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">检索比对</h3>
-                <p className="text-xs text-foreground-muted leading-relaxed m-0">
-                  并发查询多家公司，输出表格、CSV 或 JSON。
-                </p>
-                <div className="flex items-center justify-between gap-2 p-1.5 px-2 rounded-lg bg-background-subtle border border-border/80 font-mono text-xs text-foreground">
-                  <code className="truncate flex-1">job compare AI --sites meituan,xiaomi</code>
-                  <CopyButton value="job compare AI --sites meituan,xiaomi" variant="ghost" size="icon-sm" label="复制命令" copiedLabel="已复制" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Final CTA Section */}
-        <section className="border-b border-border py-7 sm:py-10">
-          <div className="page-shell">
-            <div className="rounded-2xl border border-border bg-white p-5 sm:p-7 text-center max-w-2xl mx-auto space-y-4 shadow-xs">
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-border bg-background-subtle text-xs font-mono text-foreground-muted shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>开源工具</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground m-0">
-                轻量、纯净、专为 Agent 打造
-              </h2>
-              <p className="text-foreground-muted text-xs sm:text-sm max-w-lg mx-auto leading-relaxed m-0">
-                一条命令直连 30+ 家公开招聘官网，获取结构化岗位数据。
-              </p>
-
-              {/* In-place install command bar */}
-              <div className="max-w-md mx-auto pt-0.5">
-                <div className="flex items-center justify-between gap-3 p-2 px-3 rounded-xl border border-border bg-background-subtle font-mono text-xs sm:text-sm shadow-2xs">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="text-foreground-muted select-none">$</span>
-                    <code className="text-foreground font-medium truncate">npm install -g jobhunt-cli</code>
-                  </div>
-                  <CopyButton
-                    value="npm install -g jobhunt-cli"
-                    variant="outline"
-                    size="icon-sm"
-                    label="复制安装命令"
-                    copiedLabel="已复制"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-0.5">
-                <GitHubLink variant="primary" size="md">
-                  在 GitHub 查看源码
-                </GitHubLink>
-                <a
-                  href="#capabilities"
-                  className={buttonVariants({ variant: 'outline', size: 'md' })}
-                >
-                  核心能力 ↓
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Aceternity ut-style High-Impact Curved Call-to-Action */}
+        <CTASection />
       </main>
 
-      {/* Footer */}
-      <footer>
-        <div className="page-shell flex flex-col sm:flex-row items-center justify-between gap-3 py-5 text-xs text-foreground-muted">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <JobHuntLogo size={20} />
-            <span className="font-semibold text-foreground font-mono">JobHunt CLI</span>
-            <span className="px-1.5 py-0.5 rounded bg-foreground/5 text-foreground-muted font-mono text-[10px] border border-border">v0.2.6</span>
-            <span>·</span>
-            <span>MIT License</span>
-            <span>·</span>
-            <span>Open Source</span>
-          </div>
-          <div className="flex items-center gap-4 font-medium">
-            <a
-              href="https://www.npmjs.com/package/jobhunt-cli"
-              target="_blank"
-              rel="noreferrer"
-              className="text-foreground-muted hover:text-foreground transition-colors no-underline"
-            >
-              npm 包
-            </a>
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="text-foreground-muted hover:text-foreground transition-colors no-underline"
-            >
-              GitHub 仓库
-            </a>
-            <a
-              href="#top"
-              className="text-foreground-muted hover:text-foreground transition-colors no-underline"
-            >
-              回到顶部 ↑
-            </a>
-          </div>
-        </div>
-      </footer>
+      {/* Aceternity gt-style Footer */}
+      <FooterSection />
     </div>
   );
 }
